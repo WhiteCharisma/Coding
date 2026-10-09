@@ -25,16 +25,29 @@ const startOfDay = (t: number) => {
   return d.getTime();
 };
 
+// Creating an Intl formatter is far slower than using one, and a long channel formats hundreds
+// of times per render: keep one per locale and style.
+const dateFormats = new Map<string, Intl.DateTimeFormat>();
+function dateFormat(style: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${getLocale()}|${style}`;
+  let format = dateFormats.get(key);
+  if (!format) {
+    format = new Intl.DateTimeFormat(getLocale(), options);
+    dateFormats.set(key, format);
+  }
+  return format;
+}
+
 export function formatTime(t: number): string {
-  return new Intl.DateTimeFormat(getLocale(), { hour: '2-digit', minute: '2-digit' }).format(t);
+  return dateFormat('time', { hour: '2-digit', minute: '2-digit' }).format(t);
 }
 
 export function formatDateTime(t: number): string {
-  return new Intl.DateTimeFormat(getLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(t);
+  return dateFormat('dateTime', { dateStyle: 'medium', timeStyle: 'short' }).format(t);
 }
 
 export function formatDate(t: number): string {
-  return new Intl.DateTimeFormat(getLocale(), { dateStyle: 'medium' }).format(t);
+  return dateFormat('date', { dateStyle: 'medium' }).format(t);
 }
 
 /** "Today", "Yesterday", "Monday 6 October", "6 October 2025". */
@@ -44,9 +57,10 @@ export function formatDayLabel(t: number, labels: { today: string; yesterday: st
   if (day === today) return labels.today;
   if (day === today - dayMs) return labels.yesterday;
   const sameYear = new Date(t).getFullYear() === new Date().getFullYear();
-  return new Intl.DateTimeFormat(
-    getLocale(),
-    sameYear ? { weekday: 'long', day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' },
+  return (
+    sameYear
+      ? dateFormat('weekdayDay', { weekday: 'long', day: 'numeric', month: 'long' })
+      : dateFormat('dayYear', { day: 'numeric', month: 'long', year: 'numeric' })
   ).format(t);
 }
 
@@ -54,10 +68,20 @@ export function isSameDay(a: number, b: number): boolean {
   return startOfDay(a) === startOfDay(b);
 }
 
+const relativeFormats = new Map<string, Intl.RelativeTimeFormat>();
+function relativeFormat(): Intl.RelativeTimeFormat {
+  let format = relativeFormats.get(getLocale());
+  if (!format) {
+    format = new Intl.RelativeTimeFormat(getLocale(), { numeric: 'auto', style: 'narrow' });
+    relativeFormats.set(getLocale(), format);
+  }
+  return format;
+}
+
 /** Compact relative time: "now", "5m", "3h", "2d", then a date. */
 export function formatRelative(t: number): string {
   const diff = Date.now() - t;
-  const rtf = new Intl.RelativeTimeFormat(getLocale(), { numeric: 'auto', style: 'narrow' });
+  const rtf = relativeFormat();
   if (diff < 45_000) return rtf.format(0, 'second');
   if (diff < 3_600_000) return rtf.format(-Math.round(diff / 60_000), 'minute');
   if (diff < dayMs) return rtf.format(-Math.round(diff / 3_600_000), 'hour');
