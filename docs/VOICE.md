@@ -30,8 +30,10 @@ above the messages). One voice session per account: joining elsewhere leaves the
   peer ids are random per session and cannot be taken over (resume requires the same account).
   Signals are size-limited and rate-limited (400 burst / 80 per second per connection); joins are
   limited to 6 burst / 1 every 2 s.
-- **No media on the server.** Audio is encrypted end to end between browsers (WebRTC DTLS-SRTP).
-  With TURN the relay forwards encrypted packets it cannot decrypt.
+- **No media on the server.** Audio travels encrypted between the browsers (WebRTC DTLS-SRTP)
+  and never passes through the app; a TURN relay forwards packets it cannot decrypt. The browsers
+  exchange their key fingerprints through the server, so this is **not end-to-end encryption
+  against the server's operator** (a compromised server could insert itself into new calls).
 - **Mesh limit**: each person sends one stream per other person, so rooms are capped at
   `VOICE_MAX_PARTICIPANTS` (default 8). In Studio mode that is 7 × 320 kbit/s ≈ 2.2 Mbit/s upload
   per person in a full room. Larger rooms would need an SFU (a media server such as LiveKit or

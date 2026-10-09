@@ -44,16 +44,23 @@ Caddy (account, community, messages, a 0.57 MB photo, a WebSocket session) and u
 real `deploy/update.sh`:
 
 - the script took a backup first, fetched, checked out the new version, built, restarted and
-  waited for the health check (36 s on a 4-vCPU machine with a warm build cache);
+  waited for the health check (36–53 s on a 4-vCPU machine; the site stays up while it builds);
 - afterwards: the messages, the photo (identical SHA-256) and the old session cookie (REST and
   WebSocket) all still worked; a preview was made for the old photo; files still require a
   session (401 without); `/api/config` announced voice; the new `Permissions-Policy` was served;
 - a **Studio call between two browsers through the Docker image and Caddy** measured
-  318.1 / 319.5 kbit/s Opus stereo (getStats), with the measured values shown in the call bar;
-- **code rollback** (commands below) brought 0.1 back on the same data, including a message
-  written by 0.2; **full rollback** (`restore.sh` with the pre-update backup) returned the exact
-  earlier state and moved the newer data to `data/pre-restore-<time>/` (nothing deleted);
-- rolling forward again with `update.sh` worked the same way.
+  318–323 kbit/s Opus stereo in each direction over four runs (getStats; final build: 320.6 /
+  323.2 kbit/s), with the measured values shown in the call bar;
+- **code rollback** (commands below; healthy 6 s after the command with the kept image tag)
+  brought 0.1 back on the same data, including messages written by 0.2; **full rollback**
+  (`restore.sh` with the pre-update backup) returned the exact earlier state and moved the newer
+  data to `data/pre-restore-<time>/` (nothing deleted);
+- rolling forward again with `update.sh` worked the same way. Every step of the runbook below was
+  run as written, in this order, on the copy.
+
+Speed compared with 0.1 on the same machine: [PERFORMANCE.md](PERFORMANCE.md#interface-release-02)
+(smaller first download, faster scrolling through history; opening a long channel ≈0.25 s
+slower in headless software rendering).
 
 ## Deploying to the OVH VPS
 

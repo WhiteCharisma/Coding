@@ -1,23 +1,31 @@
 # Roadmap
 
-## Release 0.1 (this prototype) — reliable community messaging
+## Release 0.1 — reliable community messaging
 
 Communities, channels, roles/permissions, invitations, real-time messaging (DMs, group DMs,
 replies, reactions, mentions, pins, read states, typing, presence), attachments with audio
 previews, search, notifications, creator profiles, moderation and administration, Docker
 deployment with backups.
 
-## Next (0.2) — quality and reach
+## Release 0.2 — Frutiger Aero upgrade (this branch)
+
+Frutiger Aero redesign of every screen (Daylight/Twilight), animations with Full/Calm/Reduce
+motion, original interface sounds with their own volume controls, WebRTC voice rooms (Studio
+mode: 320 kbit/s stereo Opus, measured), image previews and faster uploads (server-side WebP
+previews with sharp/libvips in a background queue), chat spacing fixes. See
+[RELEASE_0.2.md](RELEASE_0.2.md).
+
+## Next (0.3) — quality and reach
 
 - Web Push notifications (service worker + VAPID keys, self-hosted, no paid service).
 - Threads on messages; message forwarding; scheduled announcements.
-- Server-side image thumbnails (sharp/libvips in a background queue).
+- Voice: an SFU (media server) for rooms larger than 8, screen sharing, Firefox/Safari testing.
 - Full emoji search and custom community emoji.
 - Additional languages (the UI already uses a central dictionary in `apps/web/src/i18n`).
 - Link previews through a sandboxed fetcher (SSRF-safe allowlist).
 - Optional ClamAV scanning for archives.
 
-## Later (0.3+) — professional network
+## Later (0.4+) — professional network
 
 - Portfolio sections (tracks, artwork galleries, game credits) on profiles.
 - Discovery by discipline / availability ("open for collaboration").

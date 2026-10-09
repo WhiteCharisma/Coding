@@ -158,6 +158,57 @@ uploads immediately and computes audio waveforms in parallel; messages can be se
 files upload; retried uploads reuse the stored file (`X-Upload-Key`). Previews requested before
 the background job finished wait for it (≈100–160 ms the first time).
 
+## Interface (release 0.2)
+
+The redesign adds glass, gloss, animations and sounds; these are its costs, measured against
+0.1 on the **same machine on the same day** with the same scripts (0.1 = commit `956e6cf` built in
+a separate worktree, deployed with Docker + Caddy for page loads). Headless Chromium here
+rasterises in software (no GPU), which makes painting costs look larger than on most real
+devices; low-end phones without GPU rasterisation behave similarly.
+
+### Page load (`/welcome` through Caddy, cache disabled, median of 5)
+
+| Profile                                 | 0.1                                | 0.2                                    |
+| --------------------------------------- | ---------------------------------- | -------------------------------------- |
+| Desktop: DOMContentLoaded / LCP         | 130 ms / 536 ms                    | 108 ms / 588 ms                        |
+| Mobile (150 ms RTT, 1.6 Mbit/s, 4× CPU) | 1 419 ms / 2 372 ms                | 1 496 ms / 2 360 ms                    |
+| Transferred                             | 334 KB (JS 186, CSS 19, fonts 128) | 251 KB (JS 193, CSS 28, fonts 28)      |
+| Layout shift (CLS)                      | not measured                       | 0.021 (web font swap; "good" is < 0.1) |
+
+### Long channel (`scripts/bench/client-bench.mjs`, 3 000 messages)
+
+| Measurement                                      | 0.1             | 0.2              |
+| ------------------------------------------------ | --------------- | ---------------- |
+| Older page while scrolling back, p50 / p95       | 82 ms / 120 ms  | 69 ms / 93 ms    |
+| Scroll back to the first message (59 pages)      | 10.2 s          | 9.4 s            |
+| Main-thread long tasks during the whole run      | 585 ms          | 281 ms           |
+| Scroll position shift when older messages load   | max 0.3 px      | max 0.4 px       |
+| Send: Enter → message visible, p50 / p95         | 4.4 ms / 9.0 ms | 7.4 ms / 12.9 ms |
+| Send: Enter → confirmed by the server, p50 / p95 | 36 ms / 59 ms   | 27 ms / 44 ms    |
+| Open the channel → first messages on screen      | 471 ms          | 726 ms           |
+| Rendered rows (window) / DOM nodes, maximum      | 600 / 4 473     | 600 / 4 507      |
+
+**Found and fixed while measuring** (each change measured before/after; details in the commits):
+
+| Problem                                                                                            | Fix                                                                            | Effect                                                |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| The large glass panes used a live `backdrop-filter`, redrawn whenever anything inside them changed | Panes show a pre-rendered frosted sky (fixed to the viewport) under their tint | Older page p50 209 → 105 ms                           |
+| That frosted sky was 12 CSS gradients, re-rasterised under every change                            | A 320×200 picture of it (1.4 KB, `scripts/sky-frost.mjs`), stretched           | Channel open 934 → 787 ms (median of 3, 600 messages) |
+| Every message created a new `Intl.DateTimeFormat`                                                  | Formatters reused per locale                                                   | Older page p50 99 → 86 ms; channel open 787 → 749 ms  |
+| The sky layer pulled the web font before any text existed, competing with the app's JavaScript     | The (text-less) sky layer uses a local font                                    | Mobile DOMContentLoaded 1 599 → 1 501 ms              |
+| The welcome page's code was requested only after the session check returned                        | Fetched in parallel with the check for signed-out visitors                     | Mobile LCP 2 524 → 2 348 ms                           |
+| Loading skeletons animated `background-position` (a repaint every frame)                           | Shimmer moves with `transform` only                                            | No repaint per frame                                  |
+
+**Still slower than 0.1:** opening a channel with long history (+≈0.25 s here, software
+rendering: a larger component tree and more layers to paint per message), the optimistic send
+(+3 ms, still well under one frame) and the desktop welcome LCP (+50 ms). Everything else is
+equal or faster.
+
+**Animations** use `transform`/`opacity` (composited) and run once per event; the only loops are
+while something is pending (spinner, skeletons, typing dots). "Reduce motion" or the system
+setting stops them all.
+**Sounds** are synthesised on demand (no audio files to download).
+
 ## Interpretation for a Hostinger VPS
 
 - A KVM 1 (1 vCPU, 4 GB RAM) has ample headroom for a community of a few hundred people: the

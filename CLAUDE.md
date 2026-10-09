@@ -39,6 +39,7 @@ npm test                    # Vitest: shared + server integration + web unit tes
 npm run test:e2e            # Playwright end-to-end tests (builds + starts a server on :4173)
 E2E_SKIP_BUILD=1 npx playwright test -g "pattern"   # reuse the last build, run matching tests
 npm run build               # production build: apps/web/dist + apps/server/dist
+node scripts/sky-frost.mjs                           # after changing the sky colours: re-render the panes' frost (needs a web build)
 node scripts/bench/server-bench.mjs                  # server load benchmark (needs a build)
 PAGE_URL=http://localhost:8080 node scripts/bench/client-bench.mjs   # browser benchmark
 node scripts/sound-levels.mjs                        # loudness of the interface sounds (Chromium)

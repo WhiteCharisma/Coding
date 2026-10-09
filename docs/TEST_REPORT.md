@@ -1,21 +1,22 @@
 # Test report
 
-Results of the final verification run on **2026-10-09**, against the code of commit `b03dae9`
-(documentation-only commits follow it). Every number below comes from an actual run; nothing
-is estimated. Raw output is not committed; re-run the commands at the end to reproduce.
+Results of the final verification run for **release 0.2** on **2026-10-09**, against commit
+`8802d02` on branch `feature/frutiger-aero-premium-upgrade` (documentation-only commits follow
+it). Every number below comes from an actual run; nothing is estimated. Raw output is not
+committed; re-run the commands at the end to reproduce.
 
 ## Summary
 
-| Check                               | Result                                                     | Time           |
-| ----------------------------------- | ---------------------------------------------------------- | -------------- |
-| TypeScript (`npm run typecheck`)    | ✅ 0 errors — all workspaces + E2E sources                 | 18 s           |
-| ESLint (`npm run lint`)             | ✅ 0 problems                                              | 12 s           |
-| Prettier (`npx prettier --check .`) | ✅ all files formatted                                     | —              |
-| Unit + integration (`npm test`)     | ✅ **182 / 182 passed**, 18 files, 0 skipped               | 10.8 s         |
-| End-to-end (`npm run test:e2e`)     | ✅ **33 / 33 passed**, 0 flaky, 0 skipped, 0 retries       | 69 s (+ build) |
-| Production build (`npm run build`)  | ✅                                                         | —              |
-| `npm audit` (production / all deps) | ✅ 0 known vulnerabilities / 0                             | —              |
-| Docker deployment (local)           | ✅ see [Deployment verification](#deployment-verification) | —              |
+| Check                               | Result                                                                  | Time             |
+| ----------------------------------- | ----------------------------------------------------------------------- | ---------------- |
+| TypeScript (`npm run typecheck`)    | ✅ 0 errors — all workspaces + E2E sources                              | 21 s             |
+| ESLint (`npm run lint`)             | ✅ 0 problems                                                           | 16 s             |
+| Prettier (`npx prettier --check .`) | ✅ all files formatted                                                  | —                |
+| Unit + integration (`npm test`)     | ✅ **242 / 242 passed**, 24 files, 0 skipped                            | 16 s             |
+| End-to-end (`npm run test:e2e`)     | ✅ **42 passed**, 1 skipped (opt-in TURN test, run separately), 0 flaky | 2.7 min (+build) |
+| Production build (`npm run build`)  | ✅                                                                      | —                |
+| `npm audit` (production / all deps) | ✅ 0 known vulnerabilities / 0                                          | —                |
+| Upgrade of a 0.1 install (Docker)   | ✅ see [Deployment verification](#deployment-verification)              | —                |
 
 ## Environment
 
@@ -23,97 +24,109 @@ is estimated. Raw output is not committed; re-run the commands at the end to rep
 - Node.js 22.22.0, npm 10.9.4 (the Docker image uses Node.js 24.21).
 - Vitest 5.0.3 (server tests start real servers on random ports with temporary databases;
   web tests run in happy-dom).
-- Playwright 1.56.1 with Chromium (revision 1194). Projects: **desktop** (Desktop Chrome,
-  1440×900) and **mobile** (Pixel 7 emulation: touch, 412×915). One worker, no retries.
+- Playwright 1.56.1 with Chromium 141. Projects: **desktop** (1440×900), **mobile** (Pixel 7
+  emulation: touch, 412×915) and **voice** (two browser contexts with Chromium's fake
+  microphone playing a stereo test tone). One worker, no retries.
 - E2E tests run against the **production build** served by the real server with a fresh,
   throw-away database per run (`e2e/serve.mjs`). Every test fails on any browser console error or
   uncaught exception (automatic fixture).
 
 ## Unit and integration tests (Vitest)
 
-| File                                         |   Tests | Covers                                                                                                                                                 |
-| -------------------------------------------- | ------: | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `packages/shared/src/permissions.test.ts`    |       7 | Permission resolution: owner, roles, ADMINISTRATOR, overwrite order, VIEW_CHANNEL, role positions                                                      |
-| `packages/shared/src/schemas.test.ts`        |       6 | Mentions, name normalisation, control/bidi stripping, safe links, emoji, registration input                                                            |
-| `apps/server/test/auth.test.ts`              |      23 | Registration, Argon2id + hashed tokens, sessions, lockout, CSRF/origin, headers, verification, reset, deletion, registration modes, rate limit         |
-| `apps/server/test/communities.test.ts`       |      19 | Templates, visibility (404 not 403), joining, invites (expiry, max uses, direct), channels, overwrites, role hierarchy, kicks, bans, ownership         |
-| `apps/server/test/messaging.test.ts`         |      16 | Persistence, idempotent nonces, validation, pagination, edit/delete rights, pins, reactions, replies, mentions, read state, permission denials         |
-| `apps/server/test/realtime.test.ts`          |      15 | Socket auth, foreign-origin rejection, connection cap, ack-after-persist, no delivery to non-members, revocation, catch-up, burst limits               |
-| `apps/server/test/dms.test.ts`               |       5 | One conversation per pair, participant-only delivery, notifications, blocking, DM policy, group membership                                             |
-| `apps/server/test/uploads.test.ts`           |       9 | Authorised serving, magic-byte detection, text sniffing, file-name sanitising, size limit, ownership, ATTACH_FILES, waveform + ranges, avatars         |
-| `apps/server/test/admin.test.ts`             |      11 | Admin/moderator access control, suspensions, last-admin protection, reports, reset links, settings, community removal                                  |
-| `apps/server/test/search-ops.test.ts`        |       8 | Search (prefix, accents, filters, FTS syntax inert, authorization), readiness, cleanup, restart persistence, backup → restore, corrupt archive refused |
-| `apps/server/test/static.test.ts`            |       5 | SPA fallback, cache headers, JSON 404s, database/uploads/backups never served                                                                          |
-| `apps/web/src/stores/messages.test.ts`       |       9 | 600-message window in both directions, live appends, ordering, outbox order, same-nonce retries, persistence, sign-out policy                          |
-| `apps/web/src/stores/session.test.ts`        |       3 | Sign-out: confirmed, already ended, server unreachable (stays signed in)                                                                               |
-| `apps/web/src/styles/tokens.test.ts`         |      30 | WCAG contrast of every text, semantic, on-fill and icon token on every surface, both themes                                                            |
-| `apps/web/src/lib/markdown.test.tsx`         |       6 | No HTML injection, safe links, formatting, server-resolved mentions only, highlights, previews                                                         |
-| `apps/web/src/lib/cn.test.ts`                |       3 | Class merging keeps colours next to custom sizes                                                                                                       |
-| `apps/web/src/i18n/i18n.test.ts`             |       4 | Interpolation, plurals, dotted keys, missing keys                                                                                                      |
-| `apps/web/src/features/auth/helpers.test.ts` |       3 | Password strength meter, invite code parsing                                                                                                           |
-| **Total**                                    | **182** | 18 files, all passed                                                                                                                                   |
+| File                                         |   Tests | Covers                                                                                                                                                                                                        |
+| -------------------------------------------- | ------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/shared/src/permissions.test.ts`    |       7 | Permission resolution: owner, roles, ADMINISTRATOR, overwrite order, VIEW_CHANNEL, role positions                                                                                                             |
+| `packages/shared/src/schemas.test.ts`        |       7 | Mentions, name normalisation, control/bidi stripping, safe links, emoji, registration input, message text normalisation                                                                                       |
+| `apps/server/test/auth.test.ts`              |      23 | Registration, Argon2id + hashed tokens, sessions, lockout, CSRF/origin, headers (incl. `microphone=(self)`), verification, reset, registration modes                                                          |
+| `apps/server/test/communities.test.ts`       |      19 | Templates, visibility (404 not 403), joining, invites (expiry, max uses, direct), channels, overwrites, role hierarchy, kicks, bans, ownership                                                                |
+| `apps/server/test/messaging.test.ts`         |      16 | Persistence, idempotent nonces, validation, pagination, edit/delete rights, pins, reactions, replies, mentions, read state, permission denials                                                                |
+| `apps/server/test/realtime.test.ts`          |      15 | Socket auth, foreign-origin rejection, connection cap, ack-after-persist, no delivery to non-members, revocation, catch-up, burst limits                                                                      |
+| `apps/server/test/voice.test.ts`             |       8 | **New.** Voice config validation, join rights (404 for outsiders), relay only within a room, one session per account, resume grace, ended on kick, TURN credentials without the secret, room limit, voice off |
+| `apps/server/test/media.test.ts`             |       7 | **New.** WebP previews with the original's access rules, GPS/XMP/IPTC removal without re-encoding, retry-safe uploads, `Server-Timing`, late waveforms                                                        |
+| `apps/server/test/dms.test.ts`               |       5 | One conversation per pair, participant-only delivery, notifications, blocking, DM policy, group membership                                                                                                    |
+| `apps/server/test/uploads.test.ts`           |       9 | Authorised serving, magic-byte detection, text sniffing, file-name sanitising, size limit, ownership, ATTACH_FILES, waveform + ranges, avatars                                                                |
+| `apps/server/test/admin.test.ts`             |      11 | Admin/moderator access control, suspensions, last-admin protection, reports, reset links, settings, community removal, people in voice                                                                        |
+| `apps/server/test/search-ops.test.ts`        |       8 | Search (prefix, accents, filters, FTS syntax inert, authorization), readiness, cleanup, restart persistence, backup → restore, corrupt archive refused                                                        |
+| `apps/server/test/static.test.ts`            |       5 | SPA fallback, cache headers, JSON 404s, database/uploads/backups never served                                                                                                                                 |
+| `apps/web/src/stores/messages.test.ts`       |      14 | 600-message window both ways, live appends, only live arrivals animate, outbox order and retries, single-update confirmation, uploads before sending                                                          |
+| `apps/web/src/stores/session.test.ts`        |       3 | Sign-out: confirmed, already ended, server unreachable (stays signed in)                                                                                                                                      |
+| `apps/web/src/styles/tokens.test.ts`         |      50 | WCAG contrast of every text, semantic, on-fill and icon token on translucent glass composited over the sky (worst case), both themes; selection, tiles                                                        |
+| `apps/web/src/lib/markdown.test.tsx`         |       9 | No HTML injection, safe links, formatting, server-resolved mentions only, blank-line and code-block spacing, highlights, search snippets without markers                                                      |
+| `apps/web/src/lib/sounds.test.ts`            |       5 | **New.** Silent before interaction, one sound per send, separate interface/notification switches and volumes, perceptual volume                                                                               |
+| `apps/web/src/features/chat/motion.test.tsx` |       5 | **New.** History never animates; reaction pop, glints and count roll only for live changes; Calm/Reduce drop decorative effects                                                                               |
+| `apps/web/src/lib/voice/sdp.test.ts`         |       4 | **New.** Opus payload detection; 320 kbit/s stereo CBR written into SDP without losing parameters; back to mono                                                                                               |
+| `apps/web/src/lib/format.test.ts`            |       2 | **New.** Reused date formatters match `Intl`; day labels and relative times                                                                                                                                   |
+| `apps/web/src/lib/cn.test.ts`                |       3 | Class merging keeps colours next to custom sizes                                                                                                                                                              |
+| `apps/web/src/i18n/i18n.test.ts`             |       4 | Interpolation, plurals, dotted keys, missing keys                                                                                                                                                             |
+| `apps/web/src/features/auth/helpers.test.ts` |       3 | Password strength meter, invite code parsing                                                                                                                                                                  |
+| **Total**                                    | **242** | 24 files, all passed                                                                                                                                                                                          |
 
 ### Negative security tests (selection)
 
-These assert that something is **refused**: unknown users and wrong passwords get identical
-errors; accounts lock after repeated failures; privileged fields in a registration request are
-ignored; state-changing requests without the CSRF header or from a foreign origin fail;
-WebSocket handshakes from foreign origins fail; a 21st simultaneous connection is refused;
-non-members never receive messages, cannot read history or single messages (404), cannot
-search them and cannot download their files; a kicked member stops receiving immediately; a
-revoked session's sockets are disconnected; members cannot change roles, grant permissions they
-lack, or act on equal/higher roles; members cannot use any admin endpoint and moderators cannot
-change settings or roles; the last administrator cannot be demoted; a disguised executable is
-refused by content; files cannot be attached to another user's or channel's messages; reset
-tokens never appear in logs or responses; FTS syntax in search input is inert; the database,
-uploads and backups are never served.
+As in 0.1, these assert that something is **refused** (identical errors for unknown users and
+wrong passwords, lockout, CSRF/origin checks, foreign WebSocket origins, connection caps,
+non-members never receiving or reading anything, role hierarchy, admin-only endpoints, disguised
+executables, inert FTS syntax, data directories never served). New in 0.2: people who cannot see
+a channel cannot join its voice room (404) or receive its signals; a voice signal is never
+relayed outside its room; a removed member's voice session ends at once; the TURN secret never
+reaches a browser (only short-lived HMAC credentials); previews obey the original file's access
+rules; uploads lose GPS/XMP/IPTC metadata.
 
 ## End-to-end tests (Playwright)
 
-| Spec                     | Project |  Tests | Scenarios                                                                                                                                                                          |
-| ------------------------ | ------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth.spec.ts`           | desktop |      4 | Sign-up → onboarding → home; taken username explained inline; wrong password, then redirect to the requested page; sign-out                                                        |
-| `communities.spec.ts`    | desktop |      3 | Create a community in the UI and invite a new person who joins via the link; join from Explore; private channels hidden from members                                               |
-| `messaging.spec.ts`      | desktop |      4 | Two people: live messages, replies, mentions, reactions, edits, deletions; order after reload; leaving stops delivery; sign-out with unsent messages asks and deletes them         |
-| `dms-search.spec.ts`     | desktop |      3 | DM from a profile with a live reply; DM policy "nobody" respected; search never shows other communities                                                                            |
-| `attachments.spec.ts`    | desktop |      1 | Audio upload gets a waveform player; image lightbox; outsiders get 404 for files                                                                                                   |
-| `security.spec.ts`       | desktop |      6 | Private community isolation (pages, API, files); CSRF/origin; script in a message stays text; cookie flags; disguised executable; security headers                                 |
-| `settings-admin.spec.ts` | desktop |      7 | Profile edits; theme/density/motion persist; sign out other devices; members kept out of admin; report → warn flow; invite-only registration with codes; backup from the dashboard |
-| `accessibility.spec.ts`  | desktop |      3 | Landmarks, one h1, skip link, labelled images and icon buttons; reduced motion; labelled fields and announced errors                                                               |
-| `mobile.spec.ts`         | mobile  |      2 | Bottom navigation, community → channel → message and back; long-press message actions                                                                                              |
-| **Total**                |         | **33** | all passed, 0 flaky                                                                                                                                                                |
+| Spec                     | Project |        Tests | Scenarios                                                                                                                                                                                                                                                                         |
+| ------------------------ | ------- | -----------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth.spec.ts`           | desktop |            4 | Sign-up → onboarding → home; taken username explained inline; wrong password, then redirect to the requested page; sign-out                                                                                                                                                       |
+| `communities.spec.ts`    | desktop |            3 | Create a community in the UI and invite a new person who joins via the link; join from Explore; private channels hidden from members                                                                                                                                              |
+| `messaging.spec.ts`      | desktop |            4 | Two people: live messages, replies, mentions, reactions, edits, deletions; order after reload; leaving stops delivery; sign-out with unsent messages asks and deletes them                                                                                                        |
+| `message-layout.spec.ts` | desktop |            2 | **New.** Consecutive messages grouped tightly and identical after reload; a message keeps its row and height from sending to confirmed (the spacing bug)                                                                                                                          |
+| `dms-search.spec.ts`     | desktop |            3 | DM from a profile with a live reply; DM policy "nobody" respected; search never shows other communities                                                                                                                                                                           |
+| `attachments.spec.ts`    | desktop |            2 | Audio waveform player; image viewer; outsiders get 404; **new:** an image can be sent while it uploads and others get a small preview                                                                                                                                             |
+| `security.spec.ts`       | desktop |            6 | Private community isolation (pages, API, files); CSRF/origin; script in a message stays text; cookie flags; disguised executable; security headers                                                                                                                                |
+| `settings-admin.spec.ts` | desktop |            7 | Profile edits; theme (Daylight/Twilight)/density/motion persist; sign out other devices; members kept out of admin; report → warn; invite-only registration; backup from dashboard                                                                                                |
+| `sounds.spec.ts`         | desktop |            1 | **New.** Silent until the first interaction; one sound per send despite the server confirmation; a chime for others' messages; settings switch them off                                                                                                                           |
+| `accessibility.spec.ts`  | desktop |            3 | Landmarks, one h1, skip link, labelled images and icon buttons; reduced motion; labelled fields and announced errors                                                                                                                                                              |
+| `mobile.spec.ts`         | mobile  |            3 | Bottom navigation and back; long-press message actions; **new:** bottom bar, action sheet and dialogs clear an emulated 34 px home-indicator inset                                                                                                                                |
+| `voice.spec.ts`          | voice   | 5 (1 opt-in) | **New.** Studio: Opus stereo at 319.9 kbit/s measured, left/right kept apart (FFT); Voice: mono, mute heard as silence, leaving releases the microphone; dropped server connection resumes the same call; refused microphone explained; TURN relay (opt-in, needs a local coturn) |
+| **Total**                |         |       **43** | 42 passed, 1 skipped (TURN), 0 flaky                                                                                                                                                                                                                                              |
+
+The TURN test was run separately against a local coturn 4.6.1 (`E2E_TURN=1`, see
+[VOICE.md](VOICE.md#testing-turn)): passed, route "Relayed (TURN)", 317.8 / 319.9 kbit/s.
 
 ## Deployment verification
 
-Performed on the development machine with Docker 29.8 and Compose v5.6, using the real
-`docker-compose.yml`, `Dockerfile`, `Caddyfile` and `deploy/*.sh` scripts (Caddy served plain
-HTTP on local port 8080 because no public domain is available here):
+Performed with Docker 29.8 and Compose v5.6 using the real `docker-compose.yml`, `Dockerfile`,
+`Caddyfile` and `deploy/*.sh` scripts (Caddy served plain HTTP on local port 8080 because no
+public domain is available here). Full runbook: [RELEASE_0.2.md](RELEASE_0.2.md).
 
-- `install.sh` wrote `.env` (mode 600), built the image, started both containers and waited for
-  the health check; `create-admin.sh` created the first administrator.
-- Through Caddy: registration, community creation, a WebSocket connection (transport
-  `websocket`) and a message delivered as a real-time event.
-- `backup.sh` → archive; a message written after the backup; `restore.sh` → the earlier state
-  returned, the later message was gone, and the replaced data was moved to
-  `data/pre-restore-<time>/` (nothing deleted).
-- Data survived `docker compose down` / `up` (container re-creation).
-- `update.sh` ran successfully for 7 consecutive commits, each time creating a backup, pulling,
-  rebuilding and passing the health check — the last one updating the stack to `b03dae9`, the
-  code described in this report. Afterwards the earlier messages were still there and the
-  stylesheet served through Caddy contained the new colour tokens.
+- Fresh install of the production version 0.1 (`956e6cf`) with `install.sh`; data created
+  through Caddy: account, community, messages, a 0.57 MB photo, a WebSocket session.
+- `update.sh <commit>` to 0.2: backup first, then fetch, build, restart, health check (36–53 s).
+  Afterwards: messages, the photo (identical SHA-256) and the old session (REST + WebSocket)
+  intact; preview generated for the old photo; files still require a session; voice announced;
+  `Permissions-Policy: … microphone=(self) …` served.
+- A real two-browser Studio call through the Docker image and Caddy: 319.3 / 320.8 kbit/s Opus
+  stereo (getStats), measured values shown in the call bar, no console errors.
+- Rollback: code-only (`git checkout` + kept image tag, healthy after 6 s) ran 0.1 on data written
+  by 0.2; full restore of the pre-update backup returned the earlier state and moved newer data to
+  `data/pre-restore-<time>/`. Rolling forward again worked.
 
-Not verified: Let's Encrypt certificate issuance and a real Hostinger VPS (see
-[KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
+Not verified: the real OVH VPS, Let's Encrypt issuance, voice between different real networks
+(STUN/TURN on a public server).
 
 ## Manual and visual checks
 
-- Screens reviewed in both themes after the final colour changes (sign-in with an error, home,
-  a channel with the member list, account settings, the delete-account dialog, admin overview).
-- Contrast was audited by script before it became the `tokens.test.ts` suite.
+- Every screen reviewed in both themes on desktop (1440×900) and phone (390×844) sizes: chat,
+  lists, dialogs, community settings, admin, search with filters, image viewer, mobile drawer and
+  sheets, public pages. Found and fixed: clipped focus rings in scrolling tab/chip rows, raw
+  markdown in search snippets, ignored iPhone safe area (now tested).
+- Frosted panes compared side by side with the earlier live blur (both themes): no visible
+  difference.
 
 ## Not covered
 
 - Firefox and Safari/WebKit (not available in this environment), real phones, screen readers.
+- Voice across real networks and NATs, Bluetooth headsets, echo in Studio mode on speakers.
 - Real SMTP delivery (the tests use the development outbox).
 - Load beyond the benchmarks in [PERFORMANCE.md](PERFORMANCE.md); long-running soak tests.
 

@@ -1,8 +1,8 @@
 # Known limitations
 
-Release 0.1 is a **tested deployment candidate**: it runs, it is covered by automated tests, and
-its Docker deployment was exercised end to end on a local machine. It is **not yet a production
-service**. This page lists what has not been verified, what is deliberately out of scope, and
+Release 0.2 is a **tested deployment candidate**: it runs, it is covered by automated tests, and
+its Docker deployment — including the upgrade of a 0.1 install and the way back — was exercised end
+to end on a local machine. It has **not been deployed to the production server** yet. This page lists what has not been verified, what is deliberately out of scope, and
 the behaviour you should know about before inviting real users. Security-specific residual
 risks are in [SECURITY.md](SECURITY.md#before-production).
 
@@ -13,10 +13,12 @@ risks are in [SECURITY.md](SECURITY.md#before-production).
 | Real Hostinger VPS         | Not deployed. The same Compose stack, scripts and restore flow were tested locally with Docker 29.8 / Compose v5.6.                                                                                                                             |
 | Let's Encrypt certificates | Not tested (no public DNS in the development environment). Caddy's automatic HTTPS is standard, but confirm it on the first deployment.                                                                                                         |
 | Email delivery             | Tested with the development outbox only (emails written to disk). No real SMTP provider was used.                                                                                                                                               |
-| Browsers                   | Automated tests ran in Chromium (desktop 1440×900 and a Pixel 7 emulation). Firefox, Safari/WebKit and real phones were not tested.                                                                                                             |
+| Browsers                   | Automated tests ran in Chromium (desktop 1440×900 and a Pixel 7 emulation). Firefox, Safari/WebKit and real phones were not tested — including the glass effects, sounds and voice.                                                             |
 | Assistive technology       | Automated checks only (landmarks, headings, labels, focus, reduced motion, token contrast). No manual screen-reader pass (NVDA, VoiceOver, TalkBack). Role colours chosen by community admins are shown as picked and are not contrast-checked. |
 | Load beyond the benchmark  | Measured up to 1 000 concurrent sockets and 20 000 messages on one machine ([PERFORMANCE.md](PERFORMANCE.md)); not over the public internet.                                                                                                    |
 | Large uploads under load   | Size limits and streaming are tested; many concurrent large uploads were not benchmarked.                                                                                                                                                       |
+| Voice across networks      | Calls were measured between browsers on one machine, directly and through a local TURN relay. Real home networks, mobile data, strict NATs and Bluetooth headsets were not tested.                                                              |
+| Rendering cost on devices  | Measured in headless Chromium with software rendering ([PERFORMANCE.md](PERFORMANCE.md#interface-release-02)). Opening a channel with long history is ≈0.25 s slower than in 0.1 there; not measured on real phones or GPUs.                    |
 
 ## Architecture limits (by design for one small VPS)
 
@@ -51,12 +53,13 @@ risks are in [SECURITY.md](SECURITY.md#before-production).
 - **Data export** ("download my data") — not implemented. If you operate under GDPR or similar
   law, plan how you will answer access/portability requests (today: an administrator extracts
   the data manually from the database).
-- **Threads, forwarding, scheduled messages, custom emoji, link previews, voice/video calls,
-  screen sharing** — not implemented. Edited messages show an "edited" marker; earlier versions
+- **Threads, forwarding, scheduled messages, custom emoji, link previews, video calls, screen
+  sharing, recording of voice rooms** — not implemented. Edited messages show an "edited" marker; earlier versions
   are not kept.
-- **Media processing** — no server-side thumbnails or transcoding. Images are shown from the
-  uploaded file, video plays only as uploaded MP4/WebM, and uploaded files are **not
-  virus-scanned** (archives are allowed: ZIP).
+- **Media processing** — images get a WebP preview (≤ 960 px) for the chat and keep their
+  original for viewing and downloading; nothing else is processed: no transcoding (video plays
+  only as uploaded MP4/WebM, audio as uploaded), and uploaded files are **not virus-scanned**
+  (archives are allowed: ZIP).
 - **Waveforms are computed by the uploader's browser** (96 peak values sent with the upload). The
   server checks their shape but cannot verify that they match the audio; they are display-only.
   If the uploader's browser cannot decode the format, a neutral placeholder waveform is shown.
@@ -99,4 +102,6 @@ risks are in [SECURITY.md](SECURITY.md#before-production).
 
 HTTPS protects traffic between the browser and the server. Messages and files are stored
 unencrypted on the server and are readable by whoever operates it — this is **not end-to-end
-encryption**, and it should not be described as such.
+encryption**, and it should not be described as such. Voice audio is encrypted between browsers
+(DTLS-SRTP) and does not pass through the server, but its keys are negotiated through the server,
+so it is not end-to-end encrypted against the operator either ([VOICE.md](VOICE.md#architecture)).

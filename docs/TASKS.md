@@ -128,7 +128,7 @@ Update this file in the same commit as the work it describes.
   - measured in e2e (Chromium): 319.9 kbit/s Opus stereo, L/R separation ≥ 96 dB, voice 64.7k,
     mute = silence, resume without interrupting audio; via coturn 4.6.1: relayed at 319.9 kbit/s
   - not done: Firefox/Safari testing, SFU for large rooms, relay-only privacy mode
-- [ ] Responsive/a11y polish, docs, deployment and rollback notes (in progress)
+- [x] Responsive/a11y polish, docs, deployment and rollback notes
   - [x] call bar compacts on phones (label truncates; mode chip and settings link move to
         Settings); the header voice button gives way to the room strip on phones; error and
         offline screens as glass windows; Admin → Overview shows how many people are in voice
@@ -138,21 +138,35 @@ Update this file in the same commit as the work it describes.
   - [x] version 0.2.0 (Admin → Overview showed 0.1.0)
   - [x] upgrade test of a fresh 0.1 install (956e6cf) with the real `deploy/update.sh`: backup
         first, messages/photo/session kept, preview made for the old photo, voice config and
-        `microphone=(self)` live; code rollback and full restore both verified; Studio call
-        through the Docker image + Caddy measured 318.1 / 319.5 kbit/s stereo
-  - [ ] release notes with OVH deployment, rollback and the approval list, final full checks
+        `microphone=(self)` live; code rollback (kept image tag, 6 s) and full restore verified;
+        Studio call through the Docker image + Caddy measured 318–323 kbit/s stereo
+  - [x] runbook with OVH deployment, rollback, variables and the approval list (docs/RELEASE_0.2.md)
+  - [x] final checks: typecheck, lint, Prettier, 242/242 unit+integration, e2e 42 passed + 1
+        opt-in skipped, build, npm audit 0 (docs/TEST_REPORT.md)
+- [x] Interface performance measured against 0.1 on the same machine (docs/PERFORMANCE.md)
+  - fixed: live backdrop blur on the large panes (history scrolling twice as slow) → frosted sky
+    picture fixed to the viewport; the sky layer fetching the web font early; welcome page code
+    fetched after the session check; a new `Intl.DateTimeFormat` per message; skeleton shimmer
+    repainting every frame
+  - result: smaller first download (334 → 251 KB), mobile LCP equal (2.37 → 2.36 s), history
+    scrolling faster (p50 82 → 69 ms), fewer long tasks (585 → 281 ms)
+  - still slower: opening a channel with long history (+≈0.25 s in software rendering)
 
 ## Next steps (not done — require the owner's infrastructure or decisions)
 
-1. Deploy to the real Hostinger VPS (docs/DEPLOYMENT.md) and confirm Let's Encrypt issuance,
-   HTTPS redirect, WebSockets through Caddy and the security headers on the public domain.
+1. Release 0.2 on the production server (OVH, `/opt/creator-network`): follow
+   docs/RELEASE_0.2.md after approving the items listed there (deployment, microphone policy,
+   voice on by default, STUN/TURN choice, firewall ports for coturn). Then confirm HTTPS,
+   WebSockets and the security headers on the public domain, and a voice call between two
+   different networks.
 2. Configure SMTP; send a real verification and password-reset email.
 3. Restore a backup on a second machine; schedule off-server backup copies.
 4. Independent security review / penetration test (docs/SECURITY.md#before-production).
 5. Manual accessibility pass with a screen reader; test Firefox, Safari and real phones.
 6. Re-run `scripts/bench` on the VPS and record the results in docs/PERFORMANCE.md.
 7. Product decisions: license, privacy policy and terms, community guidelines, moderators.
-8. Release 0.2 candidates (docs/ROADMAP.md): Web Push, data export, thumbnails, more languages.
+8. Next candidates (docs/ROADMAP.md): Web Push, data export, more languages; an SFU for voice
+   rooms larger than 8; measure rendering on real phones (opening long channels).
 
 ## Environment (recorded 2026-10-09)
 

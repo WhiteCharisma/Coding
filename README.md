@@ -5,10 +5,10 @@ game developers and designers: real-time community chat with channels, roles and
 messages, audio-first attachments, creator profiles, moderation and administration — running on
 one modest Linux server with no paid services.
 
-> **Status: tested deployment candidate (release 0.1), not yet a production service.** The
-> application, its automated tests and its Docker deployment (install, update, backup, restore)
-> have been run and verified on a development machine. It has not yet been deployed to a real
-> VPS with a public domain. Read [Known limitations](docs/KNOWN_LIMITATIONS.md) and
+> **Status: release 0.2 is a tested deployment candidate.** The application, its automated tests
+> and its Docker deployment (install, update from 0.1, backup, restore, rollback) have been run and
+> verified on a development machine; it has not been deployed to the production server yet. Read
+> [Release 0.2](docs/RELEASE_0.2.md) (runbook), [Known limitations](docs/KNOWN_LIMITATIONS.md) and
 > [Before production](docs/SECURITY.md#before-production) before inviting real users.
 
 ## What it does
@@ -22,15 +22,20 @@ one modest Linux server with no paid services.
 - **Messaging:** real time over WebSockets, replies, mentions, reactions, edits, deletions, pins,
   unread markers, typing and presence, direct messages and group conversations, messages queued
   while offline and sent once the connection returns — never duplicated.
-- **Files:** images, audio (waveform player with seeking), video, PDF, ZIP and text; type checked
-  by content; every download authorised.
+- **Voice rooms:** in every channel and conversation — peer-to-peer WebRTC with mute, deafen,
+  push to talk, input sensitivity, device choice and a microphone test; _Studio_ mode sends
+  stereo Opus at a measured 320 kbit/s ([Voice](docs/VOICE.md)).
+- **Files:** images (small WebP previews in chat, originals kept, location data removed), audio
+  (waveform player with seeking), video, PDF, ZIP and text; type checked by content; uploads
+  start at once and messages can be sent while they upload; every download authorised.
 - **Discovery:** full-text search limited to what you may read, Explore for public communities,
   creator profiles with disciplines and links, notifications.
 - **Moderation and admin:** reports with content snapshots, warnings, suspensions, audit log,
   instance settings, registration codes, health and resource overview, backups.
-- **Design:** "Aero" — glass panes over a bright sky, glossy controls, sky-blue and aqua accents;
-  Daylight and Twilight themes, compact density, reduced-motion support, keyboard and
-  screen-reader basics, phone layout.
+- **Design:** Frutiger Aero — frosted glass windows over a sky and water scene, glossy controls,
+  sky-blue and aqua accents; Daylight and Twilight themes; live animations (Full / Calm / Reduce
+  motion); original interface sounds with their own volume controls; compact density, keyboard
+  and screen-reader basics, phone layout with safe areas.
 
 Not included: marketplace and virtual credits (design notes only, see [Roadmap](docs/ROADMAP.md)),
 push/email notifications, end-to-end encryption. HTTPS protects traffic in transit; it is not
