@@ -18,7 +18,17 @@ interface ConfirmProps {
 }
 
 /** Confirmation dialog that shows server errors inline instead of closing. */
-export function ConfirmDialog({ open, onOpenChange, title, body, confirmLabel, danger, children, onConfirm, confirmDisabled }: ConfirmProps) {
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  body,
+  confirmLabel,
+  danger,
+  children,
+  onConfirm,
+  confirmDisabled,
+}: ConfirmProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const run = async () => {
@@ -49,7 +59,12 @@ export function ConfirmDialog({ open, onOpenChange, title, body, confirmLabel, d
             <Button variant="ghost" onClick={() => onOpenChange(false)}>
               {t('common.actions.cancel')}
             </Button>
-            <Button variant={danger ? 'danger' : 'primary'} loading={busy} disabled={confirmDisabled} onClick={() => void run()}>
+            <Button
+              variant={danger ? 'danger' : 'primary'}
+              loading={busy}
+              disabled={confirmDisabled}
+              onClick={() => void run()}
+            >
               {confirmLabel}
             </Button>
           </>

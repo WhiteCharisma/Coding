@@ -60,7 +60,12 @@ export class TestClient {
 
   constructor(readonly baseUrl: string) {}
 
-  async req<T = any>(method: string, url: string, body?: unknown, opts: { headers?: Record<string, string>; raw?: RequestInit['body'] } = {}): Promise<Res<T>> {
+  async req<T = any>(
+    method: string,
+    url: string,
+    body?: unknown,
+    opts: { headers?: Record<string, string>; raw?: RequestInit['body'] } = {},
+  ): Promise<Res<T>> {
     const headers: Record<string, string> = {
       origin: ORIGIN,
       'x-requested-with': 'CreatorNetwork',
@@ -145,7 +150,12 @@ export class TestClient {
 }
 
 /** Waits for one socket event (with timeout). */
-export function nextEvent<T = any>(socket: Socket<any, any>, event: string, timeoutMs = 3000, filter?: (payload: T) => boolean): Promise<T> {
+export function nextEvent<T = any>(
+  socket: Socket<any, any>,
+  event: string,
+  timeoutMs = 3000,
+  filter?: (payload: T) => boolean,
+): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       socket.off(event, handler);
@@ -162,7 +172,12 @@ export function nextEvent<T = any>(socket: Socket<any, any>, event: string, time
 }
 
 /** Resolves true if the event does NOT arrive within the window. */
-export function noEvent(socket: Socket<any, any>, event: string, windowMs = 400, filter?: (payload: any) => boolean): Promise<boolean> {
+export function noEvent(
+  socket: Socket<any, any>,
+  event: string,
+  windowMs = 400,
+  filter?: (payload: any) => boolean,
+): Promise<boolean> {
   return new Promise((resolve) => {
     const handler = (payload: any) => {
       if (filter && !filter(payload)) return;
@@ -178,9 +193,14 @@ export function noEvent(socket: Socket<any, any>, event: string, windowMs = 400,
   });
 }
 
-export function sendViaSocket(socket: Socket<ServerToClientEvents, ClientToServerEvents>, payload: { channelId: string; content: string; nonce: string; replyToId?: string | null; attachmentIds?: string[] }): Promise<any> {
+export function sendViaSocket(
+  socket: Socket<ServerToClientEvents, ClientToServerEvents>,
+  payload: { channelId: string; content: string; nonce: string; replyToId?: string | null; attachmentIds?: string[] },
+): Promise<any> {
   return new Promise((resolve, reject) => {
-    socket.timeout(5000).emit('message:send', payload, (err: Error | null, res: any) => (err ? reject(err) : resolve(res)));
+    socket
+      .timeout(5000)
+      .emit('message:send', payload, (err: Error | null, res: any) => (err ? reject(err) : resolve(res)));
   });
 }
 
@@ -199,7 +219,11 @@ export function readOutbox(dataDir: string): { to: string; subject: string; text
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Polls the development mail outbox until a matching message appears (emails are sent asynchronously). */
-export async function waitForMail(dataDir: string, match: (m: { to: string; subject: string; text: string }) => boolean, timeoutMs = 3000) {
+export async function waitForMail(
+  dataDir: string,
+  match: (m: { to: string; subject: string; text: string }) => boolean,
+  timeoutMs = 3000,
+) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const found = readOutbox(dataDir).filter(match);

@@ -13,7 +13,9 @@ export function fileUrl(id: string | null | undefined): string | null {
   return id ? `/api/files/${id}` : null;
 }
 
-export function toUserSummary(u: Pick<UserRow, 'id' | 'username' | 'displayName' | 'avatarId' | 'headline' | 'isDemo' | 'status'>): UserSummary {
+export function toUserSummary(
+  u: Pick<UserRow, 'id' | 'username' | 'displayName' | 'avatarId' | 'headline' | 'isDemo' | 'status'>,
+): UserSummary {
   const deleted = u.status === 'deleted';
   return {
     id: u.id,

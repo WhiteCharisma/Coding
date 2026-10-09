@@ -35,12 +35,17 @@ export function registerDmRoutes(app: FastifyInstance, ctx: AppContext): void {
 
   app.post<IdParams>('/api/dms/:id/participants', async (request) => {
     const { user } = requireAuth(request);
-    return { dm: svc.addParticipants(ctx, user, id(request.params.id), parse(addParticipantsSchema, request.body).userIds) };
+    return {
+      dm: svc.addParticipants(ctx, user, id(request.params.id), parse(addParticipantsSchema, request.body).userIds),
+    };
   });
 
-  app.delete<{ Params: { id: string; userId: string } }>('/api/dms/:id/participants/:userId', async (request, reply) => {
-    const { user } = requireAuth(request);
-    svc.removeParticipant(ctx, user, id(request.params.id), id(request.params.userId));
-    reply.status(204);
-  });
+  app.delete<{ Params: { id: string; userId: string } }>(
+    '/api/dms/:id/participants/:userId',
+    async (request, reply) => {
+      const { user } = requireAuth(request);
+      svc.removeParticipant(ctx, user, id(request.params.id), id(request.params.userId));
+      reply.status(204);
+    },
+  );
 }

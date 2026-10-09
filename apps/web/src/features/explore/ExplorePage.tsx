@@ -75,7 +75,12 @@ export function CommunityCard({ c, onJoined }: { c: CommunitySummary; onJoined?:
 export function useExplore(q: string, tag: CommunityTag | null) {
   return useQuery({
     queryKey: ['explore', q, tag],
-    queryFn: () => api.get<{ communities: CommunitySummary[] }>(`/api/communities/explore?${new URLSearchParams({ ...(q ? { q } : {}), ...(tag ? { tag } : {}) })}`).then((r) => r.communities),
+    queryFn: () =>
+      api
+        .get<{ communities: CommunitySummary[] }>(
+          `/api/communities/explore?${new URLSearchParams({ ...(q ? { q } : {}), ...(tag ? { tag } : {}) })}`,
+        )
+        .then((r) => r.communities),
   });
 }
 
@@ -93,7 +98,13 @@ export default function ExplorePage() {
           </header>
           <div className="relative mb-3">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-muted" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('explore.search')} aria-label={t('explore.search')} className="h-11 pl-9" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t('explore.search')}
+              aria-label={t('explore.search')}
+              className="h-11 pl-9"
+            />
           </div>
           <div className="no-scrollbar mb-6 flex gap-1.5 overflow-x-auto pb-1">
             {[null, ...COMMUNITY_TAGS].map((tg) => (
@@ -102,7 +113,12 @@ export default function ExplorePage() {
                 type="button"
                 aria-pressed={tag === tg}
                 onClick={() => setTag(tg)}
-                className={cn('shrink-0 rounded-full border px-3 py-1 text-sm transition-colors', tag === tg ? 'border-accent-border bg-accent-soft text-accent-text' : 'border-line text-fg-2 hover:border-line-strong')}
+                className={cn(
+                  'shrink-0 rounded-full border px-3 py-1 text-sm transition-colors',
+                  tag === tg
+                    ? 'border-accent-border bg-accent-soft text-accent-text'
+                    : 'border-line text-fg-2 hover:border-line-strong',
+                )}
               >
                 {tg ? t(`common.tags.${tg}`) : t('explore.allTags')}
               </button>

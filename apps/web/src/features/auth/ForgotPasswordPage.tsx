@@ -58,7 +58,19 @@ export default function ForgotPasswordPage() {
         <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4" noValidate>
           <FormError message={error !== null && !fieldError(error, 'email') ? errorMessage(error) : null} />
           <Field label={t('auth.forgot.email')} error={fieldError(error, 'email')}>
-            {(p) => <Input {...p} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" autoCapitalize="none" spellCheck={false} required autoFocus />}
+            {(p) => (
+              <Input
+                {...p}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+                autoFocus
+              />
+            )}
           </Field>
           <Button type="submit" variant="primary" size="lg" loading={busy} disabled={!email.includes('@')}>
             {t('auth.forgot.submit')}

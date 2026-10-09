@@ -1,5 +1,17 @@
 import { Permission, type ChannelDTO, type CommunityDTO } from '@creator-network/shared';
-import { Bell, BellOff, ChevronDown, FolderPlus, Hash, Link2, LogOut, Megaphone, Plus, Settings, UserPlus } from 'lucide-react';
+import {
+  Bell,
+  BellOff,
+  ChevronDown,
+  FolderPlus,
+  Hash,
+  Link2,
+  LogOut,
+  Megaphone,
+  Plus,
+  Settings,
+  UserPlus,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { t } from '../../i18n';
@@ -24,7 +36,17 @@ function readOnly(ch: ChannelDTO): boolean {
   return (ch.myPermissions & Permission.SEND_MESSAGES) === 0 && (ch.myPermissions & Permission.ADMINISTRATOR) === 0;
 }
 
-function ChannelLink({ community, channel, active, muted }: { community: CommunityDTO; channel: ChannelDTO; active: boolean; muted: boolean }) {
+function ChannelLink({
+  community,
+  channel,
+  active,
+  muted,
+}: {
+  community: CommunityDTO;
+  channel: ChannelDTO;
+  active: boolean;
+  muted: boolean;
+}) {
   const unread = useChat((s) => s.unreads[channel.id]);
   const hasUnread = !!unread && unread.unread > 0 && !muted;
   const mentions = unread?.mentions ?? 0;
@@ -36,13 +58,30 @@ function ChannelLink({ community, channel, active, muted }: { community: Communi
       title={channel.topic || undefined}
       className={cn(
         'group relative mx-2 flex h-8 items-center gap-2 rounded-md px-2 text-ui transition-colors duration-[var(--dur-fast)]',
-        active ? 'bg-selected text-fg' : hasUnread ? 'text-fg hover:bg-hover' : 'text-fg-muted hover:bg-hover hover:text-fg-2',
+        active
+          ? 'bg-selected text-fg'
+          : hasUnread
+            ? 'text-fg hover:bg-hover'
+            : 'text-fg-muted hover:bg-hover hover:text-fg-2',
       )}
     >
-      {hasUnread && !active && <span aria-hidden className="absolute top-1/2 -left-2 h-2 w-1 -translate-y-1/2 rounded-r-full bg-fg" />}
-      <Icon className={cn('size-4', active ? 'text-accent-text' : 'text-fg-faint')} aria-label={channel.isPrivate ? t('community.sidebar.privateChannel') : readOnly(channel) ? t('community.sidebar.readOnly') : undefined} />
+      {hasUnread && !active && (
+        <span aria-hidden className="absolute top-1/2 -left-2 h-2 w-1 -translate-y-1/2 rounded-r-full bg-fg" />
+      )}
+      <Icon
+        className={cn('size-4', active ? 'text-accent-text' : 'text-fg-faint')}
+        aria-label={
+          channel.isPrivate
+            ? t('community.sidebar.privateChannel')
+            : readOnly(channel)
+              ? t('community.sidebar.readOnly')
+              : undefined
+        }
+      />
       <span className={cn('min-w-0 flex-1 truncate', hasUnread && 'font-semibold')}>{channel.name}</span>
-      {mentions > 0 && <CountBadge count={mentions} tone="danger" label={t('community.sidebar.unreadMentions', { count: mentions })} />}
+      {mentions > 0 && (
+        <CountBadge count={mentions} tone="danger" label={t('community.sidebar.unreadMentions', { count: mentions })} />
+      )}
     </Link>
   );
 }
@@ -93,7 +132,9 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
 
   const toggleMute = async () => {
     if (!user) return;
-    const ids = muted ? user.mutedCommunityIds.filter((x) => x !== community.id) : [...user.mutedCommunityIds, community.id];
+    const ids = muted
+      ? user.mutedCommunityIds.filter((x) => x !== community.id)
+      : [...user.mutedCommunityIds, community.id];
     try {
       const res = await api.patch<{ user: SelfUser }>('/api/me/preferences', { mutedCommunityIds: ids });
       useSession.getState().setUser(res.user);
@@ -102,8 +143,12 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
     }
   };
 
-  const uncategorized = community.channels.filter((c) => !c.categoryId || !community.categories.some((cat) => cat.id === c.categoryId));
-  const groups = community.categories.map((cat) => ({ cat, channels: community.channels.filter((c) => c.categoryId === cat.id) })).filter((g) => g.channels.length > 0 || canManageChannels);
+  const uncategorized = community.channels.filter(
+    (c) => !c.categoryId || !community.categories.some((cat) => cat.id === c.categoryId),
+  );
+  const groups = community.categories
+    .map((cat) => ({ cat, channels: community.channels.filter((c) => c.categoryId === cat.id) }))
+    .filter((g) => g.channels.length > 0 || canManageChannels);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -116,7 +161,9 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
           >
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
-                <span className="truncate font-display text-[15px] font-semibold tracking-tight text-fg">{community.name}</span>
+                <span className="truncate font-display text-[15px] font-semibold tracking-tight text-fg">
+                  {community.name}
+                </span>
                 {community.isDemo && <DemoBadge />}
               </span>
             </span>
@@ -125,7 +172,10 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
         </MenuTrigger>
         <MenuContent align="start" className="w-60">
           {canInvite && (
-            <MenuItem onSelect={() => setInviteOpen(true)} className="text-accent-text data-[highlighted]:text-accent-text [&_svg]:text-accent-text">
+            <MenuItem
+              onSelect={() => setInviteOpen(true)}
+              className="text-accent-text data-[highlighted]:text-accent-text [&_svg]:text-accent-text"
+            >
               <UserPlus /> {t('community.sidebar.invite')}
             </MenuItem>
           )}
@@ -146,7 +196,8 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
           )}
           <MenuSeparator />
           <MenuItem onSelect={() => void toggleMute()}>
-            {muted ? <Bell /> : <BellOff />} {muted ? t('community.sidebar.unmute') : t('community.sidebar.notifications')}
+            {muted ? <Bell /> : <BellOff />}{' '}
+            {muted ? t('community.sidebar.unmute') : t('community.sidebar.notifications')}
           </MenuItem>
           <MenuItem onSelect={() => void copyText(`${window.location.origin}/c/${community.id}`)}>
             <Link2 /> {t('community.sidebar.copyId')}
@@ -163,7 +214,9 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
       </Menu>
 
       <nav aria-label={community.name} className="scroll-area min-h-0 flex-1 py-3">
-        {community.channels.length === 0 && <p className="px-4 text-sm text-fg-muted">{t('community.sidebar.noChannels')}</p>}
+        {community.channels.length === 0 && (
+          <p className="px-4 text-sm text-fg-muted">{t('community.sidebar.noChannels')}</p>
+        )}
         {uncategorized.length > 0 && (
           <ul className="mb-3 flex flex-col gap-px">
             {uncategorized.map((ch) => (
@@ -184,11 +237,21 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
                   onClick={() => toggleCategory(cat.id)}
                   className="flex min-w-0 flex-1 items-center gap-1 rounded px-1 py-1 text-2xs font-semibold tracking-[0.08em] text-fg-muted uppercase hover:text-fg-2"
                 >
-                  <ChevronDown className={cn('size-3 transition-transform duration-[var(--dur-fast)]', isCollapsed && '-rotate-90')} />
+                  <ChevronDown
+                    className={cn(
+                      'size-3 transition-transform duration-[var(--dur-fast)]',
+                      isCollapsed && '-rotate-90',
+                    )}
+                  />
                   <span className="truncate">{cat.name}</span>
                 </button>
                 {canManageChannels && (
-                  <button type="button" aria-label={t('community.sidebar.createChannel')} onClick={() => setChannelOpen(true)} className="rounded p-1 text-fg-muted opacity-0 transition-opacity group-hover/cat:opacity-100 hover:text-fg focus-visible:opacity-100">
+                  <button
+                    type="button"
+                    aria-label={t('community.sidebar.createChannel')}
+                    onClick={() => setChannelOpen(true)}
+                    className="rounded p-1 text-fg-muted opacity-0 transition-opacity group-hover/cat:opacity-100 hover:text-fg focus-visible:opacity-100"
+                  >
                     <Plus className="size-3.5" />
                   </button>
                 )}
@@ -205,16 +268,16 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
               {isCollapsed &&
                 channels
                   .filter((ch) => ch.id === channelId)
-                  .map((ch) => (
-                    <ChannelLink key={ch.id} community={community} channel={ch} active muted={muted} />
-                  ))}
+                  .map((ch) => <ChannelLink key={ch.id} community={community} channel={ch} active muted={muted} />)}
             </section>
           );
         })}
       </nav>
 
       {inviteOpen && <InviteDialog community={community} open={inviteOpen} onOpenChange={setInviteOpen} />}
-      {settingsOpen && <CommunitySettingsDialog community={community} open={settingsOpen} onOpenChange={setSettingsOpen} />}
+      {settingsOpen && (
+        <CommunitySettingsDialog community={community} open={settingsOpen} onOpenChange={setSettingsOpen} />
+      )}
       {channelOpen && <ChannelEditorDialog community={community} open={channelOpen} onOpenChange={setChannelOpen} />}
       {categoryOpen && <CategoryDialog community={community} open={categoryOpen} onOpenChange={setCategoryOpen} />}
       <ConfirmDialog

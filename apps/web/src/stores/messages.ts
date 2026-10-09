@@ -13,7 +13,14 @@
  *  - After a reconnect, history is fetched from the server (`after=<last id>`):
  *    persisted history, not socket buffers, is the source of truth.
  */
-import type { AttachmentDTO, MessageDTO, MessagePage, MessageReplyDTO, ReactionEvent, SendAck } from '@creator-network/shared';
+import type {
+  AttachmentDTO,
+  MessageDTO,
+  MessagePage,
+  MessageReplyDTO,
+  ReactionEvent,
+  SendAck,
+} from '@creator-network/shared';
 import { create } from 'zustand';
 import { api, errorMessage } from '../lib/api';
 import { createNonce } from '../lib/format';
@@ -156,7 +163,10 @@ interface MessagesState {
   reaction: (ev: ReactionEvent, selfId: string) => void;
   dropChannel: (channelId: string) => void;
 
-  send: (channelId: string, input: { content: string; replyTo: MessageReplyDTO | null; attachments: AttachmentDTO[] }) => PendingMessage;
+  send: (
+    channelId: string,
+    input: { content: string; replyTo: MessageReplyDTO | null; attachments: AttachmentDTO[] },
+  ) => PendingMessage;
   retry: (channelId: string, nonce: string) => void;
   discard: (channelId: string, nonce: string) => void;
   flush: () => void;
@@ -168,7 +178,10 @@ const inflight = new Set<string>();
 const retryTimers = new Map<string, number>();
 
 export const useMessages = create<MessagesState>((set, get) => {
-  const patchChannel = (channelId: string, patch: Partial<ChannelMessages> | ((c: ChannelMessages) => Partial<ChannelMessages>)) => {
+  const patchChannel = (
+    channelId: string,
+    patch: Partial<ChannelMessages> | ((c: ChannelMessages) => Partial<ChannelMessages>),
+  ) => {
     const current = get().byChannel[channelId] ?? emptyChannel();
     const next = { ...current, ...(typeof patch === 'function' ? patch(current) : patch) };
     set({ byChannel: { ...get().byChannel, [channelId]: next } });
@@ -202,7 +215,8 @@ export const useMessages = create<MessagesState>((set, get) => {
     );
   };
 
-  const fetchPage = (channelId: string, query: string) => api.get<MessagePage>(`/api/channels/${channelId}/messages${query}`);
+  const fetchPage = (channelId: string, query: string) =>
+    api.get<MessagePage>(`/api/channels/${channelId}/messages${query}`);
 
   const sendNext = async (channelId: string): Promise<void> => {
     if (!transport || !transport.isConnected() || inflight.has(channelId)) return;
@@ -274,7 +288,13 @@ export const useMessages = create<MessagesState>((set, get) => {
       patchChannel(channelId, (c) => ({ status: c.messages.length ? c.status : 'loading', error: undefined }));
       try {
         const page = await fetchPage(channelId, `?limit=${PAGE}`);
-        patchChannel(channelId, { messages: page.messages, hasMoreBefore: page.hasMoreBefore, hasMoreAfter: false, status: 'ready', stale: false });
+        patchChannel(channelId, {
+          messages: page.messages,
+          hasMoreBefore: page.hasMoreBefore,
+          hasMoreAfter: false,
+          status: 'ready',
+          stale: false,
+        });
       } catch (err) {
         patchChannel(channelId, (c) => ({ status: c.messages.length ? 'ready' : 'error', error: errorMessage(err) }));
       }
@@ -380,7 +400,8 @@ export const useMessages = create<MessagesState>((set, get) => {
 
     markStale: (exceptChannelId) => {
       const byChannel = { ...get().byChannel };
-      for (const [id, c] of Object.entries(byChannel)) if (id !== exceptChannelId) byChannel[id] = { ...c, stale: true };
+      for (const [id, c] of Object.entries(byChannel))
+        if (id !== exceptChannelId) byChannel[id] = { ...c, stale: true };
       set({ byChannel });
     },
 
@@ -415,14 +436,27 @@ export const useMessages = create<MessagesState>((set, get) => {
       const c = get().byChannel[channelId];
       if (!c) return;
       patchChannel(channelId, (cur) => ({
-        messages: cur.messages.map((m) => (m.id === id ? { ...m, content: '', attachments: [], reactions: [], deletedAt: m.deletedAt ?? Date.now(), pinnedAt: null } : m)),
+        messages: cur.messages.map((m) =>
+          m.id === id
+            ? {
+                ...m,
+                content: '',
+                attachments: [],
+                reactions: [],
+                deletedAt: m.deletedAt ?? Date.now(),
+                pinnedAt: null,
+              }
+            : m,
+        ),
       }));
     },
 
     reaction: (ev, selfId) => {
       const c = get().byChannel[ev.channelId];
       if (!c) return;
-      patchChannel(ev.channelId, (cur) => ({ messages: cur.messages.map((m) => (m.id === ev.messageId ? applyReactionEvent(m, ev, selfId) : m)) }));
+      patchChannel(ev.channelId, (cur) => ({
+        messages: cur.messages.map((m) => (m.id === ev.messageId ? applyReactionEvent(m, ev, selfId) : m)),
+      }));
     },
 
     dropChannel: (channelId) => {

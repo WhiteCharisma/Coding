@@ -7,7 +7,16 @@ import { anonymiseUser, createPasswordResetLink } from '../auth/service';
 import { revokeUserSessions } from '../auth/sessions';
 import { removeCommunity, toAuditDTOs, toCommunitySummary } from '../communities/service';
 import type { AppContext } from '../context';
-import { auditEvents, communities, messages, registrationInvites, reports, sessions, uploads, users } from '../db/schema';
+import {
+  auditEvents,
+  communities,
+  messages,
+  registrationInvites,
+  reports,
+  sessions,
+  uploads,
+  users,
+} from '../db/schema';
 import { randomCode } from '../lib/crypto';
 import { AppError, badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { notify } from '../notifications/service';
@@ -85,7 +94,12 @@ export function overview(ctx: AppContext) {
       messages24h: n(ctx.db.select({ n: count() }).from(messages).where(gt(messages.createdAt, dayAgo)).get()),
       activeSessions: n(ctx.db.select({ n: count() }).from(sessions).where(gt(sessions.lastSeenAt, dayAgo)).get()),
       openReports: n(ctx.db.select({ n: count() }).from(reports).where(eq(reports.status, 'open')).get()),
-      uploadsBytes: ctx.db.select({ n: sql<number>`coalesce(sum(${uploads.size}), 0)` }).from(uploads).where(eq(uploads.status, 'attached')).get()?.n ?? 0,
+      uploadsBytes:
+        ctx.db
+          .select({ n: sql<number>`coalesce(sum(${uploads.size}), 0)` })
+          .from(uploads)
+          .where(eq(uploads.status, 'attached'))
+          .get()?.n ?? 0,
     },
     runtime: {
       connectedSockets: ctx.realtime.connectedSocketCount(),
@@ -95,18 +109,32 @@ export function overview(ctx: AppContext) {
       databaseBytes: dbBytes,
     },
     email: { transport: ctx.mailer.transport, enabled: ctx.mailer.enabled },
-    backups: { latest: latestBackup ? publicBackupInfo(latestBackup) : null, intervalHours: ctx.config.backupIntervalHours },
+    backups: {
+      latest: latestBackup ? publicBackupInfo(latestBackup) : null,
+      intervalHours: ctx.config.backupIntervalHours,
+    },
   };
 }
 
-export function listUsers(ctx: AppContext, opts: { q?: string; status?: string; role?: string; before?: number }): AdminUserDTO[] {
+export function listUsers(
+  ctx: AppContext,
+  opts: { q?: string; status?: string; role?: string; before?: number },
+): AdminUserDTO[] {
   const conditions = [];
   if (opts.q) {
     const term = `%${opts.q.toLowerCase().replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
-    conditions.push(or(like(users.username, term), like(users.email, term), sql`lower(${users.displayName}) like ${term} escape '\\'`));
+    conditions.push(
+      or(
+        like(users.username, term),
+        like(users.email, term),
+        sql`lower(${users.displayName}) like ${term} escape '\\'`,
+      ),
+    );
   }
-  if (opts.status === 'active' || opts.status === 'suspended' || opts.status === 'deleted') conditions.push(eq(users.status, opts.status));
-  if (opts.role === 'member' || opts.role === 'moderator' || opts.role === 'admin') conditions.push(eq(users.platformRole, opts.role));
+  if (opts.status === 'active' || opts.status === 'suspended' || opts.status === 'deleted')
+    conditions.push(eq(users.status, opts.status));
+  if (opts.role === 'member' || opts.role === 'moderator' || opts.role === 'admin')
+    conditions.push(eq(users.platformRole, opts.role));
   if (opts.before) conditions.push(lt(users.createdAt, opts.before));
   return ctx.db
     .select()
@@ -118,7 +146,13 @@ export function listUsers(ctx: AppContext, opts: { q?: string; status?: string; 
     .map(toAdminUser);
 }
 
-export function suspendUser(ctx: AppContext, actor: UserRow, userId: string, reason: string, days: number | null): AdminUserDTO {
+export function suspendUser(
+  ctx: AppContext,
+  actor: UserRow,
+  userId: string,
+  reason: string,
+  days: number | null,
+): AdminUserDTO {
   const target = requireUser(ctx, userId);
   assertCanModerate(actor, target);
   if (target.status === 'deleted') throw badRequest('This account was deleted.');
@@ -130,7 +164,16 @@ export function suspendUser(ctx: AppContext, actor: UserRow, userId: string, rea
     .run();
   revokeUserSessions(ctx, userId);
   ctx.realtime.disconnectUser(userId, 'suspended');
-  audit(ctx.db, { scope: 'platform', actorId: actor.id, action: 'user.suspended', targetType: 'user', targetId: userId, targetLabel: target.username, reason, metadata: { until } });
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: actor.id,
+    action: 'user.suspended',
+    targetType: 'user',
+    targetId: userId,
+    targetLabel: target.username,
+    reason,
+    metadata: { until },
+  });
   return toAdminUser(requireUser(ctx, userId));
 }
 
@@ -138,8 +181,19 @@ export function restoreUser(ctx: AppContext, actor: UserRow, userId: string): Ad
   const target = requireUser(ctx, userId);
   assertCanModerate(actor, target);
   if (target.status !== 'suspended') throw badRequest('This account is not suspended.');
-  ctx.db.update(users).set({ status: 'active', suspendedUntil: null, suspensionReason: null, updatedAt: Date.now() }).where(eq(users.id, userId)).run();
-  audit(ctx.db, { scope: 'platform', actorId: actor.id, action: 'user.restored', targetType: 'user', targetId: userId, targetLabel: target.username });
+  ctx.db
+    .update(users)
+    .set({ status: 'active', suspendedUntil: null, suspensionReason: null, updatedAt: Date.now() })
+    .where(eq(users.id, userId))
+    .run();
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: actor.id,
+    action: 'user.restored',
+    targetType: 'user',
+    targetId: userId,
+    targetLabel: target.username,
+  });
   notify(ctx, { userId, type: 'moderation', data: { event: 'restored' } });
   return toAdminUser(requireUser(ctx, userId));
 }
@@ -150,22 +204,49 @@ export function setPlatformRole(ctx: AppContext, actor: UserRow, userId: string,
   if (target.id === actor.id) throw badRequest('You cannot change your own platform role.');
   if (target.status !== 'active') throw badRequest('Only active accounts can be given a platform role.');
   if (target.platformRole === 'admin' && role !== 'admin') {
-    const admins = ctx.db.select({ n: count() }).from(users).where(and(eq(users.platformRole, 'admin'), eq(users.status, 'active'))).get()?.n ?? 0;
+    const admins =
+      ctx.db
+        .select({ n: count() })
+        .from(users)
+        .where(and(eq(users.platformRole, 'admin'), eq(users.status, 'active')))
+        .get()?.n ?? 0;
     if (admins <= 1) throw conflict('There must always be at least one administrator.');
   }
   ctx.db.update(users).set({ platformRole: role, updatedAt: Date.now() }).where(eq(users.id, userId)).run();
-  audit(ctx.db, { scope: 'platform', actorId: actor.id, action: 'user.platform_role_changed', targetType: 'user', targetId: userId, targetLabel: target.username, metadata: { from: target.platformRole, to: role } });
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: actor.id,
+    action: 'user.platform_role_changed',
+    targetType: 'user',
+    targetId: userId,
+    targetLabel: target.username,
+    metadata: { from: target.platformRole, to: role },
+  });
   ctx.realtime.toUser(userId, 'user:update', { userId });
   return toAdminUser(requireUser(ctx, userId));
 }
 
-export async function adminDeleteUser(ctx: AppContext, actor: UserRow, userId: string, deleteMessages: boolean): Promise<void> {
+export async function adminDeleteUser(
+  ctx: AppContext,
+  actor: UserRow,
+  userId: string,
+  deleteMessages: boolean,
+): Promise<void> {
   if (actor.platformRole !== 'admin') throw forbidden();
   const target = requireUser(ctx, userId);
   assertCanModerate(actor, target);
-  const owned = ctx.db.select({ id: communities.id, name: communities.name }).from(communities).where(eq(communities.ownerId, userId)).all();
+  const owned = ctx.db
+    .select({ id: communities.id, name: communities.name })
+    .from(communities)
+    .where(eq(communities.ownerId, userId))
+    .all();
   if (owned.length) {
-    throw new AppError(409, 'owns_communities', 'This user owns communities. Delete them or ask the user to transfer ownership first.', { communities: owned });
+    throw new AppError(
+      409,
+      'owns_communities',
+      'This user owns communities. Delete them or ask the user to transfer ownership first.',
+      { communities: owned },
+    );
   }
   await anonymiseUser(ctx, userId, { deleteMessages, actorId: actor.id, action: 'user.deleted_by_admin' });
 }
@@ -174,7 +255,14 @@ export function adminResetLink(ctx: AppContext, actor: UserRow, userId: string):
   if (actor.platformRole !== 'admin') throw forbidden();
   const target = requireUser(ctx, userId);
   const link = createPasswordResetLink(ctx, userId);
-  audit(ctx.db, { scope: 'platform', actorId: actor.id, action: 'user.reset_link_created', targetType: 'user', targetId: userId, targetLabel: target.username });
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: actor.id,
+    action: 'user.reset_link_created',
+    targetType: 'user',
+    targetId: userId,
+    targetLabel: target.username,
+  });
   return link;
 }
 
@@ -192,10 +280,18 @@ export function listAllCommunities(ctx: AppContext, q?: string) {
 
 export function adminDeleteCommunity(ctx: AppContext, actor: UserRow, communityId: string, reason: string): void {
   if (actor.platformRole !== 'admin') throw forbidden();
-  const community = ctx.db.select({ ownerId: communities.ownerId, name: communities.name }).from(communities).where(eq(communities.id, communityId)).get();
+  const community = ctx.db
+    .select({ ownerId: communities.ownerId, name: communities.name })
+    .from(communities)
+    .where(eq(communities.id, communityId))
+    .get();
   if (!community) throw notFound();
   removeCommunity(ctx, communityId, actor.id, 'community.removed_by_admin', 'platform', reason);
-  notify(ctx, { userId: community.ownerId, type: 'moderation', data: { event: 'community_removed', communityName: community.name, reason } });
+  notify(ctx, {
+    userId: community.ownerId,
+    type: 'moderation',
+    data: { event: 'community_removed', communityName: community.name, reason },
+  });
 }
 
 export function platformAudit(ctx: AppContext, before?: number): AuditEventDTO[] {
@@ -212,10 +308,20 @@ export function platformAudit(ctx: AppContext, before?: number): AuditEventDTO[]
 /* ------------------------------------------------- Registration invites */
 
 export function listRegistrationInvites(ctx: AppContext) {
-  return ctx.db.select().from(registrationInvites).where(isNull(registrationInvites.revokedAt)).orderBy(desc(registrationInvites.createdAt)).limit(200).all();
+  return ctx.db
+    .select()
+    .from(registrationInvites)
+    .where(isNull(registrationInvites.revokedAt))
+    .orderBy(desc(registrationInvites.createdAt))
+    .limit(200)
+    .all();
 }
 
-export function createRegistrationInvite(ctx: AppContext, actor: UserRow, input: z.output<typeof platformInviteSchema>) {
+export function createRegistrationInvite(
+  ctx: AppContext,
+  actor: UserRow,
+  input: z.output<typeof platformInviteSchema>,
+) {
   const now = Date.now();
   const row = {
     code: randomCode(12),
@@ -228,17 +334,38 @@ export function createRegistrationInvite(ctx: AppContext, actor: UserRow, input:
     createdAt: now,
   };
   ctx.db.insert(registrationInvites).values(row).run();
-  audit(ctx.db, { scope: 'platform', actorId: actor.id, action: 'registration_invite.created', targetType: 'registration_invite', targetId: row.code, metadata: { maxUses: row.maxUses, note: row.note } });
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: actor.id,
+    action: 'registration_invite.created',
+    targetType: 'registration_invite',
+    targetId: row.code,
+    metadata: { maxUses: row.maxUses, note: row.note },
+  });
   return row;
 }
 
 export function revokeRegistrationInvite(ctx: AppContext, actor: UserRow, code: string): void {
-  const res = ctx.db.update(registrationInvites).set({ revokedAt: Date.now() }).where(eq(registrationInvites.code, code)).run();
+  const res = ctx.db
+    .update(registrationInvites)
+    .set({ revokedAt: Date.now() })
+    .where(eq(registrationInvites.code, code))
+    .run();
   if (res.changes === 0) throw notFound();
-  audit(ctx.db, { scope: 'platform', actorId: actor.id, action: 'registration_invite.revoked', targetType: 'registration_invite', targetId: code });
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: actor.id,
+    action: 'registration_invite.revoked',
+    targetType: 'registration_invite',
+    targetId: code,
+  });
 }
 
 export function demoUserIds(ctx: AppContext): string[] {
-  return ctx.db.select({ id: users.id }).from(users).where(eq(users.isDemo, true)).all().map((u) => u.id);
+  return ctx.db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.isDemo, true))
+    .all()
+    .map((u) => u.id);
 }
-

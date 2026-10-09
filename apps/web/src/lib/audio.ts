@@ -12,7 +12,13 @@ interface PlayerState {
   error: string | null;
 }
 
-export const usePlayer = create<PlayerState>(() => ({ src: null, playing: false, current: 0, duration: 0, error: null }));
+export const usePlayer = create<PlayerState>(() => ({
+  src: null,
+  playing: false,
+  current: 0,
+  duration: 0,
+  error: null,
+}));
 
 let audio: HTMLAudioElement | null = null;
 

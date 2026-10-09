@@ -1,4 +1,14 @@
-import { Ban, CalendarDays, ExternalLink, Flag, MapPin, MessageCircle, MoreHorizontal, Pencil, SearchX } from 'lucide-react';
+import {
+  Ban,
+  CalendarDays,
+  ExternalLink,
+  Flag,
+  MapPin,
+  MessageCircle,
+  MoreHorizontal,
+  Pencil,
+  SearchX,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -45,7 +55,15 @@ export default function ProfilePage() {
     return (
       <PageLayout>
         <div className="grid flex-1 place-items-center">
-          <EmptyState icon={SearchX} title={t('profile.notFound')} actions={<Link to="/home" className={buttonVariants({ variant: 'primary' })}>{t('common.errors.goHome')}</Link>} />
+          <EmptyState
+            icon={SearchX}
+            title={t('profile.notFound')}
+            actions={
+              <Link to="/home" className={buttonVariants({ variant: 'primary' })}>
+                {t('common.errors.goHome')}
+              </Link>
+            }
+          />
         </div>
       </PageLayout>
     );
@@ -60,7 +78,17 @@ export default function ProfilePage() {
         <div className="h-36 md:h-48" style={bannerStyle(p?.bannerHue ?? null)} />
         <div className="mx-auto max-w-3xl px-4 pb-16 md:px-8">
           <div className="-mt-14 flex flex-wrap items-end justify-between gap-4">
-            {p ? <UserAvatar name={p.displayName} src={p.avatarUrl} size="2xl" presence={presence} className="rounded-full ring-6 ring-main" /> : <Skeleton className="size-24 rounded-full" />}
+            {p ? (
+              <UserAvatar
+                name={p.displayName}
+                src={p.avatarUrl}
+                size="2xl"
+                presence={presence}
+                className="rounded-full ring-6 ring-main"
+              />
+            ) : (
+              <Skeleton className="size-24 rounded-full" />
+            )}
             {p && (
               <div className="flex gap-2 pb-1">
                 {self ? (
@@ -72,7 +100,11 @@ export default function ProfilePage() {
                     {p.canMessage && (
                       <Button
                         variant="primary"
-                        onClick={() => void openDmWith([p.id]).then((dm) => navigate(`/dm/${dm.id}`)).catch((err: unknown) => toast.error(errorMessage(err)))}
+                        onClick={() =>
+                          void openDmWith([p.id])
+                            .then((dm) => navigate(`/dm/${dm.id}`))
+                            .catch((err: unknown) => toast.error(errorMessage(err)))
+                        }
                       >
                         <MessageCircle /> {t('profile.sendMessage')}
                       </Button>
@@ -108,7 +140,11 @@ export default function ProfilePage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="font-display text-3xl font-semibold tracking-tight text-fg">{p.displayName}</h1>
                   {p.isDemo && <DemoBadge />}
-                  {p.platformRole !== 'member' && <Badge tone="info">{t(`common.labels.${p.platformRole === 'admin' ? 'admin' : 'moderator'}`)}</Badge>}
+                  {p.platformRole !== 'member' && (
+                    <Badge tone="info">
+                      {t(`common.labels.${p.platformRole === 'admin' ? 'admin' : 'moderator'}`)}
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-fg-muted">@{p.username}</p>
                 {p.headline && <p className="mt-2 text-lg text-fg-2">{p.headline}</p>}
@@ -123,13 +159,20 @@ export default function ProfilePage() {
                     <CalendarDays className="size-4" /> {t('profile.memberSince', { date: formatDate(p.createdAt) })}
                   </li>
                 </ul>
-                {p.isBlocked && <p className="mt-3 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{t('profile.blocked')}</p>}
-                {!self && !p.canMessage && !p.isBlocked && <p className="mt-3 text-sm text-fg-muted">{t('profile.cannotMessage')}</p>}
+                {p.isBlocked && (
+                  <p className="mt-3 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{t('profile.blocked')}</p>
+                )}
+                {!self && !p.canMessage && !p.isBlocked && (
+                  <p className="mt-3 text-sm text-fg-muted">{t('profile.cannotMessage')}</p>
+                )}
               </div>
               {p.disciplines.length > 0 && (
                 <ul aria-label={t('profile.disciplines')} className="mt-5 flex flex-wrap gap-1.5">
                   {p.disciplines.map((d) => (
-                    <li key={d} className="rounded-full border border-accent-border/60 bg-accent-soft px-3 py-1 text-sm text-accent-text">
+                    <li
+                      key={d}
+                      className="rounded-full border border-accent-border/60 bg-accent-soft px-3 py-1 text-sm text-accent-text"
+                    >
                       {t(`common.disciplines.${d}`)}
                     </li>
                   ))}
@@ -153,7 +196,12 @@ export default function ProfilePage() {
                     <ul className="flex flex-col gap-1.5">
                       {p.links.map((l) => (
                         <li key={l.url}>
-                          <a href={l.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1.5 text-sm text-accent-text hover:underline">
+                          <a
+                            href={l.url}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            className="inline-flex items-center gap-1.5 text-sm text-accent-text hover:underline"
+                          >
                             <ExternalLink className="size-3.5" /> {l.label}
                             <span className="text-fg-faint">{new URL(l.url).hostname}</span>
                           </a>
@@ -191,7 +239,13 @@ export default function ProfilePage() {
                   await qc.invalidateQueries({ queryKey: ['blocks'] });
                 }}
               />
-              {reportOpen && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} target={{ type: 'user', id: p.id, label: t('report.user', { username: p.username }) }} />}
+              {reportOpen && (
+                <ReportDialog
+                  open={reportOpen}
+                  onOpenChange={setReportOpen}
+                  target={{ type: 'user', id: p.id, label: t('report.user', { username: p.username }) }}
+                />
+              )}
             </>
           )}
         </div>

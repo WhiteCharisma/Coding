@@ -31,7 +31,11 @@ export function TypingIndicator({ channelId }: { channelId: string }) {
         <>
           <span className="flex gap-0.5" aria-hidden>
             {[0, 1, 2].map((i) => (
-              <span key={i} className="size-1 rounded-full bg-fg-muted animate-typing" style={{ animationDelay: `${i * 150}ms` }} />
+              <span
+                key={i}
+                className="size-1 rounded-full bg-fg-muted animate-typing"
+                style={{ animationDelay: `${i * 150}ms` }}
+              />
             ))}
           </span>
           <span className="truncate">{text}</span>

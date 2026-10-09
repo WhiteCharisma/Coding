@@ -49,7 +49,8 @@ export const settings = {
     passwordChanged: 'Password changed. Other devices were signed out.',
     emailChanged: 'Email updated. Check your inbox to confirm it.',
     deleteTitle: 'Delete account',
-    deleteBody: 'Your profile is removed and your messages are shown as "Deleted user". You can also delete all your messages. This cannot be undone.',
+    deleteBody:
+      'Your profile is removed and your messages are shown as "Deleted user". You can also delete all your messages. This cannot be undone.',
     deleteMessages: 'Also delete all my messages',
     deleteButton: 'Delete my account',
     deleteConfirmTitle: 'Delete your account?',
@@ -160,7 +161,12 @@ export const admin = {
     messageDeleted: 'The message has since been deleted.',
     details: 'Reporter’s note',
     action: 'Action',
-    actions: { none: 'No action', delete_message: 'Delete message', warn_user: 'Warn user', suspend_user: 'Suspend user' },
+    actions: {
+      none: 'No action',
+      delete_message: 'Delete message',
+      warn_user: 'Warn user',
+      suspend_user: 'Suspend user',
+    },
     note: 'Resolution note',
     notePlaceholder: 'Shown to the user for warnings and suspensions.',
     suspendDays: 'Suspension length (days, empty = indefinite)',
@@ -225,7 +231,11 @@ export const admin = {
   },
   settings: {
     registration: 'Registration',
-    registrationModes: { open: 'Open — anyone can sign up', invite: 'Invite-only — requires a code', closed: 'Closed — nobody can sign up' },
+    registrationModes: {
+      open: 'Open — anyone can sign up',
+      invite: 'Invite-only — requires a code',
+      closed: 'Closed — nobody can sign up',
+    },
     requireVerification: 'Require a verified email to post',
     requireVerificationHint: 'Only works when email delivery is configured.',
     maxUpload: 'Maximum upload size (MB)',

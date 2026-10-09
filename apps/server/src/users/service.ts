@@ -65,7 +65,11 @@ export function updateProfile(ctx: AppContext, user: UserRow, input: UpdateProfi
   return updated;
 }
 
-export function updatePreferences(ctx: AppContext, user: UserRow, input: z.output<typeof updatePreferencesSchema>): UserRow {
+export function updatePreferences(
+  ctx: AppContext,
+  user: UserRow,
+  input: z.output<typeof updatePreferencesSchema>,
+): UserRow {
   const patch: Partial<UserRow> = { updatedAt: Date.now() };
   if (input.presence) patch.presence = input.presence;
   if (input.dmPolicy) patch.dmPolicy = input.dmPolicy;
@@ -80,7 +84,11 @@ export function updatePreferences(ctx: AppContext, user: UserRow, input: z.outpu
 
 export function completeOnboarding(ctx: AppContext, user: UserRow): UserRow {
   const now = Date.now();
-  ctx.db.update(users).set({ onboardingCompletedAt: user.onboardingCompletedAt ?? now, updatedAt: now }).where(eq(users.id, user.id)).run();
+  ctx.db
+    .update(users)
+    .set({ onboardingCompletedAt: user.onboardingCompletedAt ?? now, updatedAt: now })
+    .where(eq(users.id, user.id))
+    .run();
   return ctx.db.select().from(users).where(eq(users.id, user.id)).get() as UserRow;
 }
 
@@ -99,9 +107,16 @@ export function setBlocked(ctx: AppContext, user: UserRow, targetId: string, blo
   const target = ctx.db.select({ id: users.id }).from(users).where(eq(users.id, targetId)).get();
   if (!target) throw notFound('User not found.');
   if (blocked) {
-    ctx.db.insert(userBlocks).values({ blockerId: user.id, blockedId: targetId, createdAt: Date.now() }).onConflictDoNothing().run();
+    ctx.db
+      .insert(userBlocks)
+      .values({ blockerId: user.id, blockedId: targetId, createdAt: Date.now() })
+      .onConflictDoNothing()
+      .run();
   } else {
-    ctx.db.delete(userBlocks).where(and(eq(userBlocks.blockerId, user.id), eq(userBlocks.blockedId, targetId))).run();
+    ctx.db
+      .delete(userBlocks)
+      .where(and(eq(userBlocks.blockerId, user.id), eq(userBlocks.blockedId, targetId)))
+      .run();
   }
   // DM permissions (read-only when blocked) changed for both sides.
   ctx.realtime.toUser(user.id, 'user:update', { userId: targetId });
@@ -119,7 +134,12 @@ export function listBlocked(ctx: AppContext, user: UserRow): UserSummary[] {
 }
 
 export function blockedIdsOf(ctx: AppContext, userId: string): string[] {
-  return ctx.db.select({ id: userBlocks.blockedId }).from(userBlocks).where(eq(userBlocks.blockerId, userId)).all().map((r) => r.id);
+  return ctx.db
+    .select({ id: userBlocks.blockedId })
+    .from(userBlocks)
+    .where(eq(userBlocks.blockerId, userId))
+    .all()
+    .map((r) => r.id);
 }
 
 export function searchUsers(ctx: AppContext, viewer: UserRow, q: string, communityId?: string): UserSummary[] {
@@ -134,7 +154,10 @@ export function searchUsers(ctx: AppContext, viewer: UserRow, q: string, communi
     conditions.push(
       inArray(
         users.id,
-        ctx.db.select({ id: communityMembers.userId }).from(communityMembers).where(eq(communityMembers.communityId, communityId)),
+        ctx.db
+          .select({ id: communityMembers.userId })
+          .from(communityMembers)
+          .where(eq(communityMembers.communityId, communityId)),
       ),
     );
   }

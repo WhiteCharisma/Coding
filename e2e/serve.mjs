@@ -38,7 +38,16 @@ const env = {
 
 const admin = spawnSync(
   process.execPath,
-  ['apps/server/dist/cli.js', 'create-admin', '--username', E2E_ADMIN.username, '--email', E2E_ADMIN.email, '--display-name', E2E_ADMIN.displayName],
+  [
+    'apps/server/dist/cli.js',
+    'create-admin',
+    '--username',
+    E2E_ADMIN.username,
+    '--email',
+    E2E_ADMIN.email,
+    '--display-name',
+    E2E_ADMIN.displayName,
+  ],
   { cwd: root, env, input: `${E2E_ADMIN.password}\n${E2E_ADMIN.password}\n`, encoding: 'utf8' },
 );
 if (admin.status !== 0) {

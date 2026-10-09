@@ -60,7 +60,9 @@ export function registerCommunityRoutes(app: FastifyInstance, ctx: AppContext): 
 
   app.patch<IdParams>('/api/communities/:id', async (request) => {
     const { user } = requireAuth(request);
-    return { community: svc.updateCommunity(ctx, user, id(request.params.id), parse(updateCommunitySchema, request.body)) };
+    return {
+      community: svc.updateCommunity(ctx, user, id(request.params.id), parse(updateCommunitySchema, request.body)),
+    };
   });
 
   app.delete<IdParams>('/api/communities/:id', async (request, reply) => {
@@ -152,7 +154,12 @@ export function registerCommunityRoutes(app: FastifyInstance, ctx: AppContext): 
   /* Categories */
   app.post<IdParams>('/api/communities/:id/categories', async (request, reply) => {
     const { user } = requireAuth(request);
-    const category = svc.createCategory(ctx, user, id(request.params.id), parse(createCategorySchema, request.body).name);
+    const category = svc.createCategory(
+      ctx,
+      user,
+      id(request.params.id),
+      parse(createCategorySchema, request.body).name,
+    );
     reply.status(201);
     return { category };
   });
@@ -205,26 +212,38 @@ export function registerCommunityRoutes(app: FastifyInstance, ctx: AppContext): 
     const { user } = requireAuth(request);
     return { invites: svc.listInvites(ctx, user, id(request.params.id)) };
   });
-  app.post<IdParams>('/api/communities/:id/invites', { config: rateLimit(30 * m, '1 hour') }, async (request, reply) => {
-    const { user } = requireAuth(request);
-    const invite = svc.createInvite(ctx, user, id(request.params.id), parse(createInviteSchema, request.body));
-    reply.status(201);
-    return { invite };
-  });
+  app.post<IdParams>(
+    '/api/communities/:id/invites',
+    { config: rateLimit(30 * m, '1 hour') },
+    async (request, reply) => {
+      const { user } = requireAuth(request);
+      const invite = svc.createInvite(ctx, user, id(request.params.id), parse(createInviteSchema, request.body));
+      reply.status(201);
+      return { invite };
+    },
+  );
   app.delete<{ Params: { code: string } }>('/api/invites/:code', async (request, reply) => {
     const { user } = requireAuth(request);
     svc.revokeInvite(ctx, user, parse(inviteCodeSchema, request.params.code));
     reply.status(204);
   });
   // Public preview so people arriving from an invite link see what they are joining.
-  app.get<{ Params: { code: string } }>('/api/invites/:code', { config: rateLimit(30 * m, '1 minute') }, async (request) => {
-    const code = parse(inviteCodeSchema, request.params.code);
-    return { invite: svc.previewInvite(ctx, code, request.auth?.user.id ?? null) };
-  });
-  app.post<{ Params: { code: string } }>('/api/invites/:code/accept', { config: rateLimit(20 * m, '1 minute') }, async (request) => {
-    const { user } = requireAuth(request);
-    return { community: svc.acceptInvite(ctx, user, parse(inviteCodeSchema, request.params.code)) };
-  });
+  app.get<{ Params: { code: string } }>(
+    '/api/invites/:code',
+    { config: rateLimit(30 * m, '1 minute') },
+    async (request) => {
+      const code = parse(inviteCodeSchema, request.params.code);
+      return { invite: svc.previewInvite(ctx, code, request.auth?.user.id ?? null) };
+    },
+  );
+  app.post<{ Params: { code: string } }>(
+    '/api/invites/:code/accept',
+    { config: rateLimit(20 * m, '1 minute') },
+    async (request) => {
+      const { user } = requireAuth(request);
+      return { community: svc.acceptInvite(ctx, user, parse(inviteCodeSchema, request.params.code)) };
+    },
+  );
 
   app.get<IdParams>('/api/communities/:id/audit', async (request) => {
     const { user } = requireAuth(request);

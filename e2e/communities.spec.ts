@@ -1,7 +1,12 @@
 import { expect, PASSWORD, secondUser, sendMessage, signUp, test, unique } from './fixtures';
 
 test.describe('communities and invitations', () => {
-  test('create a community in the UI, invite someone new, and they join through the link', async ({ page, context, browser, consoleErrors }) => {
+  test('create a community in the UI, invite someone new, and they join through the link', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     await signUp(context, { displayName: 'Mara Okafor' });
     const name = unique('Night Shift ');
     await page.goto('/home');
@@ -71,7 +76,12 @@ test.describe('communities and invitations', () => {
     await other.context.close();
   });
 
-  test('owners create private channels that ordinary members cannot see', async ({ page, context, browser, consoleErrors }) => {
+  test('owners create private channels that ordinary members cannot see', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     await signUp(context);
     await page.goto('/home');
     await page.getByTestId('rail-add-community').click();

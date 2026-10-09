@@ -21,7 +21,13 @@
 import readline from 'node:readline';
 import { eq } from 'drizzle-orm';
 import pino from 'pino';
-import { emailSchema, passwordSchema, usernameSchema, displayNameSchema, RESERVED_USERNAMES } from '@creator-network/shared';
+import {
+  emailSchema,
+  passwordSchema,
+  usernameSchema,
+  displayNameSchema,
+  RESERVED_USERNAMES,
+} from '@creator-network/shared';
 import { audit } from './audit';
 import { createPasswordResetLink } from './auth/service';
 import { loadConfig } from './config';
@@ -130,7 +136,11 @@ function askHidden(question: string): Promise<string> {
   });
 }
 
-async function valueOrPrompt<T>(flag: string | true | undefined, question: string, parse: (v: string) => T): Promise<T> {
+async function valueOrPrompt<T>(
+  flag: string | true | undefined,
+  question: string,
+  parse: (v: string) => T,
+): Promise<T> {
   let raw = typeof flag === 'string' ? flag : '';
   for (;;) {
     if (!raw) raw = await ask(question);
@@ -157,7 +167,9 @@ function zodParse<T>(schema: { parse: (v: unknown) => T }) {
 async function main(): Promise<void> {
   const { command, positional, flags } = parseArgs(process.argv.slice(2));
   if (command === 'help' || command === '--help') {
-    console.log(`Usage: cli <create-admin|promote|reset-link|migrate|backup|list-backups|restore|seed-demo|purge-demo|cleanup>`);
+    console.log(
+      `Usage: cli <create-admin|promote|reset-link|migrate|backup|list-backups|restore|seed-demo|purge-demo|cleanup>`,
+    );
     return;
   }
   const config = loadConfig();
@@ -165,10 +177,14 @@ async function main(): Promise<void> {
     const archive = positional[0];
     if (!archive) throw new Error('Usage: restore <archive.tar.gz> --yes');
     if (flags.yes !== true) {
-      throw new Error('Restoring replaces the current database and uploads (they are moved to data/pre-restore-<time>/). Stop the server first, then re-run with --yes.');
+      throw new Error(
+        'Restoring replaces the current database and uploads (they are moved to data/pre-restore-<time>/). Stop the server first, then re-run with --yes.',
+      );
     }
     const result = await restoreBackup(archive, config.dataDir);
-    console.log(`Restored backup from ${new Date(result.manifest.createdAt).toISOString()} (app ${result.manifest.appVersion}).`);
+    console.log(
+      `Restored backup from ${new Date(result.manifest.createdAt).toISOString()} (app ${result.manifest.appVersion}).`,
+    );
     console.log(`Rows: ${JSON.stringify(result.manifest.counts)}`);
     if (result.previousDataMovedTo) console.log(`Previous data was moved to: ${result.previousDataMovedTo}`);
     console.log('Start the server again; any newer migrations will be applied automatically.');
@@ -181,7 +197,9 @@ async function main(): Promise<void> {
     switch (command) {
       case 'migrate': {
         const m = currentMigration(ctx.sqlite);
-        console.log(`Database is up to date (latest migration created at ${m ? new Date(m.createdAt).toISOString() : 'n/a'}).`);
+        console.log(
+          `Database is up to date (latest migration created at ${m ? new Date(m.createdAt).toISOString() : 'n/a'}).`,
+        );
         break;
       }
       case 'create-admin': {
@@ -196,7 +214,8 @@ async function main(): Promise<void> {
         });
         const email = await valueOrPrompt(flags.email, 'Email: ', (v) => {
           const e = zodParse(emailSchema)(v);
-          if (ctx.db.select({ id: users.id }).from(users).where(eq(users.email, e)).get()) throw new Error('That email is already in use.');
+          if (ctx.db.select({ id: users.id }).from(users).where(eq(users.email, e)).get())
+            throw new Error('That email is already in use.');
           return e;
         });
         const displayName = await valueOrPrompt(flags['display-name'], 'Display name: ', zodParse(displayNameSchema));
@@ -205,7 +224,8 @@ async function main(): Promise<void> {
           password = await askHidden('Password (min 10 characters): ');
           try {
             zodParse(passwordSchema)(password);
-            if (isCommonPassword(password) || password.toLowerCase().includes(username)) throw new Error('Choose a less predictable password.');
+            if (isCommonPassword(password) || password.toLowerCase().includes(username))
+              throw new Error('Choose a less predictable password.');
           } catch (err) {
             console.error(`  ${err instanceof Error ? err.message : String(err)}`);
             continue;
@@ -218,9 +238,27 @@ async function main(): Promise<void> {
         const id = newId(now);
         ctx.db
           .insert(users)
-          .values({ id, username, email, emailVerifiedAt: now, passwordHash: await hashPassword(password), displayName, platformRole: 'admin', onboardingCompletedAt: null, createdAt: now, updatedAt: now })
+          .values({
+            id,
+            username,
+            email,
+            emailVerifiedAt: now,
+            passwordHash: await hashPassword(password),
+            displayName,
+            platformRole: 'admin',
+            onboardingCompletedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          })
           .run();
-        audit(ctx.db, { scope: 'platform', actorId: null, action: 'user.admin_created_by_cli', targetType: 'user', targetId: id, targetLabel: username });
+        audit(ctx.db, {
+          scope: 'platform',
+          actorId: null,
+          action: 'user.admin_created_by_cli',
+          targetType: 'user',
+          targetId: id,
+          targetLabel: username,
+        });
         console.log(`\nAdministrator "${username}" created. Sign in at ${config.appOrigin}/login`);
         break;
       }
@@ -228,11 +266,24 @@ async function main(): Promise<void> {
         const username = positional[0];
         if (!username) throw new Error('Usage: promote <username> [--role admin|moderator|member]');
         const role = typeof flags.role === 'string' ? flags.role : 'admin';
-        if (!['admin', 'moderator', 'member'].includes(role)) throw new Error('Role must be admin, moderator or member.');
+        if (!['admin', 'moderator', 'member'].includes(role))
+          throw new Error('Role must be admin, moderator or member.');
         const user = ctx.db.select().from(users).where(eq(users.username, username.toLowerCase())).get();
         if (!user || user.status === 'deleted') throw new Error(`No user named "${username}".`);
-        ctx.db.update(users).set({ platformRole: role as 'admin' | 'moderator' | 'member', updatedAt: Date.now() }).where(eq(users.id, user.id)).run();
-        audit(ctx.db, { scope: 'platform', actorId: null, action: 'user.platform_role_changed_by_cli', targetType: 'user', targetId: user.id, targetLabel: user.username, metadata: { to: role } });
+        ctx.db
+          .update(users)
+          .set({ platformRole: role as 'admin' | 'moderator' | 'member', updatedAt: Date.now() })
+          .where(eq(users.id, user.id))
+          .run();
+        audit(ctx.db, {
+          scope: 'platform',
+          actorId: null,
+          action: 'user.platform_role_changed_by_cli',
+          targetType: 'user',
+          targetId: user.id,
+          targetLabel: user.username,
+          metadata: { to: role },
+        });
         console.log(`${user.username} is now ${role}.`);
         break;
       }
@@ -242,7 +293,14 @@ async function main(): Promise<void> {
         const user = ctx.db.select().from(users).where(eq(users.username, username.toLowerCase())).get();
         if (!user || user.status === 'deleted') throw new Error(`No user named "${username}".`);
         const link = createPasswordResetLink(ctx, user.id);
-        audit(ctx.db, { scope: 'platform', actorId: null, action: 'user.reset_link_created_by_cli', targetType: 'user', targetId: user.id, targetLabel: user.username });
+        audit(ctx.db, {
+          scope: 'platform',
+          actorId: null,
+          action: 'user.reset_link_created_by_cli',
+          targetType: 'user',
+          targetId: user.id,
+          targetLabel: user.username,
+        });
         console.log(`One-time reset link for ${user.username} (valid for 1 hour):\n${link}`);
         break;
       }
@@ -254,11 +312,14 @@ async function main(): Promise<void> {
       case 'list-backups': {
         const list = listBackups(config.backupDir);
         if (list.length === 0) console.log('No backups yet.');
-        for (const b of list) console.log(`${b.file}\t${(b.bytes / 1024 / 1024).toFixed(2)} MB\t${new Date(b.createdAt).toISOString()}`);
+        for (const b of list)
+          console.log(`${b.file}\t${(b.bytes / 1024 / 1024).toFixed(2)} MB\t${new Date(b.createdAt).toISOString()}`);
         break;
       }
       case 'seed-demo': {
-        const summary = await seedDemoData(ctx, { member: typeof flags.member === 'string' ? flags.member : undefined });
+        const summary = await seedDemoData(ctx, {
+          member: typeof flags.member === 'string' ? flags.member : undefined,
+        });
         console.log(summary);
         break;
       }

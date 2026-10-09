@@ -42,7 +42,9 @@ function Snapshot({ r }: { r: ReportDTO }) {
           {str(s.communityName) && <span>· {str(s.communityName)}</span>}
         </p>
         <p className="text-sm break-words whitespace-pre-wrap text-fg">{str(s.content)}</p>
-        {attachments.length > 0 && <p className="mt-1 text-xs text-fg-muted">📎 {attachments.map((a) => a.name ?? '').join(', ')}</p>}
+        {attachments.length > 0 && (
+          <p className="mt-1 text-xs text-fg-muted">📎 {attachments.map((a) => a.name ?? '').join(', ')}</p>
+        )}
         {s.deleted === true && <p className="mt-1 text-xs text-warning">{t('admin.reports.messageDeleted')}</p>}
       </div>
     );
@@ -77,13 +79,23 @@ function ReportCard({ r, onDone }: { r: ReportDTO; onDone: () => void }) {
   const [days, setDays] = useState('');
   const [busy, setBusy] = useState<'resolved' | 'dismissed' | null>(null);
   const Icon = TARGET_ICONS[r.targetType];
-  const actions: Action[] = r.targetType === 'message' ? ['none', 'delete_message', 'warn_user', 'suspend_user'] : r.targetType === 'user' ? ['none', 'warn_user', 'suspend_user'] : ['none'];
+  const actions: Action[] =
+    r.targetType === 'message'
+      ? ['none', 'delete_message', 'warn_user', 'suspend_user']
+      : r.targetType === 'user'
+        ? ['none', 'warn_user', 'suspend_user']
+        : ['none'];
 
   const submit = async (status: 'resolved' | 'dismissed') => {
     setBusy(status);
     try {
       const suspendDays = action === 'suspend_user' && days.trim() ? Number(days) : null;
-      await api.post(`/api/admin/reports/${r.id}/resolve`, { status, note, action: status === 'dismissed' ? 'none' : action, suspendDays });
+      await api.post(`/api/admin/reports/${r.id}/resolve`, {
+        status,
+        note,
+        action: status === 'dismissed' ? 'none' : action,
+        suspendDays,
+      });
       toast.success(t('admin.reports.closed'));
       onDone();
     } catch (err) {
@@ -108,7 +120,9 @@ function ReportCard({ r, onDone }: { r: ReportDTO; onDone: () => void }) {
       </div>
       <p className="mt-2 flex items-center gap-2 text-sm text-fg-muted">
         {r.reporter && <UserAvatar name={r.reporter.displayName} src={r.reporter.avatarUrl} size="xs" />}
-        {t('admin.reports.reportedBy', { name: r.reporter ? `${r.reporter.displayName} (@${r.reporter.username})` : t('common.labels.deletedUser') })}
+        {t('admin.reports.reportedBy', {
+          name: r.reporter ? `${r.reporter.displayName} (@${r.reporter.username})` : t('common.labels.deletedUser'),
+        })}
       </p>
       {r.details && (
         <div className="mt-3">
@@ -135,24 +149,57 @@ function ReportCard({ r, onDone }: { r: ReportDTO; onDone: () => void }) {
               )}
             </Field>
             {action === 'suspend_user' && (
-              <Field label={t('admin.reports.suspendDays')}>{(p) => <Input {...p} type="number" min={1} max={3650} value={days} onChange={(e) => setDays(e.target.value)} />}</Field>
+              <Field label={t('admin.reports.suspendDays')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="number"
+                    min={1}
+                    max={3650}
+                    value={days}
+                    onChange={(e) => setDays(e.target.value)}
+                  />
+                )}
+              </Field>
             )}
           </div>
           <Field label={t('admin.reports.note')}>
-            {(p) => <Textarea {...p} rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('admin.reports.notePlaceholder')} maxLength={500} />}
+            {(p) => (
+              <Textarea
+                {...p}
+                rows={2}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder={t('admin.reports.notePlaceholder')}
+                maxLength={500}
+              />
+            )}
           </Field>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" loading={busy === 'dismissed'} disabled={busy !== null} onClick={() => void submit('dismissed')}>
+            <Button
+              variant="ghost"
+              loading={busy === 'dismissed'}
+              disabled={busy !== null}
+              onClick={() => void submit('dismissed')}
+            >
               {t('admin.reports.dismiss')}
             </Button>
-            <Button variant="primary" loading={busy === 'resolved'} disabled={busy !== null} onClick={() => void submit('resolved')}>
+            <Button
+              variant="primary"
+              loading={busy === 'resolved'}
+              disabled={busy !== null}
+              onClick={() => void submit('resolved')}
+            >
               {t('admin.reports.resolve')}
             </Button>
           </div>
         </div>
       ) : (
         <p className="mt-3 border-t border-line-subtle pt-3 text-xs text-fg-muted">
-          {t('admin.reports.handledBy', { name: r.resolvedBy?.displayName ?? '—', date: r.resolvedAt ? formatDateTime(r.resolvedAt) : '' })}
+          {t('admin.reports.handledBy', {
+            name: r.resolvedBy?.displayName ?? '—',
+            date: r.resolvedAt ? formatDateTime(r.resolvedAt) : '',
+          })}
           {r.resolutionNote && <span className="mt-1 block text-fg-2">“{r.resolutionNote}”</span>}
         </p>
       )}
@@ -166,7 +213,10 @@ export function ReportsSection() {
   const list = useInfiniteQuery({
     queryKey: ['admin', 'reports', status],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => api.get<{ reports: ReportDTO[] }>(`/api/admin/reports?status=${status}${pageParam ? `&before=${pageParam}` : ''}`).then((r) => r.reports),
+    queryFn: ({ pageParam }) =>
+      api
+        .get<{ reports: ReportDTO[] }>(`/api/admin/reports?status=${status}${pageParam ? `&before=${pageParam}` : ''}`)
+        .then((r) => r.reports),
     getNextPageParam: (last) => (last.length === 100 ? last[last.length - 1]?.createdAt : undefined),
   });
   const reports = list.data?.pages.flat() ?? [];

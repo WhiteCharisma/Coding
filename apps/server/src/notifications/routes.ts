@@ -23,7 +23,12 @@ export function registerNotificationRoutes(app: FastifyInstance, ctx: AppContext
     const { user } = requireAuth(request);
     const q = parse(listQuery, request.query);
     return {
-      notifications: listNotifications(ctx, user.id, { before: q.before, unreadOnly: !!q.unread, types: q.types, limit: q.limit }),
+      notifications: listNotifications(ctx, user.id, {
+        before: q.before,
+        unreadOnly: !!q.unread,
+        types: q.types,
+        limit: q.limit,
+      }),
       unread: unreadNotificationCount(ctx.db, user.id),
     };
   });

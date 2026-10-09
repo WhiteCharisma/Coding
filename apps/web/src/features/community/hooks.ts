@@ -13,13 +13,17 @@ export function useCommunityMembers(communityId: string | null) {
   });
   // Seed live presence from the member list; socket events keep it current afterwards.
   useEffect(() => {
-    if (query.data) useChat.getState().mergePresence(Object.fromEntries(query.data.map((m) => [m.user.id, m.presence])));
+    if (query.data)
+      useChat.getState().mergePresence(Object.fromEntries(query.data.map((m) => [m.user.id, m.presence])));
   }, [query.data]);
   return query;
 }
 
 /** Colour of a member's highest coloured role (used for author names). */
-export function useRoleColors(community: CommunityDTO | undefined, members: MemberDTO[] | undefined): (userId: string) => string | null {
+export function useRoleColors(
+  community: CommunityDTO | undefined,
+  members: MemberDTO[] | undefined,
+): (userId: string) => string | null {
   const colors = useMemo(() => {
     const map = new Map<string, string>();
     if (!community || !members) return map;

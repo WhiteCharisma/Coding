@@ -23,13 +23,24 @@ export function passwordStrength(pw: string): 0 | 1 | 2 | 3 {
 export function StrengthMeter({ password }: { password: string }) {
   const level = passwordStrength(password);
   if (level === 0) return null;
-  const label = level === 1 ? t('auth.register.strength.weak') : level === 2 ? t('auth.register.strength.okay') : t('auth.register.strength.strong');
+  const label =
+    level === 1
+      ? t('auth.register.strength.weak')
+      : level === 2
+        ? t('auth.register.strength.okay')
+        : t('auth.register.strength.strong');
   const tone = level === 1 ? 'bg-danger' : level === 2 ? 'bg-warning' : 'bg-success';
   return (
     <div className="flex items-center gap-2" aria-live="polite">
       <div className="flex flex-1 gap-1" aria-hidden>
         {[1, 2, 3].map((i) => (
-          <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors duration-[var(--dur-base)]', i <= level ? tone : 'bg-line')} />
+          <span
+            key={i}
+            className={cn(
+              'h-1 flex-1 rounded-full transition-colors duration-[var(--dur-base)]',
+              i <= level ? tone : 'bg-line',
+            )}
+          />
         ))}
       </div>
       <span className="w-14 text-right text-xs text-fg-muted">{label}</span>
@@ -98,7 +109,9 @@ export default function RegisterPage() {
         ? null
         : errorMessage(error)
       : null;
-  const usernameError = fieldError(error, 'username') ?? (error instanceof ApiError && error.code === 'username_taken' ? error.message : undefined);
+  const usernameError =
+    fieldError(error, 'username') ??
+    (error instanceof ApiError && error.code === 'username_taken' ? error.message : undefined);
 
   if (closed) {
     return (
@@ -118,8 +131,23 @@ export default function RegisterPage() {
     <AuthLayout title={t('auth.register.title')} subtitle={t('auth.register.subtitle')}>
       <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4" noValidate data-testid="register-form">
         <FormError message={generalError} />
-        <Field label={t('auth.register.displayName')} hint={t('auth.register.displayNameHint')} error={fieldError(error, 'displayName')}>
-          {(p) => <Input {...p} name="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={LIMITS.displayNameMax} autoComplete="name" required autoFocus />}
+        <Field
+          label={t('auth.register.displayName')}
+          hint={t('auth.register.displayNameHint')}
+          error={fieldError(error, 'displayName')}
+        >
+          {(p) => (
+            <Input
+              {...p}
+              name="displayName"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              maxLength={LIMITS.displayNameMax}
+              autoComplete="name"
+              required
+              autoFocus
+            />
+          )}
         </Field>
         <Field label={t('auth.register.username')} hint={t('auth.register.usernameHint')} error={usernameError}>
           {(p) => (
@@ -146,19 +174,59 @@ export default function RegisterPage() {
           )}
         </Field>
         <Field label={t('auth.register.email')} hint={t('auth.register.emailHint')} error={fieldError(error, 'email')}>
-          {(p) => <Input {...p} name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" autoCapitalize="none" spellCheck={false} required />}
+          {(p) => (
+            <Input
+              {...p}
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+            />
+          )}
         </Field>
-        <Field label={t('auth.register.password')} hint={t('auth.register.passwordHint')} error={fieldError(error, 'password')}>
+        <Field
+          label={t('auth.register.password')}
+          hint={t('auth.register.passwordHint')}
+          error={fieldError(error, 'password')}
+        >
           {(p) => (
             <div className="flex flex-col gap-2">
-              <Input {...p} name="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" minLength={LIMITS.passwordMin} maxLength={LIMITS.passwordMax} required />
+              <Input
+                {...p}
+                name="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={LIMITS.passwordMin}
+                maxLength={LIMITS.passwordMax}
+                required
+              />
               <StrengthMeter password={password} />
             </div>
           )}
         </Field>
         {(needsInvite || inviteFromLink) && (
-          <Field label={t('auth.register.inviteCode')} hint={needsInvite ? t('auth.register.inviteCodeHint') : undefined} error={fieldError(error, 'inviteCode')}>
-            {(p) => <Input {...p} name="inviteCode" value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} autoCapitalize="none" spellCheck={false} required={needsInvite} />}
+          <Field
+            label={t('auth.register.inviteCode')}
+            hint={needsInvite ? t('auth.register.inviteCodeHint') : undefined}
+            error={fieldError(error, 'inviteCode')}
+          >
+            {(p) => (
+              <Input
+                {...p}
+                name="inviteCode"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                autoCapitalize="none"
+                spellCheck={false}
+                required={needsInvite}
+              />
+            )}
           </Field>
         )}
         <Button
@@ -166,14 +234,23 @@ export default function RegisterPage() {
           variant="primary"
           size="lg"
           loading={busy}
-          disabled={!displayName.trim() || effectiveUsername.length < LIMITS.usernameMin || !email || password.length < LIMITS.passwordMin || (needsInvite && !inviteCode.trim())}
+          disabled={
+            !displayName.trim() ||
+            effectiveUsername.length < LIMITS.usernameMin ||
+            !email ||
+            password.length < LIMITS.passwordMin ||
+            (needsInvite && !inviteCode.trim())
+          }
         >
           {t('auth.register.submit')}
         </Button>
         <p className="text-xs text-fg-muted">{t('auth.register.terms')}</p>
         <p className="text-center text-sm text-fg-muted">
           {t('auth.register.haveAccount')}{' '}
-          <Link to={inviteFromLink ? `/login?next=${encodeURIComponent(`/invite/${inviteFromLink}`)}` : '/login'} className="font-medium text-accent-text hover:underline">
+          <Link
+            to={inviteFromLink ? `/login?next=${encodeURIComponent(`/invite/${inviteFromLink}`)}` : '/login'}
+            className="font-medium text-accent-text hover:underline"
+          >
             {t('auth.register.signIn')}
           </Link>
         </p>

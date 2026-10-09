@@ -37,11 +37,28 @@ function formatUptime(seconds: number): string {
   return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function Stat({ label, value, detail, tone }: { label: string; value: ReactNode; detail?: ReactNode; tone?: 'danger' }) {
+function Stat({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string;
+  value: ReactNode;
+  detail?: ReactNode;
+  tone?: 'danger';
+}) {
   return (
     <div className="rounded-xl border border-line-subtle bg-sidebar/60 p-4">
       <p className="text-xs font-medium tracking-wide text-fg-muted uppercase">{label}</p>
-      <p className={cn('mt-1.5 font-display text-2xl font-semibold tracking-tight tabular-nums', tone === 'danger' ? 'text-danger' : 'text-fg')}>{value}</p>
+      <p
+        className={cn(
+          'mt-1.5 font-display text-2xl font-semibold tracking-tight tabular-nums',
+          tone === 'danger' ? 'text-danger' : 'text-fg',
+        )}
+      >
+        {value}
+      </p>
       {detail && <p className="mt-0.5 text-xs text-fg-muted">{detail}</p>}
     </div>
   );
@@ -51,7 +68,10 @@ export function OverviewSection({ query }: { query: UseQueryResult<AdminOverview
   const o = query.data;
   if (query.isError) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger" role="alert">
+      <div
+        className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger"
+        role="alert"
+      >
         {errorMessage(query.error)}
         <Button size="sm" onClick={() => void query.refetch()}>
           <RotateCcw /> {t('common.actions.retry')}
@@ -72,12 +92,20 @@ export function OverviewSection({ query }: { query: UseQueryResult<AdminOverview
   const nf = new Intl.NumberFormat();
   return (
     <div className="flex flex-col gap-6" data-testid="admin-overview">
-      <section className={cn('rounded-xl border p-4', healthy ? 'border-success/30 bg-success-soft/50' : 'border-warning/40 bg-warning-soft')}>
+      <section
+        className={cn(
+          'rounded-xl border p-4',
+          healthy ? 'border-success/30 bg-success-soft/50' : 'border-warning/40 bg-warning-soft',
+        )}
+      >
         <div className="flex flex-wrap items-center gap-3">
           {healthy ? <CheckCircle2 className="size-5 text-success" /> : <CircleAlert className="size-5 text-warning" />}
-          <h2 className="font-semibold text-fg">{healthy ? t('admin.overview.healthy') : t('admin.overview.degraded')}</h2>
+          <h2 className="font-semibold text-fg">
+            {healthy ? t('admin.overview.healthy') : t('admin.overview.degraded')}
+          </h2>
           <span className="ml-auto font-mono text-xs text-fg-muted">
-            {t('admin.overview.version')} {o.health.version} · {t('admin.overview.uptime')} {formatUptime(o.health.uptimeSeconds)} · {t('admin.overview.node')} {o.runtime.nodeVersion}
+            {t('admin.overview.version')} {o.health.version} · {t('admin.overview.uptime')}{' '}
+            {formatUptime(o.health.uptimeSeconds)} · {t('admin.overview.node')} {o.runtime.nodeVersion}
           </span>
         </div>
         <ul className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -91,26 +119,54 @@ export function OverviewSection({ query }: { query: UseQueryResult<AdminOverview
         </ul>
       </section>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label={t('admin.overview.users')} value={nf.format(o.counts.users)} detail={o.counts.suspendedUsers > 0 ? t('admin.overview.suspended', { count: o.counts.suspendedUsers }) : undefined} />
+        <Stat
+          label={t('admin.overview.users')}
+          value={nf.format(o.counts.users)}
+          detail={
+            o.counts.suspendedUsers > 0 ? t('admin.overview.suspended', { count: o.counts.suspendedUsers }) : undefined
+          }
+        />
         <Stat label={t('admin.overview.communities')} value={nf.format(o.counts.communities)} />
-        <Stat label={t('admin.overview.messages')} value={nf.format(o.counts.messages)} detail={`${t('admin.overview.messages24h')}: ${nf.format(o.counts.messages24h)}`} />
-        <Stat label={t('admin.overview.openReports')} value={nf.format(o.counts.openReports)} tone={o.counts.openReports > 0 ? 'danger' : undefined} />
+        <Stat
+          label={t('admin.overview.messages')}
+          value={nf.format(o.counts.messages)}
+          detail={`${t('admin.overview.messages24h')}: ${nf.format(o.counts.messages24h)}`}
+        />
+        <Stat
+          label={t('admin.overview.openReports')}
+          value={nf.format(o.counts.openReports)}
+          tone={o.counts.openReports > 0 ? 'danger' : undefined}
+        />
         <Stat label={t('admin.overview.sessions')} value={nf.format(o.counts.activeSessions)} />
         <Stat label={t('admin.overview.sockets')} value={nf.format(o.runtime.connectedSockets)} />
-        <Stat label={t('admin.overview.storage')} value={formatBytes(o.counts.uploadsBytes)} detail={`${t('admin.overview.database')}: ${formatBytes(o.runtime.databaseBytes)}`} />
-        <Stat label={t('admin.overview.memory')} value={`${o.runtime.rssMb} MB`} detail={t('admin.overview.memoryDetail', { heap: o.runtime.heapUsedMb })} />
+        <Stat
+          label={t('admin.overview.storage')}
+          value={formatBytes(o.counts.uploadsBytes)}
+          detail={`${t('admin.overview.database')}: ${formatBytes(o.runtime.databaseBytes)}`}
+        />
+        <Stat
+          label={t('admin.overview.memory')}
+          value={`${o.runtime.rssMb} MB`}
+          detail={t('admin.overview.memoryDetail', { heap: o.runtime.heapUsedMb })}
+        />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-line-subtle bg-sidebar/60 p-4">
           <p className="text-xs font-medium tracking-wide text-fg-muted uppercase">{t('admin.overview.email')}</p>
           <p className={cn('mt-1.5 text-sm', o.email.transport === 'smtp' ? 'text-fg' : 'text-warning')}>
-            {o.email.transport === 'smtp' ? t('admin.overview.emailSmtp') : o.email.transport === 'outbox' ? t('admin.overview.emailOutbox') : t('admin.overview.emailDisabled')}
+            {o.email.transport === 'smtp'
+              ? t('admin.overview.emailSmtp')
+              : o.email.transport === 'outbox'
+                ? t('admin.overview.emailOutbox')
+                : t('admin.overview.emailDisabled')}
           </p>
         </div>
         <div className="rounded-xl border border-line-subtle bg-sidebar/60 p-4">
           <p className="text-xs font-medium tracking-wide text-fg-muted uppercase">{t('admin.overview.lastBackup')}</p>
           <p className={cn('mt-1.5 text-sm', o.backups.latest ? 'text-fg' : 'text-warning')}>
-            {o.backups.latest ? `${formatDateTime(o.backups.latest.createdAt)} · ${formatBytes(o.backups.latest.bytes)}` : t('admin.overview.noBackup')}
+            {o.backups.latest
+              ? `${formatDateTime(o.backups.latest.createdAt)} · ${formatBytes(o.backups.latest.bytes)}`
+              : t('admin.overview.noBackup')}
           </p>
         </div>
       </div>

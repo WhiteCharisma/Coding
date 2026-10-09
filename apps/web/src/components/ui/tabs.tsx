@@ -6,7 +6,12 @@ export const Tabs = T.Root;
 export const TabsContent = T.Content;
 
 export function TabsList({ className, ...props }: ComponentProps<typeof T.List>) {
-  return <T.List className={cn('flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-line-subtle', className)} {...props} />;
+  return (
+    <T.List
+      className={cn('flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-line-subtle', className)}
+      {...props}
+    />
+  );
 }
 
 export function TabsTrigger({ className, ...props }: ComponentProps<typeof T.Trigger>) {

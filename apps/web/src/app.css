@@ -116,55 +116,102 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 @keyframes fade-out {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 @keyframes pop-in {
-  from { opacity: 0; transform: translateY(4px) scale(0.97); }
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
 }
 @keyframes pop-out {
-  to { opacity: 0; transform: scale(0.97); }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
 }
 @keyframes rise-in {
-  from { opacity: 0; transform: translateY(12px); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 @keyframes message-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 @keyframes drawer-in-left {
-  from { transform: translateX(-100%); }
+  from {
+    transform: translateX(-100%);
+  }
 }
 @keyframes drawer-out-left {
-  to { transform: translateX(-100%); }
+  to {
+    transform: translateX(-100%);
+  }
 }
 @keyframes drawer-in-right {
-  from { transform: translateX(100%); }
+  from {
+    transform: translateX(100%);
+  }
 }
 @keyframes drawer-out-right {
-  to { transform: translateX(100%); }
+  to {
+    transform: translateX(100%);
+  }
 }
 @keyframes sheet-in {
-  from { transform: translateY(100%); }
+  from {
+    transform: translateY(100%);
+  }
 }
 @keyframes sheet-out {
-  to { transform: translateY(100%); }
+  to {
+    transform: translateY(100%);
+  }
 }
 @keyframes shimmer {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 @keyframes typing-dot {
-  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-3px); }
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes highlight {
-  0%, 40% { background-color: var(--accent-soft); }
-  100% { background-color: transparent; }
+  0%,
+  40% {
+    background-color: var(--accent-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 @layer base {
@@ -266,6 +313,11 @@
 }
 
 @keyframes meter {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(0.55); }
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.55);
+  }
 }

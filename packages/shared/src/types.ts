@@ -344,8 +344,7 @@ export interface ReadStateEvent {
 }
 
 export type SendAck =
-  | { ok: true; message: MessageDTO }
-  | { ok: false; error: { code: string; message: string; retryable: boolean } };
+  { ok: true; message: MessageDTO } | { ok: false; error: { code: string; message: string; retryable: boolean } };
 
 export interface ServerToClientEvents {
   'message:new': (message: MessageDTO) => void;

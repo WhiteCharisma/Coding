@@ -6,7 +6,17 @@ import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Field, Input } from '../../components/ui/input';
 
-export function CategoryDialog({ community, category, open, onOpenChange }: { community: CommunityDTO; category?: CategoryDTO; open: boolean; onOpenChange: (o: boolean) => void }) {
+export function CategoryDialog({
+  community,
+  category,
+  open,
+  onOpenChange,
+}: {
+  community: CommunityDTO;
+  category?: CategoryDTO;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const [name, setName] = useState(category?.name ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,10 +36,15 @@ export function CategoryDialog({ community, category, open, onOpenChange }: { co
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={category ? t('common.actions.edit') : t('community.settings.channels.newCategory')} size="sm">
+      <DialogContent
+        title={category ? t('common.actions.edit') : t('community.settings.channels.newCategory')}
+        size="sm"
+      >
         <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
           <Field label={t('community.settings.channels.newCategory')} error={error ?? undefined}>
-            {(p) => <Input {...p} value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoFocus required />}
+            {(p) => (
+              <Input {...p} value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoFocus required />
+            )}
           </Field>
           <Button type="submit" variant="primary" loading={busy} disabled={!name.trim()}>
             {t('common.actions.save')}

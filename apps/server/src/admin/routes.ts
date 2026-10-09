@@ -61,7 +61,9 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: AppContext): void
 
   app.put<IdParams>('/api/admin/users/:id/role', async (request) => {
     const { user } = requireStaff(request, 'admin');
-    return { user: svc.setPlatformRole(ctx, user, id(request.params.id), parse(adminSetRoleSchema, request.body).role) };
+    return {
+      user: svc.setPlatformRole(ctx, user, id(request.params.id), parse(adminSetRoleSchema, request.body).role),
+    };
   });
 
   app.post<IdParams>('/api/admin/users/:id/reset-link', async (request) => {
@@ -104,13 +106,18 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: AppContext): void
 
   app.get('/api/admin/settings', async (request) => {
     requireStaff(request, 'admin');
-    return { settings: ctx.settings.get(), hardLimits: { maxUploadMb: ctx.config.maxUploadMbHardLimit }, email: { enabled: ctx.mailer.enabled, transport: ctx.mailer.transport } };
+    return {
+      settings: ctx.settings.get(),
+      hardLimits: { maxUploadMb: ctx.config.maxUploadMbHardLimit },
+      email: { enabled: ctx.mailer.enabled, transport: ctx.mailer.transport },
+    };
   });
 
   app.patch('/api/admin/settings', async (request) => {
     const { user } = requireStaff(request, 'admin');
     const input = parse(adminSettingsSchema, request.body);
-    if (input.maxUploadMb !== undefined) input.maxUploadMb = Math.min(input.maxUploadMb, ctx.config.maxUploadMbHardLimit);
+    if (input.maxUploadMb !== undefined)
+      input.maxUploadMb = Math.min(input.maxUploadMb, ctx.config.maxUploadMbHardLimit);
     const settings = ctx.settings.update(input, user.id);
     audit(ctx.db, { scope: 'platform', actorId: user.id, action: 'settings.updated', metadata: { ...input } });
     return { settings, config: publicConfig(ctx) };
@@ -142,7 +149,12 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: AppContext): void
   app.post('/api/admin/backups', async (request, reply) => {
     const { user } = requireStaff(request, 'admin');
     const backup = await createBackup(ctx, { reason: 'manual' });
-    audit(ctx.db, { scope: 'platform', actorId: user.id, action: 'backup.created', metadata: { file: backup.file, bytes: backup.bytes } });
+    audit(ctx.db, {
+      scope: 'platform',
+      actorId: user.id,
+      action: 'backup.created',
+      metadata: { file: backup.file, bytes: backup.bytes },
+    });
     reply.status(201);
     return { backup: publicBackupInfo(backup) };
   });

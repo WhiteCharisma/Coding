@@ -58,7 +58,17 @@ function saveDraft(channelId: string, value: string): void {
 
 const coarsePointer = () => window.matchMedia('(pointer: coarse)').matches;
 
-export function Composer({ channelId, placeholder, canSend, canAttach, disabledReason, replyTo, onCancelReply, onEditLast, mentionCandidates }: ComposerProps) {
+export function Composer({
+  channelId,
+  placeholder,
+  canSend,
+  canAttach,
+  disabledReason,
+  replyTo,
+  onCancelReply,
+  onEditLast,
+  mentionCandidates,
+}: ComposerProps) {
   const config = useSession((s) => s.config);
   const [value, setValue] = useState(() => loadDraft(channelId));
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -90,7 +100,9 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
   const matches = useMemo(() => {
     if (!mention) return [];
     const q = mention.query.toLowerCase();
-    return mentionCandidates.filter((u) => !u.deleted && (u.username.startsWith(q) || u.displayName.toLowerCase().includes(q))).slice(0, 6);
+    return mentionCandidates
+      .filter((u) => !u.deleted && (u.username.startsWith(q) || u.displayName.toLowerCase().includes(q)))
+      .slice(0, 6);
   }, [mention, mentionCandidates]);
 
   const updateMention = (text: string, caret: number) => {
@@ -193,7 +205,8 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
 
   const startUpload = useCallback(
     async (item: UploadItem) => {
-      const setItem = (patch: Partial<UploadItem>) => setUploads((list) => list.map((u) => (u.key === item.key ? { ...u, ...patch } : u)));
+      const setItem = (patch: Partial<UploadItem>) =>
+        setUploads((list) => list.map((u) => (u.key === item.key ? { ...u, ...patch } : u)));
       setItem({ status: 'preparing', progress: 0, error: undefined });
       let file = item.file;
       const form = new FormData();
@@ -207,7 +220,11 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
         file = await shrinkLargeImage(file);
       }
       form.append('file', file, file.name);
-      const handle = uploadWithProgress<{ attachment: AttachmentDTO }>(`/api/channels/${channelId}/attachments`, form, (p) => setItem({ progress: p }));
+      const handle = uploadWithProgress<{ attachment: AttachmentDTO }>(
+        `/api/channels/${channelId}/attachments`,
+        form,
+        (p) => setItem({ progress: p }),
+      );
       setItem({ status: 'uploading', abort: handle.abort });
       try {
         const res = await handle.promise;
@@ -231,7 +248,13 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
     const items: UploadItem[] = [];
     for (const file of list) {
       if (file.size > maxMb * 1024 * 1024) {
-        items.push({ key: crypto.randomUUID(), file, status: 'error', progress: 0, error: t('chat.composer.fileTooLarge', { name: file.name, max: maxMb }) });
+        items.push({
+          key: crypto.randomUUID(),
+          file,
+          status: 'error',
+          progress: 0,
+          error: t('chat.composer.fileTooLarge', { name: file.name, max: maxMb }),
+        });
         continue;
       }
       items.push({ key: crypto.randomUUID(), file, status: 'preparing', progress: 0 });
@@ -270,7 +293,11 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
       }}
     >
       {mention && matches.length > 0 && (
-        <div role="listbox" aria-label={t('chat.composer.mentionSuggestions')} className="absolute inset-x-4 bottom-full z-[var(--z-popover)] mb-1 overflow-hidden rounded-xl border border-line bg-overlay p-1 shadow-lg animate-pop-in">
+        <div
+          role="listbox"
+          aria-label={t('chat.composer.mentionSuggestions')}
+          className="absolute inset-x-4 bottom-full z-[var(--z-popover)] mb-1 overflow-hidden rounded-xl border border-line bg-overlay p-1 shadow-lg animate-pop-in"
+        >
           {matches.map((u, i) => (
             <button
               key={u.id}
@@ -281,7 +308,10 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
                 e.preventDefault();
                 insertMention(u);
               }}
-              className={cn('flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left', i === mentionIndex ? 'bg-active' : 'hover:bg-hover')}
+              className={cn(
+                'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left',
+                i === mentionIndex ? 'bg-active' : 'hover:bg-hover',
+              )}
             >
               <UserAvatar name={u.displayName} src={u.avatarUrl} size="sm" />
               <span className="text-ui font-medium text-fg">{u.displayName}</span>
@@ -297,7 +327,12 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
               {t('chat.composer.replyingTo', { name: replyTo.author?.displayName ?? t('common.labels.deletedUser') })}
               <span className="ml-2 text-fg-faint">{stripFormatting(replyTo.content).slice(0, 80)}</span>
             </span>
-            <button type="button" onClick={onCancelReply} aria-label={t('chat.composer.cancelReply')} className="rounded p-0.5 hover:bg-hover hover:text-fg">
+            <button
+              type="button"
+              onClick={onCancelReply}
+              aria-label={t('chat.composer.cancelReply')}
+              className="rounded p-0.5 hover:bg-hover hover:text-fg"
+            >
               <X className="size-3.5" />
             </button>
           </div>
@@ -305,26 +340,60 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
         {uploads.length > 0 && (
           <ul className="flex flex-wrap gap-2 border-b border-line-subtle p-2.5">
             {uploads.map((u) => {
-              const Icon = u.file.type.startsWith('image/') ? FileImage : u.file.type.startsWith('audio/') ? FileAudio : FileText;
+              const Icon = u.file.type.startsWith('image/')
+                ? FileImage
+                : u.file.type.startsWith('audio/')
+                  ? FileAudio
+                  : FileText;
               return (
-                <li key={u.key} className={cn('relative flex w-52 items-center gap-2 overflow-hidden rounded-lg border bg-inset px-2.5 py-2', u.status === 'error' ? 'border-danger/50' : 'border-line')}>
+                <li
+                  key={u.key}
+                  className={cn(
+                    'relative flex w-52 items-center gap-2 overflow-hidden rounded-lg border bg-inset px-2.5 py-2',
+                    u.status === 'error' ? 'border-danger/50' : 'border-line',
+                  )}
+                >
                   <Icon className={cn('size-4 shrink-0', u.status === 'error' ? 'text-danger' : 'text-accent-text')} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-xs font-medium text-fg">{u.file.name}</span>
-                    <span className={cn('block truncate text-[11px]', u.status === 'error' ? 'text-danger' : 'text-fg-muted')}>
-                      {u.status === 'error' ? (u.error ?? t('chat.composer.uploadFailed')) : u.status === 'done' ? formatBytes(u.file.size) : `${t('chat.composer.uploading')} ${Math.round(u.progress * 100)}%`}
+                    <span
+                      className={cn(
+                        'block truncate text-[11px]',
+                        u.status === 'error' ? 'text-danger' : 'text-fg-muted',
+                      )}
+                    >
+                      {u.status === 'error'
+                        ? (u.error ?? t('chat.composer.uploadFailed'))
+                        : u.status === 'done'
+                          ? formatBytes(u.file.size)
+                          : `${t('chat.composer.uploading')} ${Math.round(u.progress * 100)}%`}
                     </span>
                   </span>
-                  {u.status === 'error' && u.error !== t('chat.composer.fileTooLarge', { name: u.file.name, max: config?.maxUploadMb ?? 25 }) && (
-                    <button type="button" aria-label={t('common.actions.retry')} onClick={() => void startUpload(u)} className="rounded p-0.5 text-fg-muted hover:text-fg">
-                      <RotateCcw className="size-3.5" />
-                    </button>
-                  )}
-                  <button type="button" aria-label={t('chat.composer.removeAttachment', { name: u.file.name })} onClick={() => removeUpload(u.key)} className="rounded p-0.5 text-fg-muted hover:text-fg">
+                  {u.status === 'error' &&
+                    u.error !==
+                      t('chat.composer.fileTooLarge', { name: u.file.name, max: config?.maxUploadMb ?? 25 }) && (
+                      <button
+                        type="button"
+                        aria-label={t('common.actions.retry')}
+                        onClick={() => void startUpload(u)}
+                        className="rounded p-0.5 text-fg-muted hover:text-fg"
+                      >
+                        <RotateCcw className="size-3.5" />
+                      </button>
+                    )}
+                  <button
+                    type="button"
+                    aria-label={t('chat.composer.removeAttachment', { name: u.file.name })}
+                    onClick={() => removeUpload(u.key)}
+                    className="rounded p-0.5 text-fg-muted hover:text-fg"
+                  >
                     <X className="size-3.5" />
                   </button>
                   {(u.status === 'uploading' || u.status === 'preparing') && (
-                    <span className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-accent transition-transform duration-200" style={{ transform: `scaleX(${Math.max(0.04, u.progress)})` }} />
+                    <span
+                      className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-accent transition-transform duration-200"
+                      style={{ transform: `scaleX(${Math.max(0.04, u.progress)})` }}
+                    />
                   )}
                 </li>
               );
@@ -334,12 +403,25 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
         <div className="flex items-end gap-1 p-1.5">
           {canAttach && (
             <>
-              <input ref={fileRef} type="file" multiple hidden onChange={(e) => {
-                if (e.target.files) addFiles(e.target.files);
-                e.target.value = '';
-              }} accept="image/png,image/jpeg,image/gif,image/webp,audio/*,video/mp4,video/webm,application/pdf,application/zip,text/plain,.mid,.midi,.txt,.md" />
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                hidden
+                onChange={(e) => {
+                  if (e.target.files) addFiles(e.target.files);
+                  e.target.value = '';
+                }}
+                accept="image/png,image/jpeg,image/gif,image/webp,audio/*,video/mp4,video/webm,application/pdf,application/zip,text/plain,.mid,.midi,.txt,.md"
+              />
               <Tooltip content={t('chat.composer.attach')}>
-                <Button variant="ghost" size="icon" aria-label={t('chat.composer.attach')} onClick={() => fileRef.current?.click()} disabled={uploads.length >= LIMITS.attachmentsPerMessage}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('chat.composer.attach')}
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploads.length >= LIMITS.attachmentsPerMessage}
+                >
                   <Paperclip className="size-[18px]" />
                 </Button>
               </Tooltip>
@@ -380,14 +462,25 @@ export function Composer({ channelId, placeholder, canSend, canAttach, disabledR
               </Button>
             </EmojiPicker>
           </div>
-          <Button variant={canSubmit ? 'primary' : 'ghost'} size="icon" aria-label={t('chat.composer.send')} onClick={submit} disabled={!canSubmit} data-testid="composer-send">
+          <Button
+            variant={canSubmit ? 'primary' : 'ghost'}
+            size="icon"
+            aria-label={t('chat.composer.send')}
+            onClick={submit}
+            disabled={!canSubmit}
+            data-testid="composer-send"
+          >
             <SendHorizontal className="size-[18px]" />
           </Button>
         </div>
       </div>
       <div className="mt-1 hidden h-4 items-center justify-between px-1 text-[11px] text-fg-faint md:flex">
         <span>{t('chat.composer.hintDesktop')}</span>
-        {overLimit > -200 && <span className={cn('font-mono', overLimit > 0 ? 'text-danger' : 'text-fg-muted')}>{overLimit > 0 ? t('chat.composer.tooLong', { count: overLimit }) : `${value.length}/${LIMITS.messageMax}`}</span>}
+        {overLimit > -200 && (
+          <span className={cn('font-mono', overLimit > 0 ? 'text-danger' : 'text-fg-muted')}>
+            {overLimit > 0 ? t('chat.composer.tooLong', { count: overLimit }) : `${value.length}/${LIMITS.messageMax}`}
+          </span>
+        )}
       </div>
     </div>
   );

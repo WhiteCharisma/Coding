@@ -69,10 +69,7 @@ export const DEFAULT_MODERATOR_PERMISSIONS =
 
 /** Permissions every DM / group DM participant has. */
 export const DM_PERMISSIONS =
-  Permission.VIEW_CHANNEL |
-  Permission.SEND_MESSAGES |
-  Permission.ATTACH_FILES |
-  Permission.ADD_REACTIONS;
+  Permission.VIEW_CHANNEL | Permission.SEND_MESSAGES | Permission.ATTACH_FILES | Permission.ADD_REACTIONS;
 
 export function hasPermission(bits: number, permission: number): boolean {
   if ((bits & Permission.ADMINISTRATOR) === Permission.ADMINISTRATOR) return true;
@@ -80,9 +77,7 @@ export function hasPermission(bits: number, permission: number): boolean {
 }
 
 export function permissionNames(bits: number): PermissionName[] {
-  return (Object.keys(Permission) as PermissionName[]).filter(
-    (name) => (bits & Permission[name]) === Permission[name],
-  );
+  return (Object.keys(Permission) as PermissionName[]).filter((name) => (bits & Permission[name]) === Permission[name]);
 }
 
 export interface RoleLike {
@@ -116,18 +111,13 @@ export function computeBasePermissions(ctx: PermissionContext): number {
   return bits;
 }
 
-export function computeChannelPermissions(
-  ctx: PermissionContext,
-  overwrites: readonly OverwriteLike[],
-): number {
+export function computeChannelPermissions(ctx: PermissionContext, overwrites: readonly OverwriteLike[]): number {
   const base = computeBasePermissions(ctx);
   if (base === ALL_PERMISSIONS) return ALL_PERMISSIONS;
 
   let bits = base;
 
-  const everyone = overwrites.find(
-    (o) => o.targetType === 'role' && o.targetId === ctx.everyoneRole.id,
-  );
+  const everyone = overwrites.find((o) => o.targetType === 'role' && o.targetId === ctx.everyoneRole.id);
   if (everyone) {
     bits &= ~(everyone.deny & CHANNEL_PERMISSIONS);
     bits |= everyone.allow & CHANNEL_PERMISSIONS;
@@ -165,10 +155,7 @@ export function highestRolePosition(ctx: PermissionContext): number {
 }
 
 /** A channel is "private" when @everyone is denied VIEW_CHANNEL. */
-export function isPrivateChannel(
-  everyoneRoleId: string,
-  overwrites: readonly OverwriteLike[],
-): boolean {
+export function isPrivateChannel(everyoneRoleId: string, overwrites: readonly OverwriteLike[]): boolean {
   const o = overwrites.find((x) => x.targetType === 'role' && x.targetId === everyoneRoleId);
   return !!o && (o.deny & Permission.VIEW_CHANNEL) === Permission.VIEW_CHANNEL;
 }

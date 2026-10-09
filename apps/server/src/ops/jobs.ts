@@ -15,7 +15,12 @@ export async function runCleanup(ctx: AppContext): Promise<{ sessions: number; f
   const sessions = purgeExpiredSessions(ctx);
   const tokens = ctx.db
     .delete(emailTokens)
-    .where(or(lt(emailTokens.expiresAt, now - 7 * 24 * HOUR), and(isNotNull(emailTokens.usedAt), lt(emailTokens.usedAt, now - 7 * 24 * HOUR))))
+    .where(
+      or(
+        lt(emailTokens.expiresAt, now - 7 * 24 * HOUR),
+        and(isNotNull(emailTokens.usedAt), lt(emailTokens.usedAt, now - 7 * 24 * HOUR)),
+      ),
+    )
     .run().changes;
 
   let files = 0;
@@ -27,7 +32,12 @@ export async function runCleanup(ctx: AppContext): Promise<{ sessions: number; f
         or(
           eq(uploads.status, 'deleted'),
           and(eq(uploads.status, 'pending'), lt(uploads.createdAt, now - HOUR)),
-          and(eq(uploads.purpose, 'attachment'), eq(uploads.status, 'attached'), isNull(uploads.messageId), lt(uploads.createdAt, now - HOUR)),
+          and(
+            eq(uploads.purpose, 'attachment'),
+            eq(uploads.status, 'attached'),
+            isNull(uploads.messageId),
+            lt(uploads.createdAt, now - HOUR),
+          ),
         ),
       )
       .limit(200)

@@ -56,7 +56,10 @@ export class SettingsStore {
         if (value === undefined) continue;
         const existing = tx.select().from(appSettings).where(eq(appSettings.key, key)).get();
         if (existing) {
-          tx.update(appSettings).set({ value, updatedAt: now, updatedBy: actorId }).where(eq(appSettings.key, key)).run();
+          tx.update(appSettings)
+            .set({ value, updatedAt: now, updatedBy: actorId })
+            .where(eq(appSettings.key, key))
+            .run();
         } else {
           tx.insert(appSettings).values({ key, value, updatedAt: now, updatedBy: actorId }).run();
         }

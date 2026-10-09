@@ -11,9 +11,27 @@ export function SectionHeader({ title, subtitle }: { title: string; subtitle?: s
 }
 
 /** A titled group of settings rendered as a quiet card. */
-export function SettingsCard({ title, description, children, tone = 'default', className }: { title?: string; description?: ReactNode; children: ReactNode; tone?: 'default' | 'danger'; className?: string }) {
+export function SettingsCard({
+  title,
+  description,
+  children,
+  tone = 'default',
+  className,
+}: {
+  title?: string;
+  description?: ReactNode;
+  children: ReactNode;
+  tone?: 'default' | 'danger';
+  className?: string;
+}) {
   return (
-    <section className={cn('rounded-xl border p-4 sm:p-5', tone === 'danger' ? 'border-danger/30 bg-danger-soft/40' : 'border-line-subtle bg-sidebar/60', className)}>
+    <section
+      className={cn(
+        'rounded-xl border p-4 sm:p-5',
+        tone === 'danger' ? 'border-danger/30 bg-danger-soft/40' : 'border-line-subtle bg-sidebar/60',
+        className,
+      )}
+    >
       {title && <h2 className={cn('font-semibold', tone === 'danger' ? 'text-danger' : 'text-fg')}>{title}</h2>}
       {description && <p className="mt-1 text-sm text-fg-muted">{description}</p>}
       <div className={cn(title || description ? 'mt-4' : undefined)}>{children}</div>

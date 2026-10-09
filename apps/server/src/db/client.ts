@@ -17,7 +17,11 @@ export interface DatabaseHandle {
 /** Locates the SQL migrations both when running from source and from the bundled dist/. */
 export function findMigrationsFolder(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const candidates = [path.join(here, 'drizzle'), path.join(here, '..', 'drizzle'), path.join(here, '..', '..', 'drizzle')];
+  const candidates = [
+    path.join(here, 'drizzle'),
+    path.join(here, '..', 'drizzle'),
+    path.join(here, '..', '..', 'drizzle'),
+  ];
   for (const candidate of candidates) {
     if (fs.existsSync(path.join(candidate, 'meta', '_journal.json'))) return candidate;
   }

@@ -12,7 +12,10 @@ describe('static web app serving', () => {
   beforeAll(async () => {
     webDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cn-web-'));
     fs.mkdirSync(path.join(webDir, 'assets'));
-    fs.writeFileSync(path.join(webDir, 'index.html'), '<!doctype html><title>Creator Network</title><div id="root"></div>');
+    fs.writeFileSync(
+      path.join(webDir, 'index.html'),
+      '<!doctype html><title>Creator Network</title><div id="root"></div>',
+    );
     fs.writeFileSync(path.join(webDir, 'assets', 'app-abc123.js'), 'console.log("app")');
     fs.writeFileSync(path.join(webDir, 'robots.txt'), 'User-agent: *\nDisallow: /api/\n');
     server = await createTestServer({ WEB_DIST_DIR: webDir });
@@ -49,7 +52,14 @@ describe('static web app serving', () => {
   });
 
   it('never exposes the database, uploads or backups', async () => {
-    for (const p of ['/data/creator-network.sqlite', '/creator-network.sqlite', '/uploads/', '/backups/', '/../data/creator-network.sqlite', '/%2e%2e/data/creator-network.sqlite']) {
+    for (const p of [
+      '/data/creator-network.sqlite',
+      '/creator-network.sqlite',
+      '/uploads/',
+      '/backups/',
+      '/../data/creator-network.sqlite',
+      '/%2e%2e/data/creator-network.sqlite',
+    ]) {
       const res = await fetch(`${server.url}${p}`, { headers: { accept: '*/*' } });
       expect(res.status, p).toBe(404);
     }

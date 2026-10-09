@@ -8,7 +8,11 @@ import { en } from './en';
 export type Messages = typeof en;
 type Plural = { one: string; other: string };
 type Leaves<T, P extends string = ''> = {
-  [K in keyof T & string]: T[K] extends string ? `${P}${K}` : T[K] extends Plural ? `${P}${K}` : Leaves<T[K], `${P}${K}.`>;
+  [K in keyof T & string]: T[K] extends string
+    ? `${P}${K}`
+    : T[K] extends Plural
+      ? `${P}${K}`
+      : Leaves<T[K], `${P}${K}.`>;
 }[keyof T & string];
 export type TKey = Leaves<Messages>;
 export type TVars = Record<string, string | number>;

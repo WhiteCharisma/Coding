@@ -1,4 +1,18 @@
-import { api, createCommunity, createInvite, E2E_ADMIN, expect, joinWithInvite, messageRow, secondUser, sendMessage, signInAdmin, signUp, test, unique } from './fixtures';
+import {
+  api,
+  createCommunity,
+  createInvite,
+  E2E_ADMIN,
+  expect,
+  joinWithInvite,
+  messageRow,
+  secondUser,
+  sendMessage,
+  signInAdmin,
+  signUp,
+  test,
+  unique,
+} from './fixtures';
 
 test.describe('settings', () => {
   test('profile edits show on the public profile', async ({ page, context }) => {
@@ -62,7 +76,12 @@ test.describe('administration and moderation', () => {
     }
   });
 
-  test('a reported message is reviewed by an admin, who warns the author', async ({ page, context, browser, consoleErrors }) => {
+  test('a reported message is reviewed by an admin, who warns the author', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     // Author and reporter share a community.
     const author = await signUp(context, { displayName: 'Loud Author' });
     const community = await createCommunity(context);
@@ -106,7 +125,11 @@ test.describe('administration and moderation', () => {
     await a.context.close();
   });
 
-  test('switching to invite-only registration requires a code, and admin codes work', async ({ page, browser, consoleErrors }) => {
+  test('switching to invite-only registration requires a code, and admin codes work', async ({
+    page,
+    browser,
+    consoleErrors,
+  }) => {
     const a = await secondUser(browser, consoleErrors, true);
     await signInAdmin(a.context);
     try {

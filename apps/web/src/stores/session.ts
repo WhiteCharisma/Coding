@@ -28,7 +28,8 @@ export const useSession = create<SessionState>((set, get) => ({
       api.get<{ user: SelfUser | null }>('/api/auth/state'),
     ]);
     if (config.status === 'fulfilled') set({ config: config.value });
-    if (session.status === 'fulfilled' && session.value.user) set({ user: session.value.user, status: 'authenticated' });
+    if (session.status === 'fulfilled' && session.value.user)
+      set({ user: session.value.user, status: 'authenticated' });
     else set({ status: 'anonymous', user: null });
   },
   setUser: (user) => set({ user, status: 'authenticated', endedReason: null }),

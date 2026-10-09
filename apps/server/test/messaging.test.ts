@@ -81,7 +81,9 @@ describe('sending and history', () => {
     expect(oldest.messages).toHaveLength(20);
     expect(oldest.hasMoreBefore).toBe(false);
     const after = (await bob.get(`/api/channels/${ch.id}/messages?after=${ids[100]}`)).body;
-    expect(after.messages.map((m: any) => m.content)).toEqual(Array.from({ length: 19 }, (_, i) => `message ${101 + i}`));
+    expect(after.messages.map((m: any) => m.content)).toEqual(
+      Array.from({ length: 19 }, (_, i) => `message ${101 + i}`),
+    );
     expect(after.hasMoreAfter).toBe(false);
     const around = (await bob.get(`/api/channels/${ch.id}/messages?around=${ids[60]}&limit=10`)).body;
     expect(around.messages.map((m: any) => m.content)).toContain('message 60');
@@ -121,7 +123,9 @@ describe('editing, deleting and moderation', () => {
     expect((await alice.put(`/api/messages/${msg.id}/pin`)).status).toBe(200);
     expect((await bob.get(`/api/channels/${general.id}/pins`)).body.messages.map((m: any) => m.id)).toContain(msg.id);
     expect((await alice.del(`/api/messages/${msg.id}/pin`)).status).toBe(200);
-    expect((await bob.get(`/api/channels/${general.id}/pins`)).body.messages.map((m: any) => m.id)).not.toContain(msg.id);
+    expect((await bob.get(`/api/channels/${general.id}/pins`)).body.messages.map((m: any) => m.id)).not.toContain(
+      msg.id,
+    );
   });
 });
 
@@ -150,7 +154,8 @@ describe('reactions, replies and mentions', () => {
   });
 
   it('mentions notify members who can see the channel, and nobody else', async () => {
-    const priv = (await alice.post(`/api/communities/${community.id}/channels`, { name: 'secret', isPrivate: true })).body.channel;
+    const priv = (await alice.post(`/api/communities/${community.id}/channels`, { name: 'secret', isPrivate: true }))
+      .body.channel;
     const res = (await send(alice, priv.id, 'hey @carol and @bob, can you hear this?')).body.message;
     expect(res.mentions).toEqual([]);
     const msg = (await send(alice, general.id, 'great mix @bob!')).body.message;
@@ -196,7 +201,12 @@ describe('read state', () => {
 describe('permission enforcement on messaging', () => {
   it('denies sending when SEND_MESSAGES is overridden off', async () => {
     const ch = (await alice.post(`/api/communities/${community.id}/channels`, { name: 'listen-only' })).body.channel;
-    await alice.put(`/api/channels/${ch.id}/overwrites`, { targetType: 'role', targetId: community.everyoneRoleId, allow: 0, deny: Permission.SEND_MESSAGES });
+    await alice.put(`/api/channels/${ch.id}/overwrites`, {
+      targetType: 'role',
+      targetId: community.everyoneRoleId,
+      allow: 0,
+      deny: Permission.SEND_MESSAGES,
+    });
     expect((await send(bob, ch.id, 'can I talk?')).status).toBe(403);
     expect((await bob.get(`/api/channels/${ch.id}/messages`)).status).toBe(200);
   });

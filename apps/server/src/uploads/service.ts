@@ -36,8 +36,11 @@ const MIME_ALIASES: Record<string, string> = {
 
 export function sanitizeFileName(raw: string): string {
   const base = path.basename(raw.replace(/\\/g, '/'));
-  // eslint-disable-next-line no-control-regex
-  const cleaned = base.replace(/[\u0000-\u001f\u007f<>:"/\\|?*\u202a-\u202e\u2066-\u2069]/g, '_').replace(/^\.+/, '').trim();
+  const cleaned = base
+    // eslint-disable-next-line no-control-regex -- strip control and bidi-override characters
+    .replace(/[\u0000-\u001f\u007f<>:"/\\|?*\u202a-\u202e\u2066-\u2069]/g, '_')
+    .replace(/^\.+/, '')
+    .trim();
   const limited = cleaned.length > 120 ? cleaned.slice(cleaned.length - 120) : cleaned;
   return limited || 'file';
 }
@@ -123,9 +126,12 @@ export async function storeUpload(
     if (!mime && /\.(txt|md|text)$/i.test(file.filename) && (await isPlainText(tmpPath))) mime = 'text/plain';
     const kind: UploadKind | null = mime ? uploadKindForMime(mime) : null;
     if (!mime || !kind) {
-      throw unsupported('That file type is not supported. Use images (PNG, JPEG, GIF, WebP), audio (MP3, WAV, OGG, FLAC, M4A), video (MP4, WebM), PDF, ZIP or text files.');
+      throw unsupported(
+        'That file type is not supported. Use images (PNG, JPEG, GIF, WebP), audio (MP3, WAV, OGG, FLAC, M4A), video (MP4, WebM), PDF, ZIP or text files.',
+      );
     }
-    if (isProfileImage && kind !== 'image') throw unsupported('Profile pictures and icons must be PNG, JPEG, GIF or WebP images.');
+    if (isProfileImage && kind !== 'image')
+      throw unsupported('Profile pictures and icons must be PNG, JPEG, GIF or WebP images.');
 
     let width: number | null = null;
     let height: number | null = null;
@@ -138,7 +144,11 @@ export async function storeUpload(
         throw unsupported('That image could not be read.');
       }
       if (!width || !height || width > MAX_DIMENSION || height > MAX_DIMENSION || width * height > MAX_PIXELS) {
-        throw badRequest(`Images can be at most ${MAX_DIMENSION}×${MAX_DIMENSION} pixels.`, undefined, 'image_too_large');
+        throw badRequest(
+          `Images can be at most ${MAX_DIMENSION}×${MAX_DIMENSION} pixels.`,
+          undefined,
+          'image_too_large',
+        );
       }
     }
 
@@ -146,7 +156,12 @@ export async function storeUpload(
     let durationMs: number | null = null;
     if (kind === 'audio' && opts.meta) {
       const w = opts.meta.waveform;
-      if (Array.isArray(w) && w.length > 0 && w.length <= LIMITS.waveformPeaks && w.every((v) => Number.isInteger(v) && v >= 0 && v <= 100)) {
+      if (
+        Array.isArray(w) &&
+        w.length > 0 &&
+        w.length <= LIMITS.waveformPeaks &&
+        w.every((v) => Number.isInteger(v) && v >= 0 && v <= 100)
+      ) {
         waveform = w;
       }
       const d = opts.meta.durationMs;

@@ -5,12 +5,20 @@ import { cn } from '../../lib/cn';
 const fieldBase =
   'w-full rounded-md border border-line bg-inset px-3 text-ui text-fg placeholder:text-fg-faint transition-[border-color,box-shadow] duration-[var(--dur-fast)] hover:border-line-strong focus-visible:border-accent-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-soft disabled:opacity-60 aria-[invalid=true]:border-danger';
 
-export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...props }, ref) {
+export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
+  { className, ...props },
+  ref,
+) {
   return <input ref={ref} className={cn(fieldBase, 'h-10', className)} {...props} />;
 });
 
-export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...props }, ref) {
-  return <textarea ref={ref} className={cn(fieldBase, 'min-h-20 resize-y py-2 leading-relaxed', className)} {...props} />;
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea(
+  { className, ...props },
+  ref,
+) {
+  return (
+    <textarea ref={ref} className={cn(fieldBase, 'min-h-20 resize-y py-2 leading-relaxed', className)} {...props} />
+  );
 });
 
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
@@ -58,7 +66,10 @@ export function Select({ className, children, ...props }: React.SelectHTMLAttrib
       <select className={cn(fieldBase, 'h-10 appearance-none pr-9')} {...props}>
         {children}
       </select>
-      <ChevronDown aria-hidden className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-muted" />
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-muted"
+      />
     </div>
   );
 }

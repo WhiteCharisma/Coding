@@ -27,13 +27,30 @@ function renderInline(text: string, ctx: FormatContext, keyPrefix: string, depth
     if (start > last) out.push(text.slice(last, start));
     const token = match[0];
     const key = `${keyPrefix}-${i++}`;
-    if (match[1] && depth < 3) out.push(<strong key={key} className="font-semibold text-fg">{renderInline(token.slice(2, -2), ctx, key, depth + 1)}</strong>);
-    else if (match[2] && depth < 3) out.push(<s key={key} className="text-fg-muted">{renderInline(token.slice(2, -2), ctx, key, depth + 1)}</s>);
-    else if ((match[3] || match[4]) && depth < 3) out.push(<em key={key}>{renderInline(token.slice(1, -1), ctx, key, depth + 1)}</em>);
+    if (match[1] && depth < 3)
+      out.push(
+        <strong key={key} className="font-semibold text-fg">
+          {renderInline(token.slice(2, -2), ctx, key, depth + 1)}
+        </strong>,
+      );
+    else if (match[2] && depth < 3)
+      out.push(
+        <s key={key} className="text-fg-muted">
+          {renderInline(token.slice(2, -2), ctx, key, depth + 1)}
+        </s>,
+      );
+    else if ((match[3] || match[4]) && depth < 3)
+      out.push(<em key={key}>{renderInline(token.slice(1, -1), ctx, key, depth + 1)}</em>);
     else if (match[5] && isSafeHttpUrl(token)) {
       const display = token.replace(/^https?:\/\//, '');
       out.push(
-        <a key={key} href={token} target="_blank" rel="noopener noreferrer nofollow ugc" className="break-words text-accent-text underline decoration-accent-text/40 underline-offset-2 hover:decoration-accent-text">
+        <a
+          key={key}
+          href={token}
+          target="_blank"
+          rel="noopener noreferrer nofollow ugc"
+          className="break-words text-accent-text underline decoration-accent-text/40 underline-offset-2 hover:decoration-accent-text"
+        >
           {display.length > 60 ? `${display.slice(0, 57)}…` : display}
         </a>,
       );
@@ -48,7 +65,11 @@ function renderInline(text: string, ctx: FormatContext, keyPrefix: string, depth
             key={key}
             type="button"
             onClick={isEveryone ? undefined : () => ctx.onMentionClick?.(name)}
-            className={self ? 'rounded px-0.5 font-medium text-accent-text bg-accent-soft hover:underline' : 'rounded px-0.5 font-medium text-info bg-info-soft hover:underline'}
+            className={
+              self
+                ? 'rounded px-0.5 font-medium text-accent-text bg-accent-soft hover:underline'
+                : 'rounded px-0.5 font-medium text-info bg-info-soft hover:underline'
+            }
           >
             {token}
           </button>,
@@ -87,7 +108,10 @@ export function formatMessage(content: string, ctx: FormatContext): ReactNode[] 
     if (seg.startsWith('```') && seg.endsWith('```') && seg.length >= 6) {
       const body = seg.slice(3, -3).replace(/^[a-z0-9+-]*\n/i, '');
       out.push(
-        <pre key={`b${idx}`} className="my-1 max-w-full overflow-x-auto rounded-md border border-line-subtle bg-code px-3 py-2 font-mono text-[0.84em] leading-relaxed text-fg-2">
+        <pre
+          key={`b${idx}`}
+          className="my-1 max-w-full overflow-x-auto rounded-md border border-line-subtle bg-code px-3 py-2 font-mono text-[0.84em] leading-relaxed text-fg-2"
+        >
           <code>{body.replace(/\n$/, '')}</code>
         </pre>,
       );

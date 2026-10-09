@@ -20,7 +20,11 @@ const env = {
 };
 
 const procs = [
-  { name: 'server', color: '\x1b[36m', args: ['exec', '--', 'tsx', 'watch', '--clear-screen=false', 'apps/server/src/main.ts'] },
+  {
+    name: 'server',
+    color: '\x1b[36m',
+    args: ['exec', '--', 'tsx', 'watch', '--clear-screen=false', 'apps/server/src/main.ts'],
+  },
   { name: 'web   ', color: '\x1b[35m', args: ['run', 'dev', '-w', '@creator-network/web'] },
 ].map(({ name, color, args }) => {
   const child = spawn(npm, args, { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });

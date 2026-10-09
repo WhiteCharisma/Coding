@@ -75,7 +75,10 @@ export function ProfileSection({ user }: { user: SelfUser }) {
 
   const linkError = (i: number) => fieldError(error, `links.${i}.url`) ?? fieldError(error, `links.${i}.label`);
   const known = new Set(['displayName', 'headline', 'bio', 'location', 'timezone', 'currentProjects']);
-  const generalError = error !== null && ![...known].some((k) => fieldError(error, k)) && !form.links.some((_, i) => linkError(i)) ? errorMessage(error) : null;
+  const generalError =
+    error !== null && ![...known].some((k) => fieldError(error, k)) && !form.links.some((_, i) => linkError(i))
+      ? errorMessage(error)
+      : null;
 
   return (
     <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-5" noValidate>
@@ -84,7 +87,12 @@ export function ProfileSection({ user }: { user: SelfUser }) {
       <SettingsCard className="overflow-hidden p-0 sm:p-0">
         <div className="h-24" style={bannerStyle(form.bannerHue)} />
         <div className="flex items-end gap-3 px-4 pb-4">
-          <UserAvatar name={form.displayName || user.displayName} src={user.avatarUrl} size="xl" className="-mt-8 rounded-full ring-4 ring-sidebar" />
+          <UserAvatar
+            name={form.displayName || user.displayName}
+            src={user.avatarUrl}
+            size="xl"
+            className="-mt-8 rounded-full ring-4 ring-sidebar"
+          />
           <div className="min-w-0 pb-1">
             <p className="truncate font-semibold text-fg">{form.displayName || user.displayName}</p>
             <p className="truncate text-sm text-fg-muted">{form.headline || `@${user.username}`}</p>
@@ -110,7 +118,10 @@ export function ProfileSection({ user }: { user: SelfUser }) {
               value={form.bannerHue ?? 40}
               onChange={(e) => set('bannerHue', Number(e.target.value))}
               className="h-2 flex-1 cursor-pointer appearance-none rounded-full accent-[var(--accent)]"
-              style={{ background: 'linear-gradient(90deg, oklch(0.6 0.13 0), oklch(0.6 0.13 60), oklch(0.6 0.13 120), oklch(0.6 0.13 180), oklch(0.6 0.13 240), oklch(0.6 0.13 300), oklch(0.6 0.13 360))' }}
+              style={{
+                background:
+                  'linear-gradient(90deg, oklch(0.6 0.13 0), oklch(0.6 0.13 60), oklch(0.6 0.13 120), oklch(0.6 0.13 180), oklch(0.6 0.13 240), oklch(0.6 0.13 300), oklch(0.6 0.13 360))',
+              }}
             />
             {form.bannerHue !== null && (
               <Button size="sm" variant="ghost" onClick={() => set('bannerHue', null)}>
@@ -124,22 +135,71 @@ export function ProfileSection({ user }: { user: SelfUser }) {
       <SettingsCard>
         <div className="flex flex-col gap-4">
           <Field label={t('settings.profile.displayName')} error={fieldError(error, 'displayName')}>
-            {(p) => <Input {...p} value={form.displayName} onChange={(e) => set('displayName', e.target.value)} maxLength={LIMITS.displayNameMax} required />}
+            {(p) => (
+              <Input
+                {...p}
+                value={form.displayName}
+                onChange={(e) => set('displayName', e.target.value)}
+                maxLength={LIMITS.displayNameMax}
+                required
+              />
+            )}
           </Field>
           <Field label={t('settings.profile.headline')} error={fieldError(error, 'headline')}>
-            {(p) => <Input {...p} value={form.headline} onChange={(e) => set('headline', e.target.value)} maxLength={LIMITS.headlineMax} placeholder={t('settings.profile.headlinePlaceholder')} />}
+            {(p) => (
+              <Input
+                {...p}
+                value={form.headline}
+                onChange={(e) => set('headline', e.target.value)}
+                maxLength={LIMITS.headlineMax}
+                placeholder={t('settings.profile.headlinePlaceholder')}
+              />
+            )}
           </Field>
-          <Field label={t('settings.profile.bio')} error={fieldError(error, 'bio')} hint={`${form.bio.length}/${LIMITS.bioMax}`}>
-            {(p) => <Textarea {...p} value={form.bio} onChange={(e) => set('bio', e.target.value)} maxLength={LIMITS.bioMax} rows={4} />}
+          <Field
+            label={t('settings.profile.bio')}
+            error={fieldError(error, 'bio')}
+            hint={`${form.bio.length}/${LIMITS.bioMax}`}
+          >
+            {(p) => (
+              <Textarea
+                {...p}
+                value={form.bio}
+                onChange={(e) => set('bio', e.target.value)}
+                maxLength={LIMITS.bioMax}
+                rows={4}
+              />
+            )}
           </Field>
           <Field label={t('settings.profile.projects')} error={fieldError(error, 'currentProjects')}>
-            {(p) => <Textarea {...p} value={form.currentProjects} onChange={(e) => set('currentProjects', e.target.value)} maxLength={LIMITS.projectsMax} rows={2} placeholder={t('settings.profile.projectsPlaceholder')} />}
+            {(p) => (
+              <Textarea
+                {...p}
+                value={form.currentProjects}
+                onChange={(e) => set('currentProjects', e.target.value)}
+                maxLength={LIMITS.projectsMax}
+                rows={2}
+                placeholder={t('settings.profile.projectsPlaceholder')}
+              />
+            )}
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t('settings.profile.location')} error={fieldError(error, 'location')}>
-              {(p) => <Input {...p} value={form.location} onChange={(e) => set('location', e.target.value)} maxLength={LIMITS.locationMax} placeholder={t('settings.profile.locationPlaceholder')} />}
+              {(p) => (
+                <Input
+                  {...p}
+                  value={form.location}
+                  onChange={(e) => set('location', e.target.value)}
+                  maxLength={LIMITS.locationMax}
+                  placeholder={t('settings.profile.locationPlaceholder')}
+                />
+              )}
             </Field>
-            <Field label={t('settings.profile.timezone')} hint={t('settings.profile.timezoneHint')} error={fieldError(error, 'timezone')}>
+            <Field
+              label={t('settings.profile.timezone')}
+              hint={t('settings.profile.timezoneHint')}
+              error={fieldError(error, 'timezone')}
+            >
               {(p) => (
                 <Select {...p} value={form.timezone} onChange={(e) => set('timezone', e.target.value)}>
                   <option value="">{t('settings.profile.timezoneNone')}</option>
@@ -156,7 +216,11 @@ export function ProfileSection({ user }: { user: SelfUser }) {
       </SettingsCard>
 
       <SettingsCard title={t('settings.profile.disciplines')}>
-        <DisciplinePicker value={form.disciplines} onChange={(v) => set('disciplines', v)} label={t('settings.profile.disciplines')} />
+        <DisciplinePicker
+          value={form.disciplines}
+          onChange={(v) => set('disciplines', v)}
+          label={t('settings.profile.disciplines')}
+        />
       </SettingsCard>
 
       <SettingsCard title={t('settings.profile.links')}>
@@ -169,7 +233,12 @@ export function ProfileSection({ user }: { user: SelfUser }) {
                   placeholder={t('settings.profile.linkLabel')}
                   value={link.label}
                   maxLength={40}
-                  onChange={(e) => set('links', form.links.map((l, j) => (j === i ? { ...l, label: e.target.value } : l)))}
+                  onChange={(e) =>
+                    set(
+                      'links',
+                      form.links.map((l, j) => (j === i ? { ...l, label: e.target.value } : l)),
+                    )
+                  }
                   className="w-32 sm:w-40"
                 />
                 <Input
@@ -178,11 +247,26 @@ export function ProfileSection({ user }: { user: SelfUser }) {
                   value={link.url}
                   type="url"
                   inputMode="url"
-                  onChange={(e) => set('links', form.links.map((l, j) => (j === i ? { ...l, url: e.target.value } : l)))}
+                  onChange={(e) =>
+                    set(
+                      'links',
+                      form.links.map((l, j) => (j === i ? { ...l, url: e.target.value } : l)),
+                    )
+                  }
                   aria-invalid={linkError(i) ? true : undefined}
                   className="flex-1"
                 />
-                <Button variant="ghost" size="icon" aria-label={t('common.actions.remove')} onClick={() => set('links', form.links.filter((_, j) => j !== i))}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('common.actions.remove')}
+                  onClick={() =>
+                    set(
+                      'links',
+                      form.links.filter((_, j) => j !== i),
+                    )
+                  }
+                >
                   <Trash2 />
                 </Button>
               </div>
@@ -195,7 +279,11 @@ export function ProfileSection({ user }: { user: SelfUser }) {
           ))}
         </ul>
         {form.links.length < LIMITS.profileLinksMax && (
-          <Button size="sm" className="mt-3" onClick={() => set('links', [...form.links, { label: '', url: 'https://' }])}>
+          <Button
+            size="sm"
+            className="mt-3"
+            onClick={() => set('links', [...form.links, { label: '', url: 'https://' }])}
+          >
             <Plus /> {t('settings.profile.addLink')}
           </Button>
         )}
@@ -210,7 +298,13 @@ export function ProfileSection({ user }: { user: SelfUser }) {
         <Button variant="ghost" disabled={!dirty || busy} onClick={() => setForm(fromUser(user))}>
           {t('common.actions.cancel')}
         </Button>
-        <Button type="submit" variant="primary" loading={busy} disabled={!dirty || !form.displayName.trim()} data-testid="save-profile">
+        <Button
+          type="submit"
+          variant="primary"
+          loading={busy}
+          disabled={!dirty || !form.displayName.trim()}
+          data-testid="save-profile"
+        >
           {t('common.actions.saveChanges')}
         </Button>
       </div>

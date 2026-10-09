@@ -82,7 +82,12 @@ export function toMessageDTOs(db: DbOrTx, rows: MessageRow[], viewerId: string |
   const replyIds = [...new Set(rows.map((r) => r.replyToId).filter((x): x is string => !!x))];
   const replyRows = replyIds.length
     ? db
-        .select({ id: messages.id, authorId: messages.authorId, content: messages.content, deletedAt: messages.deletedAt })
+        .select({
+          id: messages.id,
+          authorId: messages.authorId,
+          content: messages.content,
+          deletedAt: messages.deletedAt,
+        })
         .from(messages)
         .where(inArray(messages.id, replyIds))
         .all()
@@ -204,7 +209,13 @@ export function getHistory(
       .limit(n + 1)
       .all();
   const fetchAfter = (cursor: string, n: number) =>
-    ctx.db.select().from(messages).where(and(base, gt(messages.id, cursor))).orderBy(asc(messages.id)).limit(n + 1).all();
+    ctx.db
+      .select()
+      .from(messages)
+      .where(and(base, gt(messages.id, cursor)))
+      .orderBy(asc(messages.id))
+      .limit(n + 1)
+      .all();
 
   let rows: MessageRow[];
   let hasMoreBefore: boolean;
@@ -240,7 +251,12 @@ export function getMessageForUser(ctx: AppContext, user: UserRow, messageId: str
 /* ------------------------------------------------------------------ Send */
 
 /** Resolves @username mentions to users who can actually see the channel. */
-function resolveMentions(ctx: AppContext, access: ChannelAccess, content: string, authorId: string): { userIds: string[]; everyone: boolean } {
+function resolveMentions(
+  ctx: AppContext,
+  access: ChannelAccess,
+  content: string,
+  authorId: string,
+): { userIds: string[]; everyone: boolean } {
   const parsed = extractMentions(content);
   let userIds: string[] = [];
   if (parsed.usernames.length) {
@@ -252,7 +268,8 @@ function resolveMentions(ctx: AppContext, access: ChannelAccess, content: string
       .filter((u) => u.status === 'active' && u.id !== authorId);
     userIds = candidates.filter((u) => getChannelAccess(ctx.db, access.channel.id, u.id) !== null).map((u) => u.id);
   }
-  const everyone = parsed.everyone && access.channel.kind === 'text' && hasPerm(access.permissions, Permission.MENTION_EVERYONE);
+  const everyone =
+    parsed.everyone && access.channel.kind === 'text' && hasPerm(access.permissions, Permission.MENTION_EVERYONE);
   return { userIds, everyone };
 }
 
@@ -299,9 +316,11 @@ export function sendMessage(ctx: AppContext, user: UserRow, channelId: string, i
     const valid =
       attachmentRows.length === new Set(input.attachmentIds).size &&
       attachmentRows.every(
-        (a) => a.uploaderId === user.id && a.purpose === 'attachment' && a.status === 'pending' && a.channelId === channelId,
+        (a) =>
+          a.uploaderId === user.id && a.purpose === 'attachment' && a.status === 'pending' && a.channelId === channelId,
       );
-    if (!valid) throw badRequest('One of the attachments is invalid or was already used.', undefined, 'attachment_invalid');
+    if (!valid)
+      throw badRequest('One of the attachments is invalid or was already used.', undefined, 'attachment_invalid');
   }
   const mentions = resolveMentions(ctx, access, input.content, user.id);
 
@@ -324,7 +343,9 @@ export function sendMessage(ctx: AppContext, user: UserRow, channelId: string, i
     ctx.db.transaction((tx) => {
       tx.insert(messages).values(row).run();
       if (mentions.userIds.length) {
-        tx.insert(messageMentions).values(mentions.userIds.map((userId) => ({ messageId, userId }))).run();
+        tx.insert(messageMentions)
+          .values(mentions.userIds.map((userId) => ({ messageId, userId })))
+          .run();
       }
       if (attachmentRows.length) {
         tx.update(uploads).set({ status: 'attached', messageId }).where(inArray(uploads.id, input.attachmentIds)).run();
@@ -332,13 +353,20 @@ export function sendMessage(ctx: AppContext, user: UserRow, channelId: string, i
       tx.update(channels).set({ lastMessageId: messageId, lastMessageAt: now }).where(eq(channels.id, channelId)).run();
       tx.insert(readStates)
         .values({ userId: user.id, channelId, lastReadId: messageId, updatedAt: now })
-        .onConflictDoUpdate({ target: [readStates.userId, readStates.channelId], set: { lastReadId: messageId, updatedAt: now } })
+        .onConflictDoUpdate({
+          target: [readStates.userId, readStates.channelId],
+          set: { lastReadId: messageId, updatedAt: now },
+        })
         .run();
     });
   } catch (err) {
     // Concurrent retry with the same nonce won the race: return the stored message.
     if (err instanceof Error && /UNIQUE constraint failed: messages\.author_id, messages\.nonce/.test(err.message)) {
-      const stored = ctx.db.select().from(messages).where(and(eq(messages.authorId, user.id), eq(messages.nonce, input.nonce))).get();
+      const stored = ctx.db
+        .select()
+        .from(messages)
+        .where(and(eq(messages.authorId, user.id), eq(messages.nonce, input.nonce)))
+        .get();
       if (stored) {
         const [dto] = toMessageDTOs(ctx.db, [stored], user.id);
         return { message: dto as MessageDTO, created: false };
@@ -363,7 +391,11 @@ function fanOutNotifications(
   mentionedIds: string[],
   replyTo: MessageRow | undefined,
 ): void {
-  const text = message.content ? preview(message.content, 140) : message.attachments.length ? `📎 ${message.attachments.length} attachment(s)` : '';
+  const text = message.content
+    ? preview(message.content, 140)
+    : message.attachments.length
+      ? `📎 ${message.attachments.length} attachment(s)`
+      : '';
   const channel = access.channel;
   if (channel.kind !== 'text') {
     const others = ctx.db
@@ -375,19 +407,46 @@ function fanOutNotifications(
       .filter((id) => id !== author.id);
     for (const userId of others) {
       if (isBlockedEitherWay(ctx.db, userId, author.id)) continue;
-      notify(ctx, { userId, type: 'dm', actorId: author.id, channelId: channel.id, messageId: message.id, data: { preview: text }, aggregate: true });
+      notify(ctx, {
+        userId,
+        type: 'dm',
+        actorId: author.id,
+        channelId: channel.id,
+        messageId: message.id,
+        data: { preview: text },
+        aggregate: true,
+      });
     }
     return;
   }
   const notified = new Set<string>();
   for (const userId of mentionedIds) {
     if (isBlockedEitherWay(ctx.db, userId, author.id)) continue;
-    notify(ctx, { userId, type: 'mention', actorId: author.id, communityId: channel.communityId, channelId: channel.id, messageId: message.id, data: { preview: text } });
+    notify(ctx, {
+      userId,
+      type: 'mention',
+      actorId: author.id,
+      communityId: channel.communityId,
+      channelId: channel.id,
+      messageId: message.id,
+      data: { preview: text },
+    });
     notified.add(userId);
   }
   if (replyTo && replyTo.authorId !== author.id && !notified.has(replyTo.authorId)) {
-    if (getChannelAccess(ctx.db, channel.id, replyTo.authorId) && !isBlockedEitherWay(ctx.db, replyTo.authorId, author.id)) {
-      notify(ctx, { userId: replyTo.authorId, type: 'reply', actorId: author.id, communityId: channel.communityId, channelId: channel.id, messageId: message.id, data: { preview: text } });
+    if (
+      getChannelAccess(ctx.db, channel.id, replyTo.authorId) &&
+      !isBlockedEitherWay(ctx.db, replyTo.authorId, author.id)
+    ) {
+      notify(ctx, {
+        userId: replyTo.authorId,
+        type: 'reply',
+        actorId: author.id,
+        communityId: channel.communityId,
+        channelId: channel.id,
+        messageId: message.id,
+        data: { preview: text },
+      });
     }
   }
 }
@@ -408,10 +467,15 @@ export function editMessage(ctx: AppContext, user: UserRow, messageId: string, c
   const mentions = resolveMentions(ctx, access, content, user.id);
   const now = Date.now();
   ctx.db.transaction((tx) => {
-    tx.update(messages).set({ content, editedAt: now, updatedAt: now, mentionEveryone: mentions.everyone }).where(eq(messages.id, messageId)).run();
+    tx.update(messages)
+      .set({ content, editedAt: now, updatedAt: now, mentionEveryone: mentions.everyone })
+      .where(eq(messages.id, messageId))
+      .run();
     tx.delete(messageMentions).where(eq(messageMentions.messageId, messageId)).run();
     if (mentions.userIds.length) {
-      tx.insert(messageMentions).values(mentions.userIds.map((userId) => ({ messageId, userId }))).run();
+      tx.insert(messageMentions)
+        .values(mentions.userIds.map((userId) => ({ messageId, userId })))
+        .run();
     }
   });
   const updated = getMessageRow(ctx.db, messageId) as MessageRow;
@@ -421,7 +485,12 @@ export function editMessage(ctx: AppContext, user: UserRow, messageId: string, c
   return dto as MessageDTO;
 }
 
-export function deleteMessage(ctx: AppContext, user: UserRow, messageId: string, opts: { asPlatformStaff?: boolean; reason?: string } = {}): void {
+export function deleteMessage(
+  ctx: AppContext,
+  user: UserRow,
+  messageId: string,
+  opts: { asPlatformStaff?: boolean; reason?: string } = {},
+): void {
   const row = getMessageRow(ctx.db, messageId);
   if (!row) throw notFound('Message not found.');
   let moderated = false;
@@ -429,7 +498,8 @@ export function deleteMessage(ctx: AppContext, user: UserRow, messageId: string,
     const access = getChannelAccess(ctx.db, row.channelId, user.id);
     if (!access) throw notFound('Message not found.');
     if (row.authorId !== user.id) {
-      if (!hasPerm(access.permissions, Permission.MANAGE_MESSAGES)) throw forbidden('You can only delete your own messages.');
+      if (!hasPerm(access.permissions, Permission.MANAGE_MESSAGES))
+        throw forbidden('You can only delete your own messages.');
       moderated = true;
     }
   } else {
@@ -438,13 +508,20 @@ export function deleteMessage(ctx: AppContext, user: UserRow, messageId: string,
   if (row.deletedAt) return;
   const now = Date.now();
   ctx.db.transaction((tx) => {
-    tx.update(messages).set({ content: '', deletedAt: now, updatedAt: now, pinnedAt: null, pinnedBy: null }).where(eq(messages.id, messageId)).run();
+    tx.update(messages)
+      .set({ content: '', deletedAt: now, updatedAt: now, pinnedAt: null, pinnedBy: null })
+      .where(eq(messages.id, messageId))
+      .run();
     tx.delete(messageReactions).where(eq(messageReactions.messageId, messageId)).run();
     tx.delete(messageMentions).where(eq(messageMentions.messageId, messageId)).run();
     tx.update(uploads).set({ status: 'deleted' }).where(eq(uploads.messageId, messageId)).run();
     scrubMessageNotifications(tx, messageId);
     if (moderated) {
-      const channel = tx.select({ communityId: channels.communityId }).from(channels).where(eq(channels.id, row.channelId)).get();
+      const channel = tx
+        .select({ communityId: channels.communityId })
+        .from(channels)
+        .where(eq(channels.id, row.channelId))
+        .get();
       const author = tx.select({ username: users.username }).from(users).where(eq(users.id, row.authorId)).get();
       audit(tx, {
         scope: opts.asPlatformStaff || !channel?.communityId ? 'platform' : 'community',
@@ -461,13 +538,23 @@ export function deleteMessage(ctx: AppContext, user: UserRow, messageId: string,
   });
   ctx.realtime.toChannel(row.channelId, 'message:delete', { id: messageId, channelId: row.channelId });
   if (moderated) {
-    notify(ctx, { userId: row.authorId, type: 'moderation', data: { event: 'message_removed', reason: opts.reason ?? '' } });
+    notify(ctx, {
+      userId: row.authorId,
+      type: 'moderation',
+      data: { event: 'message_removed', reason: opts.reason ?? '' },
+    });
   }
 }
 
 /* -------------------------------------------------------------- Reactions */
 
-export function setReaction(ctx: AppContext, user: UserRow, messageId: string, emoji: string, add: boolean): ReactionEvent {
+export function setReaction(
+  ctx: AppContext,
+  user: UserRow,
+  messageId: string,
+  emoji: string,
+  add: boolean,
+): ReactionEvent {
   const row = getMessageRow(ctx.db, messageId);
   if (!row || row.deletedAt) throw notFound('Message not found.');
   const access = getChannelAccess(ctx.db, row.channelId, user.id);
@@ -484,11 +571,21 @@ export function setReaction(ctx: AppContext, user: UserRow, messageId: string, e
     if (!kinds.includes(emoji) && kinds.length >= MAX_REACTION_KINDS) {
       throw conflict('This message has the maximum number of different reactions.', 'too_many_reactions');
     }
-    ctx.db.insert(messageReactions).values({ messageId, userId: user.id, emoji, createdAt: Date.now() }).onConflictDoNothing().run();
+    ctx.db
+      .insert(messageReactions)
+      .values({ messageId, userId: user.id, emoji, createdAt: Date.now() })
+      .onConflictDoNothing()
+      .run();
   } else {
     ctx.db
       .delete(messageReactions)
-      .where(and(eq(messageReactions.messageId, messageId), eq(messageReactions.userId, user.id), eq(messageReactions.emoji, emoji)))
+      .where(
+        and(
+          eq(messageReactions.messageId, messageId),
+          eq(messageReactions.userId, user.id),
+          eq(messageReactions.emoji, emoji),
+        ),
+      )
       .run();
   }
   const count =
@@ -510,13 +607,15 @@ export function setPinned(ctx: AppContext, user: UserRow, messageId: string, pin
   const access = getChannelAccess(ctx.db, row.channelId, user.id);
   if (!access) throw notFound('Message not found.');
   const isDm = access.channel.kind !== 'text';
-  if (!isDm && !hasPerm(access.permissions, Permission.MANAGE_MESSAGES)) throw forbidden('You cannot pin messages here.');
+  if (!isDm && !hasPerm(access.permissions, Permission.MANAGE_MESSAGES))
+    throw forbidden('You cannot pin messages here.');
   if (pinned && !row.pinnedAt) {
-    const pins = ctx.db
-      .select({ n: sql<number>`count(*)` })
-      .from(messages)
-      .where(and(eq(messages.channelId, row.channelId), isNotNull(messages.pinnedAt)))
-      .get()?.n ?? 0;
+    const pins =
+      ctx.db
+        .select({ n: sql<number>`count(*)` })
+        .from(messages)
+        .where(and(eq(messages.channelId, row.channelId), isNotNull(messages.pinnedAt)))
+        .get()?.n ?? 0;
     if (pins >= MAX_PINS) throw conflict(`A channel can have at most ${MAX_PINS} pinned messages.`, 'too_many_pins');
   }
   const now = Date.now();
@@ -526,7 +625,15 @@ export function setPinned(ctx: AppContext, user: UserRow, messageId: string, pin
     .where(eq(messages.id, messageId))
     .run();
   if (access.channel.communityId) {
-    audit(ctx.db, { scope: 'community', communityId: access.channel.communityId, actorId: user.id, action: pinned ? 'message.pinned' : 'message.unpinned', targetType: 'message', targetId: messageId, metadata: { channelId: row.channelId } });
+    audit(ctx.db, {
+      scope: 'community',
+      communityId: access.channel.communityId,
+      actorId: user.id,
+      action: pinned ? 'message.pinned' : 'message.unpinned',
+      targetType: 'message',
+      targetId: messageId,
+      metadata: { channelId: row.channelId },
+    });
   }
   const updated = getMessageRow(ctx.db, messageId) as MessageRow;
   const [broadcast] = toMessageDTOs(ctx.db, [updated], null);
@@ -563,7 +670,10 @@ export function markRead(ctx: AppContext, user: UserRow, channelId: string, mess
   ctx.db
     .insert(readStates)
     .values({ userId: user.id, channelId, lastReadId: messageId, updatedAt: now })
-    .onConflictDoUpdate({ target: [readStates.userId, readStates.channelId], set: { lastReadId: messageId, updatedAt: now } })
+    .onConflictDoUpdate({
+      target: [readStates.userId, readStates.channelId],
+      set: { lastReadId: messageId, updatedAt: now },
+    })
     .run();
   ctx.realtime.toUser(user.id, 'read:update', { channelId, lastReadId: messageId });
   markChannelNotificationsRead(ctx, user.id, channelId, messageId);
@@ -576,7 +686,12 @@ const UNREAD_CAP = 100;
  * Unread and mention counts for a set of channels (capped at 100 per channel).
  * Direct messages count every unread message as a mention.
  */
-export function computeUnreads(db: DbOrTx, userId: string, channelIds: string[], dmChannelIds: Set<string>): UnreadState[] {
+export function computeUnreads(
+  db: DbOrTx,
+  userId: string,
+  channelIds: string[],
+  dmChannelIds: Set<string>,
+): UnreadState[] {
   if (channelIds.length === 0) return [];
   const idsJson = JSON.stringify(channelIds);
   const rows = db.all<{ channelId: string; lastReadId: string | null; unread: number }>(sql`
@@ -607,7 +722,8 @@ export function computeUnreads(db: DbOrTx, userId: string, channelIds: string[],
     group by m.channel_id
   `);
   const mentionCounts = new Map<string, number>();
-  for (const r of [...mentionRows, ...everyoneRows]) mentionCounts.set(r.channelId, (mentionCounts.get(r.channelId) ?? 0) + r.n);
+  for (const r of [...mentionRows, ...everyoneRows])
+    mentionCounts.set(r.channelId, (mentionCounts.get(r.channelId) ?? 0) + r.n);
   return rows.map((r) => ({
     channelId: r.channelId,
     lastReadId: r.lastReadId,
@@ -620,12 +736,24 @@ export function computeUnreads(db: DbOrTx, userId: string, channelIds: string[],
 export function messageSnapshot(db: DbOrTx, messageId: string): Record<string, unknown> | null {
   const row = getMessageRow(db, messageId);
   if (!row) return null;
-  const author = db.select({ username: users.username, displayName: users.displayName }).from(users).where(eq(users.id, row.authorId)).get();
-  const channel = db.select({ name: channels.name, kind: channels.kind, communityId: channels.communityId }).from(channels).where(eq(channels.id, row.channelId)).get();
+  const author = db
+    .select({ username: users.username, displayName: users.displayName })
+    .from(users)
+    .where(eq(users.id, row.authorId))
+    .get();
+  const channel = db
+    .select({ name: channels.name, kind: channels.kind, communityId: channels.communityId })
+    .from(channels)
+    .where(eq(channels.id, row.channelId))
+    .get();
   const community = channel?.communityId
     ? db.select({ name: communities.name }).from(communities).where(eq(communities.id, channel.communityId)).get()
     : undefined;
-  const files = db.select({ name: uploads.name, mime: uploads.mime }).from(uploads).where(eq(uploads.messageId, messageId)).all();
+  const files = db
+    .select({ name: uploads.name, mime: uploads.mime })
+    .from(uploads)
+    .where(eq(uploads.messageId, messageId))
+    .all();
   return {
     messageId: row.id,
     channelId: row.channelId,

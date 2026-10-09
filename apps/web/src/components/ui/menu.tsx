@@ -24,7 +24,17 @@ const itemBase =
   'relative flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-1.5 text-ui text-fg-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-active data-[highlighted]:text-fg [&_svg]:size-4 [&_svg]:text-fg-muted data-[highlighted]:[&_svg]:text-fg';
 
 export function MenuItem({ className, danger, ...props }: ComponentProps<typeof M.Item> & { danger?: boolean }) {
-  return <M.Item className={cn(itemBase, danger && 'text-danger data-[highlighted]:bg-danger-soft data-[highlighted]:text-danger [&_svg]:text-danger data-[highlighted]:[&_svg]:text-danger', className)} {...props} />;
+  return (
+    <M.Item
+      className={cn(
+        itemBase,
+        danger &&
+          'text-danger data-[highlighted]:bg-danger-soft data-[highlighted]:text-danger [&_svg]:text-danger data-[highlighted]:[&_svg]:text-danger',
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 export function MenuRadioItem({ className, children, ...props }: ComponentProps<typeof M.RadioItem>) {
@@ -60,5 +70,11 @@ export function MenuSeparator({ className }: { className?: string }) {
 }
 
 export function MenuLabel({ children, className }: { children: ReactNode; className?: string }) {
-  return <M.Label className={cn('px-2.5 pt-1.5 pb-1 text-2xs font-semibold tracking-wide text-fg-muted uppercase', className)}>{children}</M.Label>;
+  return (
+    <M.Label
+      className={cn('px-2.5 pt-1.5 pb-1 text-2xs font-semibold tracking-wide text-fg-muted uppercase', className)}
+    >
+      {children}
+    </M.Label>
+  );
 }

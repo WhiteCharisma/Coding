@@ -22,7 +22,16 @@ interface DialogContentProps {
 const sizes = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-xl', xl: 'max-w-3xl' };
 
 /** Centered modal on desktop; anchored to the bottom like a sheet on small screens. */
-export function DialogContent({ title, description, children, footer, className, size = 'md', hideTitle, onOpenAutoFocus }: DialogContentProps) {
+export function DialogContent({
+  title,
+  description,
+  children,
+  footer,
+  className,
+  size = 'md',
+  hideTitle,
+  onOpenAutoFocus,
+}: DialogContentProps) {
   return (
     <D.Portal>
       <D.Overlay className="fixed inset-0 z-[var(--z-modal)] bg-scrim data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
@@ -39,14 +48,25 @@ export function DialogContent({ title, description, children, footer, className,
         <div className={cn('flex items-start gap-4 px-5 pt-5 pb-3', hideTitle && 'sr-only')}>
           <div className="min-w-0 flex-1">
             <D.Title className="font-display text-lg font-semibold tracking-tight text-fg">{title}</D.Title>
-            {description ? <D.Description className="mt-1 text-sm text-fg-muted">{description}</D.Description> : <D.Description className="sr-only">{title}</D.Description>}
+            {description ? (
+              <D.Description className="mt-1 text-sm text-fg-muted">{description}</D.Description>
+            ) : (
+              <D.Description className="sr-only">{title}</D.Description>
+            )}
           </div>
-          <D.Close className="-mt-1 -mr-1 rounded-md p-1.5 text-fg-muted transition-colors hover:bg-hover hover:text-fg" aria-label={t('common.actions.close')}>
+          <D.Close
+            className="-mt-1 -mr-1 rounded-md p-1.5 text-fg-muted transition-colors hover:bg-hover hover:text-fg"
+            aria-label={t('common.actions.close')}
+          >
             <X className="size-4" />
           </D.Close>
         </div>
         <div className="scroll-area min-h-0 flex-1 px-5 pb-5">{children}</div>
-        {footer && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-sidebar/60 px-5 py-3 safe-bottom">{footer}</div>}
+        {footer && (
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-sidebar/60 px-5 py-3 safe-bottom">
+            {footer}
+          </div>
+        )}
       </D.Content>
     </D.Portal>
   );
@@ -65,14 +85,22 @@ interface SheetProps {
 export function Sheet({ open, onOpenChange, side = 'left', title, children, className }: SheetProps) {
   const position = {
     left: 'inset-y-0 left-0 h-full w-[min(88vw,var(--sidebar-width))] data-[state=open]:animate-drawer-in-left data-[state=closed]:animate-drawer-out-left',
-    right: 'inset-y-0 right-0 h-full w-[min(92vw,360px)] data-[state=open]:animate-drawer-in-right data-[state=closed]:animate-drawer-out-right',
-    bottom: 'inset-x-0 bottom-0 max-h-[85dvh] rounded-t-2xl data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out',
+    right:
+      'inset-y-0 right-0 h-full w-[min(92vw,360px)] data-[state=open]:animate-drawer-in-right data-[state=closed]:animate-drawer-out-right',
+    bottom:
+      'inset-x-0 bottom-0 max-h-[85dvh] rounded-t-2xl data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out',
   }[side];
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
         <D.Overlay className="fixed inset-0 z-[var(--z-drawer)] bg-scrim data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
-        <D.Content className={cn('fixed z-[var(--z-drawer)] flex flex-col overflow-hidden bg-sidebar shadow-lg focus:outline-none', position, className)}>
+        <D.Content
+          className={cn(
+            'fixed z-[var(--z-drawer)] flex flex-col overflow-hidden bg-sidebar shadow-lg focus:outline-none',
+            position,
+            className,
+          )}
+        >
           <D.Title className="sr-only">{title}</D.Title>
           <D.Description className="sr-only">{title}</D.Description>
           {children}

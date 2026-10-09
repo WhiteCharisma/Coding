@@ -55,7 +55,8 @@ export const auth = {
     email: 'Email',
     submit: 'Send reset link',
     sent: 'If an account exists for that address, a reset link is on its way. It expires in 1 hour.',
-    unavailable: 'Password recovery by email is not available on this server. Ask an administrator for a one-time reset link.',
+    unavailable:
+      'Password recovery by email is not available on this server. Ask an administrator for a one-time reset link.',
     back: 'Back to sign in',
   },
   reset: {

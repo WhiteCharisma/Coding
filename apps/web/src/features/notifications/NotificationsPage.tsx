@@ -36,7 +36,8 @@ export default function NotificationsPage() {
       api.get<{ notifications: NotificationDTO[]; unread: number }>(
         `/api/notifications?${new URLSearchParams({ limit: '40', ...(pageParam ? { before: String(pageParam) } : {}), ...(f?.types ? { types: f.types.join(',') } : {}), ...(f?.unread ? { unread: '1' } : {}) })}`,
       ),
-    getNextPageParam: (last) => (last.notifications.length === 40 ? last.notifications[last.notifications.length - 1]?.updatedAt : undefined),
+    getNextPageParam: (last) =>
+      last.notifications.length === 40 ? last.notifications[last.notifications.length - 1]?.updatedAt : undefined,
   });
   const items = query.data?.pages.flatMap((p) => p.notifications) ?? [];
 
@@ -68,7 +69,12 @@ export default function NotificationsPage() {
                 role="tab"
                 aria-selected={filter === x.key}
                 onClick={() => setFilter(x.key)}
-                className={cn('shrink-0 rounded-full border px-3 py-1 text-sm transition-colors', filter === x.key ? 'border-accent-border bg-accent-soft text-accent-text' : 'border-line text-fg-2 hover:border-line-strong')}
+                className={cn(
+                  'shrink-0 rounded-full border px-3 py-1 text-sm transition-colors',
+                  filter === x.key
+                    ? 'border-accent-border bg-accent-soft text-accent-text'
+                    : 'border-line text-fg-2 hover:border-line-strong',
+                )}
               >
                 {t(`notifications.filters.${x.key}`)}
               </button>
@@ -81,7 +87,10 @@ export default function NotificationsPage() {
               ))}
             </div>
           ) : items.length === 0 ? (
-            <EmptyState icon={Bell} title={filter === 'all' ? t('notifications.empty') : t('notifications.emptyFiltered')} />
+            <EmptyState
+              icon={Bell}
+              title={filter === 'all' ? t('notifications.empty') : t('notifications.emptyFiltered')}
+            />
           ) : (
             <ul className="flex flex-col gap-1">
               {items.map((n) => (

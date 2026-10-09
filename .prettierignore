@@ -4,3 +4,5 @@ apps/server/drizzle
 package-lock.json
 data
 backups
+test-results
+playwright-report

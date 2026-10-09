@@ -30,7 +30,10 @@ export interface BackupManifest {
 }
 
 function stamp(d = new Date()): string {
-  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+  return d
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z');
 }
 
 async function sha256File(file: string): Promise<string> {
@@ -119,7 +122,12 @@ async function doBackup(ctx: AppContext, opts: { reason: string }): Promise<Back
 
     const args = ['-czf', archive, '-C', staging, 'manifest.json', 'database.sqlite'];
     if (fs.existsSync(ctx.config.uploadsDir)) {
-      args.push('--exclude=uploads/tmp', '-C', path.dirname(ctx.config.uploadsDir), path.basename(ctx.config.uploadsDir));
+      args.push(
+        '--exclude=uploads/tmp',
+        '-C',
+        path.dirname(ctx.config.uploadsDir),
+        path.basename(ctx.config.uploadsDir),
+      );
     }
     await run('tar', args);
     await fsp.chmod(archive, 0o600);
@@ -153,7 +161,11 @@ export interface RestoreResult {
  * Restores a backup archive into `dataDir`. MUST run while the server is stopped.
  * Existing data is never deleted: it is moved to `dataDir/pre-restore-<time>/`.
  */
-export async function restoreBackup(archivePath: string, dataDir: string, dbFileName = 'creator-network.sqlite'): Promise<RestoreResult> {
+export async function restoreBackup(
+  archivePath: string,
+  dataDir: string,
+  dbFileName = 'creator-network.sqlite',
+): Promise<RestoreResult> {
   const archive = path.resolve(archivePath);
   if (!fs.existsSync(archive)) throw new Error(`Backup not found: ${archive}`);
   const ts = stamp();
@@ -163,11 +175,13 @@ export async function restoreBackup(archivePath: string, dataDir: string, dbFile
     await run('tar', ['-xzf', archive, '-C', staging, '--no-same-owner']);
     const manifestPath = path.join(staging, 'manifest.json');
     const dbPath = path.join(staging, 'database.sqlite');
-    if (!fs.existsSync(manifestPath) || !fs.existsSync(dbPath)) throw new Error('Archive is missing manifest.json or database.sqlite');
+    if (!fs.existsSync(manifestPath) || !fs.existsSync(dbPath))
+      throw new Error('Archive is missing manifest.json or database.sqlite');
     const manifest = JSON.parse(await fsp.readFile(manifestPath, 'utf8')) as BackupManifest;
     if (manifest.format !== 1) throw new Error(`Unsupported backup format ${String(manifest.format)}`);
     const sum = await sha256File(dbPath);
-    if (sum !== manifest.databaseSha256) throw new Error('Database checksum does not match the manifest (corrupted archive?)');
+    if (sum !== manifest.databaseSha256)
+      throw new Error('Database checksum does not match the manifest (corrupted archive?)');
     checkIntegrity(dbPath);
 
     const current = path.join(dataDir, dbFileName);

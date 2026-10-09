@@ -43,7 +43,9 @@ function RailItem({ to, onClick, label, active, unread = false, badge = 0, child
       <span
         className={cn(
           'grid size-12 place-items-center overflow-hidden rounded-2xl transition-[border-radius,background-color,color] duration-[var(--dur-base)] ease-out',
-          active ? 'rounded-xl bg-accent text-accent-fg' : 'bg-sidebar text-fg-2 group-hover:rounded-xl group-hover:bg-elevated group-hover:text-fg',
+          active
+            ? 'rounded-xl bg-accent text-accent-fg'
+            : 'bg-sidebar text-fg-2 group-hover:rounded-xl group-hover:bg-elevated group-hover:text-fg',
         )}
       >
         {children}
@@ -55,7 +57,13 @@ function RailItem({ to, onClick, label, active, unread = false, badge = 0, child
   return (
     <Tooltip content={label} side="right">
       {to ? (
-        <Link to={to} aria-label={label} aria-current={active ? 'page' : undefined} className={cls} data-testid={testId}>
+        <Link
+          to={to}
+          aria-label={label}
+          aria-current={active ? 'page' : undefined}
+          className={cls}
+          data-testid={testId}
+        >
           {inner}
         </Link>
       ) : (
@@ -81,15 +89,30 @@ export function NavRail() {
   const muted = new Set(user?.mutedCommunityIds ?? []);
 
   return (
-    <nav aria-label={t('shell.nav.primary')} className="z-[var(--z-rail)] hidden w-[var(--rail-width)] shrink-0 flex-col items-center bg-rail py-3 md:flex">
+    <nav
+      aria-label={t('shell.nav.primary')}
+      className="z-[var(--z-rail)] hidden w-[var(--rail-width)] shrink-0 flex-col items-center bg-rail py-3 md:flex"
+    >
       <div className="flex flex-col items-center gap-2">
         <RailItem to="/home" label={t('shell.nav.home')} active={path === '/home'}>
           <LogoMark className="size-7" />
         </RailItem>
-        <RailItem to="/dm" label={t('shell.nav.messages')} active={path.startsWith('/dm')} badge={dmMentions} testId="rail-dms">
+        <RailItem
+          to="/dm"
+          label={t('shell.nav.messages')}
+          active={path.startsWith('/dm')}
+          badge={dmMentions}
+          testId="rail-dms"
+        >
           <MessageCircle className="size-5" />
         </RailItem>
-        <RailItem to="/notifications" label={t('shell.nav.notifications')} active={path.startsWith('/notifications')} badge={notifications} testId="rail-notifications">
+        <RailItem
+          to="/notifications"
+          label={t('shell.nav.notifications')}
+          active={path.startsWith('/notifications')}
+          badge={notifications}
+          testId="rail-notifications"
+        >
           <Bell className="size-5" />
         </RailItem>
         <RailItem to="/search" label={t('shell.nav.search')} active={path.startsWith('/search')}>
@@ -97,7 +120,10 @@ export function NavRail() {
         </RailItem>
       </div>
       <div className="my-3 h-px w-8 shrink-0 bg-line" />
-      <ul aria-label={t('shell.nav.yourCommunities')} className="no-scrollbar flex min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto px-3 pt-1 pb-2">
+      <ul
+        aria-label={t('shell.nav.yourCommunities')}
+        className="no-scrollbar flex min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto px-3 pt-1 pb-2"
+      >
         {order.map((id) => {
           const c = communities[id];
           if (!c) return null;
@@ -106,13 +132,23 @@ export function NavRail() {
           return (
             <li key={id}>
               <RailItem to={`/c/${c.id}`} label={c.name} active={active} unread={state.unread} badge={state.mentions}>
-                <CommunityIcon name={c.name} src={c.iconUrl} size="md" className={cn('rounded-[inherit]', active && 'ring-2 ring-accent')} />
+                <CommunityIcon
+                  name={c.name}
+                  src={c.iconUrl}
+                  size="md"
+                  className={cn('rounded-[inherit]', active && 'ring-2 ring-accent')}
+                />
               </RailItem>
             </li>
           );
         })}
         <li>
-          <RailItem onClick={() => setCreateOpen(true)} label={t('shell.nav.addCommunity')} active={false} testId="rail-add-community">
+          <RailItem
+            onClick={() => setCreateOpen(true)}
+            label={t('shell.nav.addCommunity')}
+            active={false}
+            testId="rail-add-community"
+          >
             <Plus className="size-5 text-success" />
           </RailItem>
         </li>

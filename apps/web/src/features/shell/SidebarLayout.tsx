@@ -22,14 +22,28 @@ export function SidebarLayout({ sidebar, children, mobileView, contentLabel }: S
   const setOpen = useUi((s) => s.setMobileSidebarOpen);
   return (
     <>
-      <aside className={cn('w-full shrink-0 flex-col bg-sidebar md:flex md:w-[var(--sidebar-width)] md:border-r md:border-line-subtle', mobileView === 'sidebar' ? 'flex' : 'hidden')}>{sidebar}</aside>
-      <main id="main" aria-label={contentLabel} className={cn('min-w-0 flex-1 flex-col bg-main', mobileView === 'content' ? 'flex' : 'hidden md:flex')}>
+      <aside
+        className={cn(
+          'w-full shrink-0 flex-col bg-sidebar md:flex md:w-[var(--sidebar-width)] md:border-r md:border-line-subtle',
+          mobileView === 'sidebar' ? 'flex' : 'hidden',
+        )}
+      >
+        {sidebar}
+      </aside>
+      <main
+        id="main"
+        aria-label={contentLabel}
+        className={cn('min-w-0 flex-1 flex-col bg-main', mobileView === 'content' ? 'flex' : 'hidden md:flex')}
+      >
         <ConnectionBanner />
         {children}
       </main>
       {mobileView === 'content' && (
         <Sheet open={open} onOpenChange={setOpen} side="left" title={t('shell.openSidebar')} className="md:hidden">
-          <div className="flex h-full flex-col" onClickCapture={(e) => (e.target as HTMLElement).closest('a') && setOpen(false)}>
+          <div
+            className="flex h-full flex-col"
+            onClickCapture={(e) => (e.target as HTMLElement).closest('a') && setOpen(false)}
+          >
             {sidebar}
           </div>
         </Sheet>
@@ -39,7 +53,15 @@ export function SidebarLayout({ sidebar, children, mobileView, contentLabel }: S
 }
 
 /** Full-width page (settings, search, notifications…). */
-export function PageLayout({ children, label, className }: { children: ReactNode; label?: string; className?: string }) {
+export function PageLayout({
+  children,
+  label,
+  className,
+}: {
+  children: ReactNode;
+  label?: string;
+  className?: string;
+}) {
   return (
     <main id="main" aria-label={label} className={cn('flex min-w-0 flex-1 flex-col bg-main', className)}>
       <ConnectionBanner />

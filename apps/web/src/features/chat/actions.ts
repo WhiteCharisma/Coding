@@ -33,7 +33,9 @@ export async function toggleReaction(message: MessageDTO, emoji: string): Promis
 
 export async function setPinned(message: MessageDTO, pinned: boolean): Promise<void> {
   try {
-    const res = pinned ? await api.put<{ message: MessageDTO }>(`/api/messages/${message.id}/pin`) : await api.del<{ message: MessageDTO }>(`/api/messages/${message.id}/pin`);
+    const res = pinned
+      ? await api.put<{ message: MessageDTO }>(`/api/messages/${message.id}/pin`)
+      : await api.del<{ message: MessageDTO }>(`/api/messages/${message.id}/pin`);
     useMessages.getState().update(res.message);
   } catch (err) {
     toast.error(errorMessage(err));

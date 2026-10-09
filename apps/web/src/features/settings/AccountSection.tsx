@@ -41,10 +41,27 @@ function ChangeEmail({ user }: { user: SelfUser }) {
     <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-3" noValidate>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={t('settings.account.newEmail')} error={fieldError(error, 'email')}>
-          {(p) => <Input {...p} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder={user.email} />}
+          {(p) => (
+            <Input
+              {...p}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder={user.email}
+            />
+          )}
         </Field>
         <Field label={t('settings.account.currentPassword')} error={fieldError(error, 'password')}>
-          {(p) => <Input {...p} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />}
+          {(p) => (
+            <Input
+              {...p}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          )}
         </Field>
       </div>
       {error !== null && !fieldError(error, 'email') && !fieldError(error, 'password') && (
@@ -85,12 +102,27 @@ function ChangePassword() {
     <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-3" noValidate>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={t('settings.account.currentPassword')} error={fieldError(error, 'currentPassword')}>
-          {(p) => <Input {...p} type="password" value={currentPassword} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" />}
+          {(p) => (
+            <Input
+              {...p}
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrent(e.target.value)}
+              autoComplete="current-password"
+            />
+          )}
         </Field>
         <Field label={t('settings.account.newPassword')} error={fieldError(error, 'newPassword')}>
           {(p) => (
             <div className="flex flex-col gap-2">
-              <Input {...p} type="password" value={newPassword} onChange={(e) => setNew(e.target.value)} autoComplete="new-password" maxLength={LIMITS.passwordMax} />
+              <Input
+                {...p}
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNew(e.target.value)}
+                autoComplete="new-password"
+                maxLength={LIMITS.passwordMax}
+              />
               <StrengthMeter password={newPassword} />
             </div>
           )}
@@ -116,7 +148,11 @@ function DeleteAccount() {
   const [password, setPassword] = useState('');
   const [deleteMessages, setDeleteMessages] = useState(false);
   return (
-    <SettingsCard title={t('settings.account.deleteTitle')} description={t('settings.account.deleteBody')} tone="danger">
+    <SettingsCard
+      title={t('settings.account.deleteTitle')}
+      description={t('settings.account.deleteBody')}
+      tone="danger"
+    >
       <Button variant="danger" onClick={() => setOpen(true)}>
         {t('settings.account.deleteButton')}
       </Button>
@@ -136,7 +172,9 @@ function DeleteAccount() {
             await api.del('/api/me', { password, deleteMessages });
           } catch (err) {
             if (err instanceof ApiError && err.code === 'owns_communities') {
-              const names = ((err.details as { communities?: { name: string }[] } | undefined)?.communities ?? []).map((c) => c.name).join(', ');
+              const names = ((err.details as { communities?: { name: string }[] } | undefined)?.communities ?? [])
+                .map((c) => c.name)
+                .join(', ');
               throw new Error(t('settings.account.ownsCommunities', { names }), { cause: err });
             }
             throw err;
@@ -145,9 +183,24 @@ function DeleteAccount() {
           void navigate('/welcome', { replace: true });
         }}
       >
-        <Field label={t('settings.account.currentPassword')}>{(p) => <Input {...p} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />}</Field>
+        <Field label={t('settings.account.currentPassword')}>
+          {(p) => (
+            <Input
+              {...p}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          )}
+        </Field>
         <label className="flex items-center gap-2 text-sm text-fg-2">
-          <input type="checkbox" checked={deleteMessages} onChange={(e) => setDeleteMessages(e.target.checked)} className="size-4 accent-[var(--danger)]" />
+          <input
+            type="checkbox"
+            checked={deleteMessages}
+            onChange={(e) => setDeleteMessages(e.target.checked)}
+            className="size-4 accent-[var(--danger)]"
+          />
           {t('settings.account.deleteMessages')}
         </label>
       </ConfirmDialog>
@@ -217,7 +270,10 @@ export function AccountSection({ user }: { user: SelfUser }) {
 
 export function SessionsSection() {
   const navigate = useNavigate();
-  const sessions = useQuery({ queryKey: ['sessions'], queryFn: () => api.get<{ sessions: SessionInfo[] }>('/api/auth/sessions').then((r) => r.sessions) });
+  const sessions = useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => api.get<{ sessions: SessionInfo[] }>('/api/auth/sessions').then((r) => r.sessions),
+  });
   const [busy, setBusy] = useState<string | null>(null);
   const revoke = async (s: SessionInfo) => {
     setBusy(s.id);
@@ -277,7 +333,12 @@ export function SessionsSection() {
                       {t('settings.sessions.lastActive', { time: formatRelative(s.lastSeenAt) })}
                     </p>
                   </div>
-                  <Button size="sm" variant={s.current ? 'secondary' : 'danger-ghost'} loading={busy === s.id} onClick={() => void revoke(s)}>
+                  <Button
+                    size="sm"
+                    variant={s.current ? 'secondary' : 'danger-ghost'}
+                    loading={busy === s.id}
+                    onClick={() => void revoke(s)}
+                  >
                     <LogOut /> {t('settings.sessions.signOut')}
                   </Button>
                 </li>

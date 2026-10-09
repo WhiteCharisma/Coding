@@ -92,6 +92,9 @@ export const COMMUNITY_TEMPLATE_LAYOUTS: Record<CommunityTemplate, TemplateCateg
         { name: 'references', topic: 'Inspiration and reference boards.' },
       ],
     },
-    { name: 'Business', channels: [{ name: 'commissions-info', topic: 'Rates, availability and commission etiquette.' }] },
+    {
+      name: 'Business',
+      channels: [{ name: 'commissions-info', topic: 'Rates, availability and commission etiquette.' }],
+    },
   ],
 };

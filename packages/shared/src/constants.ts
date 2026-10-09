@@ -73,7 +73,13 @@ export const COMMUNITY_TAGS = [
 ] as const;
 export type CommunityTag = (typeof COMMUNITY_TAGS)[number];
 
-export const COMMUNITY_TEMPLATES = ['blank', 'music-collective', 'record-label', 'game-studio', 'art-collective'] as const;
+export const COMMUNITY_TEMPLATES = [
+  'blank',
+  'music-collective',
+  'record-label',
+  'game-studio',
+  'art-collective',
+] as const;
 export type CommunityTemplate = (typeof COMMUNITY_TEMPLATES)[number];
 
 export const REPORT_REASONS = [
@@ -89,15 +95,7 @@ export const REPORT_REASONS = [
 ] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
 
-export const NOTIFICATION_TYPES = [
-  'dm',
-  'mention',
-  'reply',
-  'invite',
-  'community',
-  'moderation',
-  'system',
-] as const;
+export const NOTIFICATION_TYPES = ['dm', 'mention', 'reply', 'invite', 'community', 'moderation', 'system'] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 /** Preference keys a user can toggle. 'system' notices cannot be disabled. */
@@ -124,16 +122,54 @@ export type PlatformRole = (typeof PLATFORM_ROLES)[number];
  * client bundle; the server still accepts any single emoji sequence.
  */
 export const REACTION_EMOJI = [
-  '🔥', '❤️', '👏', '🙌', '😂', '😮', '😢', '🤯',
-  '👍', '👎', '💯', '✨', '🎧', '🎹', '🎸', '🥁',
-  '🎤', '🎚️', '🎛️', '🎶', '🎵', '🎨', '🖌️', '🎮',
-  '🕹️', '🚀', '💡', '👀', '🙏', '🤝', '✅', '❓',
+  '🔥',
+  '❤️',
+  '👏',
+  '🙌',
+  '😂',
+  '😮',
+  '😢',
+  '🤯',
+  '👍',
+  '👎',
+  '💯',
+  '✨',
+  '🎧',
+  '🎹',
+  '🎸',
+  '🥁',
+  '🎤',
+  '🎚️',
+  '🎛️',
+  '🎶',
+  '🎵',
+  '🎨',
+  '🖌️',
+  '🎮',
+  '🕹️',
+  '🚀',
+  '💡',
+  '👀',
+  '🙏',
+  '🤝',
+  '✅',
+  '❓',
 ] as const;
 
 /** Accepted upload MIME types (validated from file signatures on the server). */
 export const UPLOAD_MIME_GROUPS = {
   image: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-  audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/x-flac', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/midi'],
+  audio: [
+    'audio/mpeg',
+    'audio/wav',
+    'audio/ogg',
+    'audio/flac',
+    'audio/x-flac',
+    'audio/mp4',
+    'audio/x-m4a',
+    'audio/aac',
+    'audio/midi',
+  ],
   video: ['video/mp4', 'video/webm'],
   document: ['application/pdf', 'application/zip', 'text/plain'],
 } as const;
@@ -149,8 +185,35 @@ export function uploadKindForMime(mime: string): UploadKind | null {
 
 /** Usernames nobody can register (impersonation and mention safety). */
 export const RESERVED_USERNAMES = new Set([
-  'admin', 'administrator', 'root', 'system', 'everyone', 'here', 'support', 'help',
-  'moderator', 'mod', 'mods', 'staff', 'official', 'security', 'deleted', 'deleted-user',
-  'null', 'undefined', 'api', 'www', 'mail', 'noreply', 'no-reply', 'creator-network',
-  'settings', 'invite', 'login', 'register', 'me', 'you', 'owner',
+  'admin',
+  'administrator',
+  'root',
+  'system',
+  'everyone',
+  'here',
+  'support',
+  'help',
+  'moderator',
+  'mod',
+  'mods',
+  'staff',
+  'official',
+  'security',
+  'deleted',
+  'deleted-user',
+  'null',
+  'undefined',
+  'api',
+  'www',
+  'mail',
+  'noreply',
+  'no-reply',
+  'creator-network',
+  'settings',
+  'invite',
+  'login',
+  'register',
+  'me',
+  'you',
+  'owner',
 ]);

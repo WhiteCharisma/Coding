@@ -1,4 +1,10 @@
-import { COMMUNITY_TAGS, COMMUNITY_TEMPLATES, type CommunityDTO, type CommunityTag, type CommunityTemplate } from '@creator-network/shared';
+import {
+  COMMUNITY_TAGS,
+  COMMUNITY_TEMPLATES,
+  type CommunityDTO,
+  type CommunityTag,
+  type CommunityTemplate,
+} from '@creator-network/shared';
 import { Compass, Disc3, Gamepad2, Palette, Plus, Sparkles, Users } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
@@ -25,7 +31,13 @@ export function parseInviteCode(input: string): string | null {
   return m?.[1] ?? null;
 }
 
-export function CreateCommunityForm({ onCreated, compact }: { onCreated: (c: CommunityDTO) => void; compact?: boolean }) {
+export function CreateCommunityForm({
+  onCreated,
+  compact,
+}: {
+  onCreated: (c: CommunityDTO) => void;
+  compact?: boolean;
+}) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [template, setTemplate] = useState<CommunityTemplate>('music-collective');
@@ -39,7 +51,13 @@ export function CreateCommunityForm({ onCreated, compact }: { onCreated: (c: Com
     setBusy(true);
     setError(null);
     try {
-      const { community } = await api.post<{ community: CommunityDTO }>('/api/communities', { name, description, template, visibility, tags });
+      const { community } = await api.post<{ community: CommunityDTO }>('/api/communities', {
+        name,
+        description,
+        template,
+        visibility,
+        tags,
+      });
       useChat.getState().upsertCommunity(community);
       onCreated(community);
     } catch (err) {
@@ -52,10 +70,33 @@ export function CreateCommunityForm({ onCreated, compact }: { onCreated: (c: Com
   return (
     <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
       <Field label={t('community.create.name')} error={fieldError(error, 'name')}>
-        {(p) => <Input {...p} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('community.create.namePlaceholder')} maxLength={60} required autoFocus />}
+        {(p) => (
+          <Input
+            {...p}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('community.create.namePlaceholder')}
+            maxLength={60}
+            required
+            autoFocus
+          />
+        )}
       </Field>
-      <Field label={t('community.create.description')} optional={t('common.labels.optional')} error={fieldError(error, 'description')}>
-        {(p) => <Textarea {...p} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('community.create.descriptionPlaceholder')} maxLength={500} rows={compact ? 2 : 3} />}
+      <Field
+        label={t('community.create.description')}
+        optional={t('common.labels.optional')}
+        error={fieldError(error, 'description')}
+      >
+        {(p) => (
+          <Textarea
+            {...p}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={t('community.create.descriptionPlaceholder')}
+            maxLength={500}
+            rows={compact ? 2 : 3}
+          />
+        )}
       </Field>
       <fieldset>
         <legend className="mb-1.5 text-sm font-medium text-fg-2">{t('community.create.template')}</legend>
@@ -71,7 +112,14 @@ export function CreateCommunityForm({ onCreated, compact }: { onCreated: (c: Com
                   selected ? 'border-accent-border bg-accent-soft' : 'border-line bg-inset hover:border-line-strong',
                 )}
               >
-                <input type="radio" name="template" value={tpl} checked={selected} onChange={() => setTemplate(tpl)} className="sr-only" />
+                <input
+                  type="radio"
+                  name="template"
+                  value={tpl}
+                  checked={selected}
+                  onChange={() => setTemplate(tpl)}
+                  className="sr-only"
+                />
                 <Icon className={cn('mt-0.5 size-4 shrink-0', selected ? 'text-accent-text' : 'text-fg-muted')} />
                 <span>
                   <span className="block text-ui font-medium text-fg">{t(`community.create.templates.${tpl}`)}</span>
@@ -93,7 +141,9 @@ export function CreateCommunityForm({ onCreated, compact }: { onCreated: (c: Com
             { value: 'public', label: t('common.labels.public') },
           ]}
         />
-        <p className="text-xs text-fg-muted">{visibility === 'public' ? t('community.create.visibilityPublic') : t('community.create.visibilityPrivate')}</p>
+        <p className="text-xs text-fg-muted">
+          {visibility === 'public' ? t('community.create.visibilityPublic') : t('community.create.visibilityPrivate')}
+        </p>
       </div>
       {visibility === 'public' && (
         <fieldset>
@@ -106,8 +156,15 @@ export function CreateCommunityForm({ onCreated, compact }: { onCreated: (c: Com
                   key={tag}
                   type="button"
                   aria-pressed={on}
-                  onClick={() => setTags((cur) => (on ? cur.filter((x) => x !== tag) : cur.length < 5 ? [...cur, tag] : cur))}
-                  className={cn('rounded-full border px-3 py-1 text-sm transition-colors', on ? 'border-accent-border bg-accent-soft text-accent-text' : 'border-line text-fg-2 hover:border-line-strong')}
+                  onClick={() =>
+                    setTags((cur) => (on ? cur.filter((x) => x !== tag) : cur.length < 5 ? [...cur, tag] : cur))
+                  }
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-sm transition-colors',
+                    on
+                      ? 'border-accent-border bg-accent-soft text-accent-text'
+                      : 'border-line text-fg-2 hover:border-line-strong',
+                  )}
                 >
                   {t(`common.tags.${tag}`)}
                 </button>
@@ -116,7 +173,11 @@ export function CreateCommunityForm({ onCreated, compact }: { onCreated: (c: Com
           </div>
         </fieldset>
       )}
-      {error !== null && !fieldError(error, 'name') && <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{errorMessage(error)}</p>}
+      {error !== null && !fieldError(error, 'name') && (
+        <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
+          {errorMessage(error)}
+        </p>
+      )}
       <Button type="submit" variant="primary" loading={busy} disabled={name.trim().length < 2}>
         <Plus /> {t('community.create.submit')}
       </Button>
@@ -150,12 +211,22 @@ export function JoinWithInvite({ onJoined }: { onJoined: (c: CommunityDTO) => vo
   return (
     <form onSubmit={(e) => void join(e)} className="flex flex-col gap-2">
       <div className="flex gap-2">
-        <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder={t('community.join.invitePlaceholder')} aria-label={t('onboarding.community.haveInvite')} className="flex-1" />
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={t('community.join.invitePlaceholder')}
+          aria-label={t('onboarding.community.haveInvite')}
+          className="flex-1"
+        />
         <Button type="submit" variant="primary" loading={busy} disabled={!value.trim()}>
           {t('community.join.useInvite')}
         </Button>
       </div>
-      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
     </form>
   );
 }
@@ -180,7 +251,8 @@ export function CreateJoinDialog({ open, onOpenChange }: { open: boolean; onOpen
           <TabsContent value="join" className="flex flex-col gap-5">
             <JoinWithInvite onJoined={go} />
             <div className="flex items-center gap-3 text-xs text-fg-muted">
-              <div className="h-px flex-1 bg-line-subtle" /> {t('community.join.or')} <div className="h-px flex-1 bg-line-subtle" />
+              <div className="h-px flex-1 bg-line-subtle" /> {t('community.join.or')}{' '}
+              <div className="h-px flex-1 bg-line-subtle" />
             </div>
             <Button
               variant="secondary"

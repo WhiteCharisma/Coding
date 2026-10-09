@@ -56,7 +56,9 @@ export default function VerifyEmailPage() {
       )}
       {state !== 'working' && (
         <Button asChild variant="primary" size="lg" className="mt-6 w-full">
-          <Link to={status === 'authenticated' ? '/home' : '/login'}>{status === 'authenticated' ? t('auth.verify.continue') : t('auth.login.submit')}</Link>
+          <Link to={status === 'authenticated' ? '/home' : '/login'}>
+            {status === 'authenticated' ? t('auth.verify.continue') : t('auth.login.submit')}
+          </Link>
         </Button>
       )}
     </AuthLayout>

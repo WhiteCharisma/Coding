@@ -10,8 +10,15 @@ export function ConnectionBanner() {
   if (!visible) return null;
   const offline = connection === 'offline';
   return (
-    <div role="status" className="flex items-center gap-2 border-b border-warning/25 bg-warning-soft px-4 py-2 text-sm text-fg animate-fade-in">
-      {offline ? <CloudOff className="size-4 text-warning" /> : <RefreshCw className="size-4 animate-spin text-warning" />}
+    <div
+      role="status"
+      className="flex items-center gap-2 border-b border-warning/25 bg-warning-soft px-4 py-2 text-sm text-fg animate-fade-in"
+    >
+      {offline ? (
+        <CloudOff className="size-4 text-warning" />
+      ) : (
+        <RefreshCw className="size-4 animate-spin text-warning" />
+      )}
       <span>{offline ? t('shell.connection.offline') : t('shell.connection.reconnecting')}</span>
     </div>
   );

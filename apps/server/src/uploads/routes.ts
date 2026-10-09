@@ -60,16 +60,21 @@ export async function registerUploadRoutes(app: FastifyInstance, ctx: AppContext
     },
   });
 
-  app.post<IdParams>('/api/channels/:id/attachments', { config: rateLimit(30 * m, '1 minute') }, async (request, reply) => {
-    const { user } = requireAuth(request);
-    const channelId = parse(idSchema, request.params.id);
-    const access = requireChannelPermission(ctx.db, channelId, user.id, Permission.SEND_MESSAGES);
-    if (!hasPerm(access.permissions, Permission.ATTACH_FILES)) throw forbidden('You cannot attach files in this channel.');
-    const { file, meta } = await readSingleFile(request);
-    const row = await storeUpload(ctx, user, file, { purpose: 'attachment', channelId, meta });
-    reply.status(201);
-    return { attachment: toAttachmentDTO(row) };
-  });
+  app.post<IdParams>(
+    '/api/channels/:id/attachments',
+    { config: rateLimit(30 * m, '1 minute') },
+    async (request, reply) => {
+      const { user } = requireAuth(request);
+      const channelId = parse(idSchema, request.params.id);
+      const access = requireChannelPermission(ctx.db, channelId, user.id, Permission.SEND_MESSAGES);
+      if (!hasPerm(access.permissions, Permission.ATTACH_FILES))
+        throw forbidden('You cannot attach files in this channel.');
+      const { file, meta } = await readSingleFile(request);
+      const row = await storeUpload(ctx, user, file, { purpose: 'attachment', channelId, meta });
+      reply.status(201);
+      return { attachment: toAttachmentDTO(row) };
+    },
+  );
 
   app.post('/api/me/avatar', { config: rateLimit(10 * m, '1 hour') }, async (request) => {
     const { user } = requireAuth(request);
@@ -99,30 +104,37 @@ export async function registerUploadRoutes(app: FastifyInstance, ctx: AppContext
   });
 
   /** Every file download is authorised here; there is no public uploads directory. */
-  app.get<IdParams & { Querystring: { download?: string } }>('/api/files/:id', { config: { rateLimit: false } }, async (request, reply) => {
-    const { user } = requireAuth(request);
-    const row = authorizeFile(ctx, user, parse(idSchema, request.params.id));
-    const etag = `"${row.id}"`;
-    reply
-      .header('Content-Security-Policy', "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox")
-      .header('Cache-Control', 'private, max-age=31536000, immutable')
-      .header('ETag', etag)
-      .header('Accept-Ranges', 'bytes')
-      .header('Content-Disposition', fileDisposition(row, request.query.download === '1'));
-    if (request.headers['if-none-match'] === etag) return reply.status(304).send();
-    const range = parseRange(request.headers.range, row.size);
-    if (range === 'invalid') {
-      return reply.status(416).header('Content-Range', `bytes */${row.size}`).send();
-    }
-    reply.type(row.mime);
-    if (range) {
+  app.get<IdParams & { Querystring: { download?: string } }>(
+    '/api/files/:id',
+    { config: { rateLimit: false } },
+    async (request, reply) => {
+      const { user } = requireAuth(request);
+      const row = authorizeFile(ctx, user, parse(idSchema, request.params.id));
+      const etag = `"${row.id}"`;
       reply
-        .status(206)
-        .header('Content-Range', `bytes ${range.start}-${range.end}/${row.size}`)
-        .header('Content-Length', range.end - range.start + 1);
-      return reply.send(openFileStream(ctx, row, range));
-    }
-    reply.header('Content-Length', row.size);
-    return reply.send(openFileStream(ctx, row));
-  });
+        .header(
+          'Content-Security-Policy',
+          "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox",
+        )
+        .header('Cache-Control', 'private, max-age=31536000, immutable')
+        .header('ETag', etag)
+        .header('Accept-Ranges', 'bytes')
+        .header('Content-Disposition', fileDisposition(row, request.query.download === '1'));
+      if (request.headers['if-none-match'] === etag) return reply.status(304).send();
+      const range = parseRange(request.headers.range, row.size);
+      if (range === 'invalid') {
+        return reply.status(416).header('Content-Range', `bytes */${row.size}`).send();
+      }
+      reply.type(row.mime);
+      if (range) {
+        reply
+          .status(206)
+          .header('Content-Range', `bytes ${range.start}-${range.end}/${row.size}`)
+          .header('Content-Length', range.end - range.start + 1);
+        return reply.send(openFileStream(ctx, row, range));
+      }
+      reply.header('Content-Length', row.size);
+      return reply.send(openFileStream(ctx, row));
+    },
+  );
 }

@@ -30,17 +30,32 @@ export function toNotificationDTOs(db: DbOrTx, rows: NotificationRow[]): Notific
   const channelIds = [...new Set(rows.map((r) => r.channelId).filter((x): x is string => !!x))];
   const actors = new Map(
     actorIds.length
-      ? db.select(summaryColumns).from(users).where(inArray(users.id, actorIds)).all().map((u) => [u.id, toUserSummary(u)])
+      ? db
+          .select(summaryColumns)
+          .from(users)
+          .where(inArray(users.id, actorIds))
+          .all()
+          .map((u) => [u.id, toUserSummary(u)])
       : [],
   );
   const communityNames = new Map(
     communityIds.length
-      ? db.select({ id: communities.id, name: communities.name }).from(communities).where(inArray(communities.id, communityIds)).all().map((c) => [c.id, c.name])
+      ? db
+          .select({ id: communities.id, name: communities.name })
+          .from(communities)
+          .where(inArray(communities.id, communityIds))
+          .all()
+          .map((c) => [c.id, c.name])
       : [],
   );
   const channelNames = new Map(
     channelIds.length
-      ? db.select({ id: channels.id, name: channels.name }).from(channels).where(inArray(channels.id, channelIds)).all().map((c) => [c.id, c.name])
+      ? db
+          .select({ id: channels.id, name: channels.name })
+          .from(channels)
+          .where(inArray(channels.id, channelIds))
+          .all()
+          .map((c) => [c.id, c.name])
       : [],
   );
   return rows.map((r) => ({
@@ -66,7 +81,11 @@ export function toNotificationDTOs(db: DbOrTx, rows: NotificationRow[]): Notific
  */
 export function notify(ctx: AppContext, input: NotifyInput): NotificationDTO | null {
   const recipient = ctx.db
-    .select({ status: users.status, notificationPrefs: users.notificationPrefs, mutedCommunityIds: users.mutedCommunityIds })
+    .select({
+      status: users.status,
+      notificationPrefs: users.notificationPrefs,
+      mutedCommunityIds: users.mutedCommunityIds,
+    })
     .from(users)
     .where(eq(users.id, input.userId))
     .get();
@@ -75,7 +94,11 @@ export function notify(ctx: AppContext, input: NotifyInput): NotificationDTO | n
     const prefs = notificationPrefsOf(recipient);
     if (prefs[input.type as keyof typeof prefs] === false) return null;
   }
-  if (input.communityId && MUTABLE_TYPES.includes(input.type) && recipient.mutedCommunityIds.includes(input.communityId)) {
+  if (
+    input.communityId &&
+    MUTABLE_TYPES.includes(input.type) &&
+    recipient.mutedCommunityIds.includes(input.communityId)
+  ) {
     return null;
   }
 
@@ -170,7 +193,12 @@ export function markNotificationsRead(ctx: AppContext, userId: string, ids: stri
 }
 
 /** Reading a channel clears its DM/mention/reply notifications up to that message. */
-export function markChannelNotificationsRead(ctx: AppContext, userId: string, channelId: string, upToMessageId: string): void {
+export function markChannelNotificationsRead(
+  ctx: AppContext,
+  userId: string,
+  channelId: string,
+  upToMessageId: string,
+): void {
   const now = Date.now();
   const targets = ctx.db
     .select({ id: notifications.id })

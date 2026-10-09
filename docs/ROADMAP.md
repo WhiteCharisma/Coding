@@ -1,12 +1,14 @@
 # Roadmap
 
 ## Release 0.1 (this prototype) — reliable community messaging
+
 Communities, channels, roles/permissions, invitations, real-time messaging (DMs, group DMs,
 replies, reactions, mentions, pins, read states, typing, presence), attachments with audio
 previews, search, notifications, creator profiles, moderation and administration, Docker
 deployment with backups.
 
 ## Next (0.2) — quality and reach
+
 - Web Push notifications (service worker + VAPID keys, self-hosted, no paid service).
 - Threads on messages; message forwarding; scheduled announcements.
 - Server-side image thumbnails (sharp/libvips in a background queue).
@@ -16,6 +18,7 @@ deployment with backups.
 - Optional ClamAV scanning for archives.
 
 ## Later (0.3+) — professional network
+
 - Portfolio sections (tracks, artwork galleries, game credits) on profiles.
 - Discovery by discipline / availability ("open for collaboration").
 - Collaboration boards (project posts with roles wanted).
@@ -31,6 +34,7 @@ refunded), `mk_deliverables` (files via the existing upload pipeline), `mk_dispu
 `mk_ledger_entries`, `mk_accounts`.
 
 Rules for any future credit/balance system:
+
 1. Balances are **derived from an append-only double-entry ledger** (`mk_ledger_entries`), never
    stored as a mutable number the client can influence. A cached balance column may exist only if
    it is updated in the same transaction as the ledger entries.
@@ -49,6 +53,7 @@ stored value in the relevant jurisdictions. **SQLite is not appropriate for the 
 migrate to PostgreSQL first.**
 
 ## End-to-end encryption
+
 Not planned for the first releases. It conflicts with server-side search and moderation and
 needs a separately specified, independently audited design (key management, device
 verification, recovery).

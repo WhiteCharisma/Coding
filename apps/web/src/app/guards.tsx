@@ -81,12 +81,26 @@ export function RequireAuth() {
   if (status === 'loading') return <FullscreenSpinner />;
   if (status === 'anonymous') {
     const next = location.pathname + location.search;
-    return <Navigate to={next === '/home' || next === '/' ? '/welcome' : `/login?next=${encodeURIComponent(next)}`} replace />;
+    return (
+      <Navigate
+        to={next === '/home' || next === '/' ? '/welcome' : `/login?next=${encodeURIComponent(next)}`}
+        replace
+      />
+    );
   }
   if (error && !ready) {
     return (
       <div className="grid min-h-dvh place-items-center bg-main">
-        <EmptyState icon={CloudOff} title={t('common.errors.offline')} body={error} actions={<Button variant="primary" onClick={() => window.location.reload()}>{t('common.actions.retry')}</Button>} />
+        <EmptyState
+          icon={CloudOff}
+          title={t('common.errors.offline')}
+          body={error}
+          actions={
+            <Button variant="primary" onClick={() => window.location.reload()}>
+              {t('common.actions.retry')}
+            </Button>
+          }
+        />
       </div>
     );
   }

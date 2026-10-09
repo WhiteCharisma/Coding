@@ -36,18 +36,28 @@ async function ok<T>(res: APIResponse, status?: number): Promise<T> {
 export function api(context: BrowserContext) {
   return {
     get: <T>(path: string) => context.request.get(path, { headers: browserHeaders }).then((r) => ok<T>(r)),
-    post: <T>(path: string, data: unknown = {}, status?: number) => context.request.post(path, { data, headers: browserHeaders }).then((r) => ok<T>(r, status)),
-    patch: <T>(path: string, data: unknown = {}) => context.request.patch(path, { data, headers: browserHeaders }).then((r) => ok<T>(r)),
-    put: <T>(path: string, data: unknown = {}) => context.request.put(path, { data, headers: browserHeaders }).then((r) => ok<T>(r)),
+    post: <T>(path: string, data: unknown = {}, status?: number) =>
+      context.request.post(path, { data, headers: browserHeaders }).then((r) => ok<T>(r, status)),
+    patch: <T>(path: string, data: unknown = {}) =>
+      context.request.patch(path, { data, headers: browserHeaders }).then((r) => ok<T>(r)),
+    put: <T>(path: string, data: unknown = {}) =>
+      context.request.put(path, { data, headers: browserHeaders }).then((r) => ok<T>(r)),
   };
 }
 
 /** Registers a new account through the API; the session cookie lands in `context`. */
-export async function signUp(context: BrowserContext, opts: { displayName?: string; onboard?: boolean } = {}): Promise<E2EUser> {
+export async function signUp(
+  context: BrowserContext,
+  opts: { displayName?: string; onboard?: boolean } = {},
+): Promise<E2EUser> {
   const username = unique('u');
   const displayName = opts.displayName ?? `Tester ${username}`;
   const email = `${username}@example.test`;
-  const { user } = await api(context).post<{ user: { id: string } }>('/api/auth/register', { username, email, password: PASSWORD, displayName }, 201);
+  const { user } = await api(context).post<{ user: { id: string } }>(
+    '/api/auth/register',
+    { username, email, password: PASSWORD, displayName },
+    201,
+  );
   if (opts.onboard !== false) await api(context).post('/api/me/onboarding/complete');
   return { id: user.id, username, displayName, email, password: PASSWORD };
 }
@@ -58,13 +68,25 @@ export async function signInAdmin(context: BrowserContext): Promise<void> {
   await api(context).post('/api/me/onboarding/complete');
 }
 
-export async function createCommunity(context: BrowserContext, name = unique('Studio '), visibility: 'public' | 'private' = 'private'): Promise<CommunityDTO> {
-  const { community } = await api(context).post<{ community: CommunityDTO }>('/api/communities', { name, template: 'blank', visibility }, 201);
+export async function createCommunity(
+  context: BrowserContext,
+  name = unique('Studio '),
+  visibility: 'public' | 'private' = 'private',
+): Promise<CommunityDTO> {
+  const { community } = await api(context).post<{ community: CommunityDTO }>(
+    '/api/communities',
+    { name, template: 'blank', visibility },
+    201,
+  );
   return community;
 }
 
 export async function createInvite(context: BrowserContext, communityId: string): Promise<string> {
-  const { invite } = await api(context).post<{ invite: { code: string } }>(`/api/communities/${communityId}/invites`, { maxUses: null, expiresInHours: 24 }, 201);
+  const { invite } = await api(context).post<{ invite: { code: string } }>(
+    `/api/communities/${communityId}/invites`,
+    { maxUses: null, expiresInHours: 24 },
+    201,
+  );
   return invite.code;
 }
 
@@ -85,7 +107,11 @@ export function watchConsole(page: Page, sink: string[], allowHttpErrors = false
 }
 
 /** Opens a second, independent browser session (another person). */
-export async function secondUser(browser: Browser, sink: string[], allowHttpErrors = false): Promise<{ context: BrowserContext; page: Page }> {
+export async function secondUser(
+  browser: Browser,
+  sink: string[],
+  allowHttpErrors = false,
+): Promise<{ context: BrowserContext; page: Page }> {
   const context = await browser.newContext({ baseURL: BASE_URL, viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   watchConsole(page, sink, allowHttpErrors);

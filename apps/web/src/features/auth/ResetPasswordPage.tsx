@@ -65,18 +65,47 @@ export default function ResetPasswordPage() {
       ) : (
         <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4" noValidate>
           <FormError message={error !== null && !fieldError(error, 'password') ? errorMessage(error) : null} />
-          <Field label={t('auth.reset.password')} hint={t('auth.register.passwordHint')} error={fieldError(error, 'password')}>
+          <Field
+            label={t('auth.reset.password')}
+            hint={t('auth.register.passwordHint')}
+            error={fieldError(error, 'password')}
+          >
             {(p) => (
               <div className="flex flex-col gap-2">
-                <Input {...p} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" minLength={LIMITS.passwordMin} maxLength={LIMITS.passwordMax} required autoFocus />
+                <Input
+                  {...p}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  minLength={LIMITS.passwordMin}
+                  maxLength={LIMITS.passwordMax}
+                  required
+                  autoFocus
+                />
                 <StrengthMeter password={password} />
               </div>
             )}
           </Field>
           <Field label={t('auth.reset.confirm')} error={mismatch ? t('auth.reset.mismatch') : undefined}>
-            {(p) => <Input {...p} type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" required />}
+            {(p) => (
+              <Input
+                {...p}
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+            )}
           </Field>
-          <Button type="submit" variant="primary" size="lg" loading={busy} disabled={password.length < LIMITS.passwordMin || confirm !== password}>
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            loading={busy}
+            disabled={password.length < LIMITS.passwordMin || confirm !== password}
+          >
             {t('auth.reset.submit')}
           </Button>
         </form>

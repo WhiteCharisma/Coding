@@ -83,17 +83,26 @@ export function ChannelPage() {
   if (!community) return <MissingCommunity />;
   if (!channel) {
     const first = community.channels[0];
-    return first ? <Navigate to={`/c/${communityId}/${first.id}`} replace /> : <Navigate to={`/c/${communityId}`} replace />;
+    return first ? (
+      <Navigate to={`/c/${communityId}/${first.id}`} replace />
+    ) : (
+      <Navigate to={`/c/${communityId}`} replace />
+    );
   }
 
   const canSend = (channel.myPermissions & (Permission.SEND_MESSAGES | Permission.ADMINISTRATOR)) !== 0;
-  const toggle = (p: 'members' | 'pins') => (wide ? setStoredPanel(storedPanel === p ? null : p) : setNarrowPanel(narrowPanel === p ? null : p));
+  const toggle = (p: 'members' | 'pins') =>
+    wide ? setStoredPanel(storedPanel === p ? null : p) : setNarrowPanel(narrowPanel === p ? null : p);
   const close = () => (wide ? setStoredPanel(null) : setNarrowPanel(null));
   const iconKind = channel.isPrivate ? 'lock' : canSend ? 'hash' : 'megaphone';
   const BeginIcon = channel.isPrivate ? Lock : canSend ? Hash : Megaphone;
 
   return (
-    <SidebarLayout mobileView="content" sidebar={<CommunitySidebar community={community} />} contentLabel={`#${channel.name}`}>
+    <SidebarLayout
+      mobileView="content"
+      sidebar={<CommunitySidebar community={community} />}
+      contentLabel={`#${channel.name}`}
+    >
       <ChannelHeader
         title={channel.name}
         topic={channel.topic}
@@ -119,14 +128,24 @@ export function ChannelPage() {
               <div className="mb-3 grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent-text">
                 <BeginIcon className="size-7" />
               </div>
-              <h2 className="font-display text-2xl font-semibold tracking-tight text-fg">{t('chat.list.beginningTitle', { channel: channel.name })}</h2>
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-fg">
+                {t('chat.list.beginningTitle', { channel: channel.name })}
+              </h2>
               <p className="mt-1 text-sm text-fg-muted">{channel.topic || t('chat.list.beginningBody')}</p>
               {canSend && <p className="mt-1 text-sm text-fg-muted">{t('chat.list.emptyHint')}</p>}
             </div>
           }
         />
-        <ContextPanel panel={panel} title={panel === 'pins' ? t('chat.pins.title') : t('community.members.title')} onClose={close}>
-          {panel === 'pins' ? <PinsPanel channelId={channel.id} /> : <MembersPanel community={community} members={members.data} />}
+        <ContextPanel
+          panel={panel}
+          title={panel === 'pins' ? t('chat.pins.title') : t('community.members.title')}
+          onClose={close}
+        >
+          {panel === 'pins' ? (
+            <PinsPanel channelId={channel.id} />
+          ) : (
+            <MembersPanel community={community} members={members.data} />
+          )}
         </ContextPanel>
       </div>
     </SidebarLayout>

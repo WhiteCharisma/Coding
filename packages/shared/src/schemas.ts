@@ -149,10 +149,12 @@ export const updateProfileSchema = z
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 export const notificationPrefsSchema = z
-  .object(Object.fromEntries(NOTIFICATION_PREF_KEYS.map((k) => [k, z.boolean()])) as Record<
-    (typeof NOTIFICATION_PREF_KEYS)[number],
-    z.ZodBoolean
-  >)
+  .object(
+    Object.fromEntries(NOTIFICATION_PREF_KEYS.map((k) => [k, z.boolean()])) as Record<
+      (typeof NOTIFICATION_PREF_KEYS)[number],
+      z.ZodBoolean
+    >,
+  )
   .partial();
 
 export const updatePreferencesSchema = z
@@ -279,7 +281,13 @@ export const setMemberRolesSchema = z.object({
 export const createInviteSchema = z.object({
   maxUses: z.number().int().min(1).max(10_000).nullable().default(null),
   /** null = never expires. */
-  expiresInHours: z.number().int().min(1).max(24 * 30).nullable().default(24 * 7),
+  expiresInHours: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 30)
+    .nullable()
+    .default(24 * 7),
   targetUsername: usernameSchema.optional(),
 });
 
@@ -301,7 +309,11 @@ export const deleteCommunitySchema = z.object({
 
 export const messageContentSchema = z
   .string()
-  .transform((v) => stripControlChars(v).replace(/\r\n?/g, '\n').replace(/^\n+|\s+$/g, ''))
+  .transform((v) =>
+    stripControlChars(v)
+      .replace(/\r\n?/g, '\n')
+      .replace(/^\n+|\s+$/g, ''),
+  )
   .pipe(z.string().max(LIMITS.messageMax, { error: `Messages can be at most ${LIMITS.messageMax} characters` }));
 
 export const nonceSchema = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/, { error: 'Invalid nonce' });
@@ -344,14 +356,20 @@ export const readStateSchema = z.object({ messageId: idSchema });
 /* -------------------------------------------------------------------- DMs */
 
 export const createDmSchema = z.object({
-  userIds: z.array(idSchema).min(1).max(LIMITS.groupDmMax - 1),
+  userIds: z
+    .array(idSchema)
+    .min(1)
+    .max(LIMITS.groupDmMax - 1),
   name: singleLine(LIMITS.channelNameMax).optional(),
 });
 export const updateGroupDmSchema = z.object({
   name: singleLine(LIMITS.channelNameMax),
 });
 export const addParticipantsSchema = z.object({
-  userIds: z.array(idSchema).min(1).max(LIMITS.groupDmMax - 1),
+  userIds: z
+    .array(idSchema)
+    .min(1)
+    .max(LIMITS.groupDmMax - 1),
 });
 
 /* ----------------------------------------------------------------- Search */
@@ -408,6 +426,12 @@ export type AdminSettingsInput = z.infer<typeof adminSettingsSchema>;
 
 export const platformInviteSchema = z.object({
   maxUses: z.number().int().min(1).max(10_000).nullable().default(1),
-  expiresInHours: z.number().int().min(1).max(24 * 90).nullable().default(24 * 7),
+  expiresInHours: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 90)
+    .nullable()
+    .default(24 * 7),
   note: singleLine(120).default(''),
 });

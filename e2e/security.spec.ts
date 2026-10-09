@@ -1,10 +1,26 @@
-import { BASE_URL, createCommunity, createInvite, expect, joinWithInvite, messageRow, secondUser, sendMessage, signUp, test } from './fixtures';
+import {
+  BASE_URL,
+  createCommunity,
+  createInvite,
+  expect,
+  joinWithInvite,
+  messageRow,
+  secondUser,
+  sendMessage,
+  signUp,
+  test,
+} from './fixtures';
 
 // Negative tests: what must NOT be possible, checked through the real browser and HTTP stack.
 test.describe('security boundaries', () => {
   test.use({ allowHttpErrors: true });
 
-  test('outsiders cannot read a private community, its channels or its files', async ({ page, context, browser, consoleErrors }) => {
+  test('outsiders cannot read a private community, its channels or its files', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     await signUp(context);
     const community = await createCommunity(context);
     const channel = community.channels[0];
@@ -18,7 +34,11 @@ test.describe('security boundaries', () => {
     await o.page.goto(`/c/${community.id}/${channel.id}`);
     await expect(o.page.getByText('internal release schedule')).toHaveCount(0);
     // API: 404 (existence is not revealed), for reads and writes.
-    for (const path of [`/api/communities/${community.id}`, `/api/channels/${channel.id}/messages`, `/api/communities/${community.id}/members`]) {
+    for (const path of [
+      `/api/communities/${community.id}`,
+      `/api/channels/${channel.id}/messages`,
+      `/api/communities/${community.id}/members`,
+    ]) {
       expect((await o.context.request.get(path)).status(), path).toBe(404);
     }
     const write = await o.context.request.post(`/api/channels/${channel.id}/messages`, {
@@ -33,14 +53,22 @@ test.describe('security boundaries', () => {
     const user = await signUp(context);
     const noHeader = await context.request.patch('/api/me/profile', { data: { headline: 'pwned' } });
     expect(noHeader.status()).toBe(403);
-    const evil = await context.request.patch('/api/me/profile', { data: { headline: 'pwned' }, headers: { 'X-Requested-With': 'CreatorNetwork', Origin: 'https://evil.example' } });
+    const evil = await context.request.patch('/api/me/profile', {
+      data: { headline: 'pwned' },
+      headers: { 'X-Requested-With': 'CreatorNetwork', Origin: 'https://evil.example' },
+    });
     expect(evil.status()).toBe(403);
     const state = await (await context.request.get('/api/auth/state')).json();
     expect(state.user.headline).not.toBe('pwned');
     expect(user.username).toBeTruthy();
   });
 
-  test('message content is rendered as text, never as HTML or script', async ({ page, context, browser, consoleErrors }) => {
+  test('message content is rendered as text, never as HTML or script', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     await signUp(context);
     const community = await createCommunity(context);
     const channel = community.channels[0];
@@ -52,7 +80,12 @@ test.describe('security boundaries', () => {
     await b.page.goto(`/c/${community.id}/${channel.id}`);
 
     await page.goto(`/c/${community.id}/${channel.id}`);
-    const payloads = ['<img src=x onerror="window.__xss=1">', '<script>window.__xss=1</script>', '[click me](javascript:window.__xss=1)', 'javascript:window.__xss=1'];
+    const payloads = [
+      '<img src=x onerror="window.__xss=1">',
+      '<script>window.__xss=1</script>',
+      '[click me](javascript:window.__xss=1)',
+      'javascript:window.__xss=1',
+    ];
     for (const p of payloads) await sendMessage(page, p);
 
     const row = messageRow(b.page, '<script>window.__xss=1</script>');
@@ -95,7 +128,9 @@ test.describe('security boundaries', () => {
     expect(headers['content-security-policy']).toContain("default-src 'self'");
     expect(headers['x-content-type-options']).toBe('nosniff');
     expect(headers['referrer-policy']).toBeDefined();
-    expect(headers['x-frame-options'] ?? headers['content-security-policy']).toMatch(/SAMEORIGIN|DENY|frame-ancestors/i);
+    expect(headers['x-frame-options'] ?? headers['content-security-policy']).toMatch(
+      /SAMEORIGIN|DENY|frame-ancestors/i,
+    );
     const apiRes = await request.get('/api/health');
     expect(apiRes.headers()['x-content-type-options']).toBe('nosniff');
   });

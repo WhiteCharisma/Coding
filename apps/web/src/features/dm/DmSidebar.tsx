@@ -25,7 +25,10 @@ function DmRow({ dm, active, selfId }: { dm: DmChannelDTO; active: boolean; self
     <Link
       to={`/dm/${dm.id}`}
       aria-current={active ? 'page' : undefined}
-      className={cn('mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-[var(--dur-fast)]', active ? 'bg-selected' : 'hover:bg-hover')}
+      className={cn(
+        'mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-[var(--dur-fast)]',
+        active ? 'bg-selected' : 'hover:bg-hover',
+      )}
     >
       {dm.kind === 'group_dm' ? (
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-elevated text-fg-2">
@@ -36,12 +39,23 @@ function DmRow({ dm, active, selfId }: { dm: DmChannelDTO; active: boolean; self
       )}
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
-          <span className={cn('min-w-0 flex-1 truncate text-ui', hasUnread ? 'font-semibold text-fg' : 'font-medium text-fg-2')}>{name}</span>
-          {dm.lastMessageAt && <span className="shrink-0 font-mono text-[10.5px] text-fg-muted">{formatRelative(dm.lastMessageAt)}</span>}
+          <span
+            className={cn(
+              'min-w-0 flex-1 truncate text-ui',
+              hasUnread ? 'font-semibold text-fg' : 'font-medium text-fg-2',
+            )}
+          >
+            {name}
+          </span>
+          {dm.lastMessageAt && (
+            <span className="shrink-0 font-mono text-[10.5px] text-fg-muted">{formatRelative(dm.lastMessageAt)}</span>
+          )}
         </span>
         <span className="flex items-center gap-2">
           <span className={cn('min-w-0 flex-1 truncate text-xs', hasUnread ? 'text-fg-2' : 'text-fg-muted')}>
-            {dm.kind === 'group_dm' && !dm.lastMessagePreview ? t('dm.groupMembers', { count: dm.participants.length }) : stripFormatting(dm.lastMessagePreview ?? '')}
+            {dm.kind === 'group_dm' && !dm.lastMessagePreview
+              ? t('dm.groupMembers', { count: dm.participants.length })
+              : stripFormatting(dm.lastMessagePreview ?? '')}
           </span>
           {hasUnread && <CountBadge count={unread?.unread ?? 0} tone="danger" />}
         </span>
@@ -55,13 +69,21 @@ export function DmSidebar() {
   const user = useSession((s) => s.user);
   const dms = useChat((s) => s.dms);
   const [open, setOpen] = useState(false);
-  const list = Object.values(dms).sort((a, b) => (b.lastMessageAt ?? 0) - (a.lastMessageAt ?? 0) || b.id.localeCompare(a.id));
+  const list = Object.values(dms).sort(
+    (a, b) => (b.lastMessageAt ?? 0) - (a.lastMessageAt ?? 0) || b.id.localeCompare(a.id),
+  );
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-line-subtle px-4">
         <h2 className="font-display text-[15px] font-semibold tracking-tight text-fg">{t('dm.title')}</h2>
         <Tooltip content={t('dm.new')}>
-          <Button variant="ghost" size="icon-sm" aria-label={t('dm.new')} onClick={() => setOpen(true)} data-testid="new-dm">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t('dm.new')}
+            onClick={() => setOpen(true)}
+            data-testid="new-dm"
+          >
             <Plus />
           </Button>
         </Tooltip>

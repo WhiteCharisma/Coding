@@ -48,14 +48,20 @@ interface ChatState {
   reset: () => void;
 }
 
-function indexChannels(communities: Record<string, CommunityDTO>, dms: Record<string, DmChannelDTO>): Record<string, AnyChannel> {
+function indexChannels(
+  communities: Record<string, CommunityDTO>,
+  dms: Record<string, DmChannelDTO>,
+): Record<string, AnyChannel> {
   const out: Record<string, AnyChannel> = {};
   for (const c of Object.values(communities)) for (const ch of c.channels) out[ch.id] = ch;
   for (const d of Object.values(dms)) out[d.id] = d;
   return out;
 }
 
-const sortCommunities = (c: Record<string, CommunityDTO>) => Object.values(c).sort((a, b) => a.name.localeCompare(b.name)).map((x) => x.id);
+const sortCommunities = (c: Record<string, CommunityDTO>) =>
+  Object.values(c)
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((x) => x.id);
 
 const initial = {
   ready: false,
@@ -121,24 +127,42 @@ export const useChat = create<ChatState>((set, get) => ({
         if (community) {
           const communities = {
             ...state.communities,
-            [community.id]: { ...community, channels: community.channels.map((c) => (c.id === m.channelId ? (updated as ChannelDTO) : c)) },
+            [community.id]: {
+              ...community,
+              channels: community.channels.map((c) => (c.id === m.channelId ? (updated as ChannelDTO) : c)),
+            },
           };
           patch.communities = communities;
           patch.channels = { ...state.channels, [m.channelId]: updated };
         }
       } else {
-        const dm = { ...(channel as DmChannelDTO), lastMessageId: m.id, lastMessageAt: m.createdAt, lastMessagePreview: m.content.slice(0, 120) };
+        const dm = {
+          ...(channel as DmChannelDTO),
+          lastMessageId: m.id,
+          lastMessageAt: m.createdAt,
+          lastMessagePreview: m.content.slice(0, 120),
+        };
         patch.dms = { ...state.dms, [dm.id]: dm };
         patch.channels = { ...state.channels, [m.channelId]: dm };
       }
     }
     if (m.author?.id !== selfId && !viewing) {
-      const current = state.unreads[m.channelId] ?? { channelId: m.channelId, lastReadId: null, unread: 0, mentions: 0 };
+      const current = state.unreads[m.channelId] ?? {
+        channelId: m.channelId,
+        lastReadId: null,
+        unread: 0,
+        mentions: 0,
+      };
       const isDm = channel?.kind === 'dm' || channel?.kind === 'group_dm';
-      const mentioned = isDm || m.mentionEveryone || m.mentions.some((x) => x.id === selfId || x.username === selfUsername);
+      const mentioned =
+        isDm || m.mentionEveryone || m.mentions.some((x) => x.id === selfId || x.username === selfUsername);
       patch.unreads = {
         ...state.unreads,
-        [m.channelId]: { ...current, unread: Math.min(current.unread + 1, 100), mentions: current.mentions + (mentioned ? 1 : 0) },
+        [m.channelId]: {
+          ...current,
+          unread: Math.min(current.unread + 1, 100),
+          mentions: current.mentions + (mentioned ? 1 : 0),
+        },
       };
     }
     // Typing stops when a message from that person arrives.
@@ -171,13 +195,18 @@ export const useChat = create<ChatState>((set, get) => ({
     set({ typing });
   },
 
-  setUnreadNotifications: (n) => set({ unreadNotifications: typeof n === 'function' ? n(get().unreadNotifications) : n }),
+  setUnreadNotifications: (n) =>
+    set({ unreadNotifications: typeof n === 'function' ? n(get().unreadNotifications) : n }),
   setConnection: (connection) => set({ connection }),
   reset: () => set({ ...initial }),
 }));
 
 /** Sum of unread counts for a community's channels. */
-export function communityUnread(c: CommunityDTO, unreads: Record<string, UnreadState>, muted: boolean): { unread: boolean; mentions: number } {
+export function communityUnread(
+  c: CommunityDTO,
+  unreads: Record<string, UnreadState>,
+  muted: boolean,
+): { unread: boolean; mentions: number } {
   let unread = false;
   let mentions = 0;
   for (const ch of c.channels) {

@@ -1,7 +1,24 @@
-import { api, createCommunity, createInvite, expect, joinWithInvite, messageRow, secondUser, sendMessage, signUp, test, unique } from './fixtures';
+import {
+  api,
+  createCommunity,
+  createInvite,
+  expect,
+  joinWithInvite,
+  messageRow,
+  secondUser,
+  sendMessage,
+  signUp,
+  test,
+  unique,
+} from './fixtures';
 
 test.describe('real-time community chat', () => {
-  test('two members exchange messages, replies, mentions, reactions, edits and deletions live', async ({ page, context, browser, consoleErrors }) => {
+  test('two members exchange messages, replies, mentions, reactions, edits and deletions live', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     const alice = await signUp(context, { displayName: 'Alice Rivera' });
     const community = await createCommunity(context);
     const general = community.channels[0];
@@ -40,7 +57,9 @@ test.describe('real-time community chat', () => {
     await reply.hover();
     await reply.getByRole('button', { name: 'Add reaction' }).click();
     await page.getByRole('button', { name: '🔥' }).click();
-    await expect(messageRow(b.page, 'the low end is huge').getByRole('button', { name: '1 reaction with 🔥' })).toBeVisible();
+    await expect(
+      messageRow(b.page, 'the low end is huge').getByRole('button', { name: '1 reaction with 🔥' }),
+    ).toBeVisible();
 
     // Alice edits her message; Bob sees the new text and the "edited" marker.
     const mine = messageRow(page, 'First take of the bassline is up');
@@ -79,7 +98,9 @@ test.describe('real-time community chat', () => {
     await expect(messageRow(page, 'ordered message 3')).toBeVisible();
     await page.reload();
     const texts = await page.locator('[data-message-id]').allInnerTexts();
-    const order = ['ordered message 1', 'ordered message 2', 'ordered message 3'].map((s) => texts.findIndex((t) => t.includes(s)));
+    const order = ['ordered message 1', 'ordered message 2', 'ordered message 3'].map((s) =>
+      texts.findIndex((t) => t.includes(s)),
+    );
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });

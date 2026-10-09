@@ -1,4 +1,11 @@
-import { REGISTRATION_MODES, type AuditEventDTO, type CommunitySummary, type PublicConfig, type RegistrationMode, type UserSummary } from '@creator-network/shared';
+import {
+  REGISTRATION_MODES,
+  type AuditEventDTO,
+  type CommunitySummary,
+  type PublicConfig,
+  type RegistrationMode,
+  type UserSummary,
+} from '@creator-network/shared';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Archive, Copy, Landmark, ScrollText, Search, Ticket, Trash2 } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -37,13 +44,23 @@ export function CommunitiesSection({ isAdmin }: { isAdmin: boolean }) {
   }, [q]);
   const list = useQuery({
     queryKey: ['admin', 'communities', term],
-    queryFn: () => api.get<{ communities: AdminCommunity[] }>(`/api/admin/communities${term ? `?q=${encodeURIComponent(term)}` : ''}`).then((r) => r.communities),
+    queryFn: () =>
+      api
+        .get<{ communities: AdminCommunity[] }>(`/api/admin/communities${term ? `?q=${encodeURIComponent(term)}` : ''}`)
+        .then((r) => r.communities),
   });
   return (
     <div className="flex flex-col gap-4">
       <div className="relative">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-muted" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('admin.communities.search')} aria-label={t('admin.communities.search')} className="pl-9" type="search" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={t('admin.communities.search')}
+          aria-label={t('admin.communities.search')}
+          className="pl-9"
+          type="search"
+        />
       </div>
       <div className="rounded-xl border border-line-subtle bg-sidebar/60">
         {list.isLoading ? (
@@ -65,7 +82,8 @@ export function CommunitiesSection({ isAdmin }: { isAdmin: boolean }) {
                     <Badge>{c.visibility === 'public' ? t('common.labels.public') : t('common.labels.private')}</Badge>
                   </p>
                   <p className="truncate text-xs text-fg-muted">
-                    {t('common.labels.members', { count: c.memberCount })} · {t('admin.communities.owner')}: {c.owner.displayName} (@{c.owner.username}) · {formatDate(c.createdAt)}
+                    {t('common.labels.members', { count: c.memberCount })} · {t('admin.communities.owner')}:{' '}
+                    {c.owner.displayName} (@{c.owner.username}) · {formatDate(c.createdAt)}
                   </p>
                 </div>
                 {isAdmin && (
@@ -97,7 +115,11 @@ export function CommunitiesSection({ isAdmin }: { isAdmin: boolean }) {
             void qc.invalidateQueries({ queryKey: ['admin'] });
           }}
         >
-          <Field label={t('admin.communities.reason')}>{(p) => <Textarea {...p} rows={2} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} />}</Field>
+          <Field label={t('admin.communities.reason')}>
+            {(p) => (
+              <Textarea {...p} rows={2} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} />
+            )}
+          </Field>
         </ConfirmDialog>
       )}
     </div>
@@ -122,7 +144,10 @@ export function InvitesSection() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [revoke, setRevoke] = useState<string | null>(null);
-  const list = useQuery({ queryKey: ['admin', 'registration-invites'], queryFn: () => api.get<{ invites: RegistrationInvite[] }>('/api/admin/registration-invites').then((r) => r.invites) });
+  const list = useQuery({
+    queryKey: ['admin', 'registration-invites'],
+    queryFn: () => api.get<{ invites: RegistrationInvite[] }>('/api/admin/registration-invites').then((r) => r.invites),
+  });
   const linkFor = (code: string) => `${window.location.origin}/register?invite=${code}`;
 
   const create = async (e: FormEvent) => {
@@ -152,19 +177,41 @@ export function InvitesSection() {
       <SettingsCard>
         <form onSubmit={(e) => void create(e)} className="grid gap-3 sm:grid-cols-[1fr_120px_160px_auto] sm:items-end">
           <Field label={t('admin.invites.note')} error={fieldError(error, 'note')}>
-            {(p) => <Input {...p} value={note} onChange={(e) => setNote(e.target.value)} maxLength={120} placeholder={t('admin.invites.notePlaceholder')} />}
+            {(p) => (
+              <Input
+                {...p}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                maxLength={120}
+                placeholder={t('admin.invites.notePlaceholder')}
+              />
+            )}
           </Field>
           <Field label={t('admin.invites.maxUses')} error={fieldError(error, 'maxUses')}>
-            {(p) => <Input {...p} type="number" min={1} max={10000} value={maxUses} onChange={(e) => setMaxUses(e.target.value)} />}
+            {(p) => (
+              <Input
+                {...p}
+                type="number"
+                min={1}
+                max={10000}
+                value={maxUses}
+                onChange={(e) => setMaxUses(e.target.value)}
+              />
+            )}
           </Field>
           <Field label={t('admin.invites.expires')} error={fieldError(error, 'expiresInHours')}>
-            {(p) => <Input {...p} type="number" min={1} max={2160} value={hours} onChange={(e) => setHours(e.target.value)} />}
+            {(p) => (
+              <Input {...p} type="number" min={1} max={2160} value={hours} onChange={(e) => setHours(e.target.value)} />
+            )}
           </Field>
           <Button type="submit" variant="primary" loading={busy}>
             <Ticket /> {t('admin.invites.create')}
           </Button>
         </form>
-        {error !== null && !fieldError(error, 'note') && !fieldError(error, 'maxUses') && !fieldError(error, 'expiresInHours') && <p className="mt-2 text-sm text-danger">{errorMessage(error)}</p>}
+        {error !== null &&
+          !fieldError(error, 'note') &&
+          !fieldError(error, 'maxUses') &&
+          !fieldError(error, 'expiresInHours') && <p className="mt-2 text-sm text-danger">{errorMessage(error)}</p>}
       </SettingsCard>
       <div className="rounded-xl border border-line-subtle bg-sidebar/60">
         {list.isLoading ? (
@@ -181,11 +228,21 @@ export function InvitesSection() {
                   <p className="font-mono text-sm text-fg">{inv.code}</p>
                   <p className="truncate text-xs text-fg-muted">
                     {inv.note && <span className="text-fg-2">{inv.note} · </span>}
-                    {inv.maxUses === null ? t('admin.invites.usesUnlimited', { uses: inv.uses }) : t('admin.invites.uses', { uses: inv.uses, max: inv.maxUses })} ·{' '}
-                    {inv.expiresAt ? t('admin.invites.expiresOn', { date: formatDateTime(inv.expiresAt) }) : t('admin.invites.noExpiry')}
+                    {inv.maxUses === null
+                      ? t('admin.invites.usesUnlimited', { uses: inv.uses })
+                      : t('admin.invites.uses', { uses: inv.uses, max: inv.maxUses })}{' '}
+                    ·{' '}
+                    {inv.expiresAt
+                      ? t('admin.invites.expiresOn', { date: formatDateTime(inv.expiresAt) })
+                      : t('admin.invites.noExpiry')}
                   </p>
                 </div>
-                <Button variant="ghost" size="icon-sm" aria-label={t('common.actions.copyLink')} onClick={() => void copyText(linkFor(inv.code))}>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t('common.actions.copyLink')}
+                  onClick={() => void copyText(linkFor(inv.code))}
+                >
                   <Copy />
                 </Button>
                 <Button variant="danger-ghost" size="sm" onClick={() => setRevoke(inv.code)}>
@@ -256,8 +313,17 @@ function SettingsForm({ data, onSaved }: { data: SettingsResponse; onSaved: () =
       <SettingsCard title={t('admin.settings.registration')}>
         <div role="radiogroup" aria-label={t('admin.settings.registration')} className="flex flex-col gap-2">
           {REGISTRATION_MODES.map((m) => (
-            <label key={m} className="flex cursor-pointer items-center gap-3 rounded-lg border border-line px-3 py-2.5 text-ui text-fg-2 has-[:checked]:border-accent-border has-[:checked]:bg-accent-soft has-[:checked]:text-fg">
-              <input type="radio" name="registration-mode" checked={form.registrationMode === m} onChange={() => set('registrationMode', m)} className="size-4 accent-[var(--accent)]" />
+            <label
+              key={m}
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-line px-3 py-2.5 text-ui text-fg-2 has-[:checked]:border-accent-border has-[:checked]:bg-accent-soft has-[:checked]:text-fg"
+            >
+              <input
+                type="radio"
+                name="registration-mode"
+                checked={form.registrationMode === m}
+                onChange={() => set('registrationMode', m)}
+                className="size-4 accent-[var(--accent)]"
+              />
               {t(`admin.settings.registrationModes.${m}`)}
             </label>
           ))}
@@ -274,16 +340,60 @@ function SettingsForm({ data, onSaved }: { data: SettingsResponse; onSaved: () =
       <SettingsCard>
         <div className="flex flex-col gap-4">
           <Field label={t('admin.settings.instanceName')} error={fieldError(error, 'instanceName')}>
-            {(p) => <Input {...p} value={form.instanceName} onChange={(e) => set('instanceName', e.target.value)} maxLength={40} />}
+            {(p) => (
+              <Input
+                {...p}
+                value={form.instanceName}
+                onChange={(e) => set('instanceName', e.target.value)}
+                maxLength={40}
+              />
+            )}
           </Field>
-          <Field label={t('admin.settings.welcomeMessage')} hint={t('admin.settings.welcomeMessageHint')} error={fieldError(error, 'welcomeMessage')}>
-            {(p) => <Textarea {...p} rows={3} value={form.welcomeMessage} onChange={(e) => set('welcomeMessage', e.target.value)} maxLength={300} />}
+          <Field
+            label={t('admin.settings.welcomeMessage')}
+            hint={t('admin.settings.welcomeMessageHint')}
+            error={fieldError(error, 'welcomeMessage')}
+          >
+            {(p) => (
+              <Textarea
+                {...p}
+                rows={3}
+                value={form.welcomeMessage}
+                onChange={(e) => set('welcomeMessage', e.target.value)}
+                maxLength={300}
+              />
+            )}
           </Field>
-          <Field label={t('admin.settings.appealContact')} hint={t('admin.settings.appealContactHint')} error={fieldError(error, 'appealContact')}>
-            {(p) => <Input {...p} value={form.appealContact} onChange={(e) => set('appealContact', e.target.value)} maxLength={200} />}
+          <Field
+            label={t('admin.settings.appealContact')}
+            hint={t('admin.settings.appealContactHint')}
+            error={fieldError(error, 'appealContact')}
+          >
+            {(p) => (
+              <Input
+                {...p}
+                value={form.appealContact}
+                onChange={(e) => set('appealContact', e.target.value)}
+                maxLength={200}
+              />
+            )}
           </Field>
-          <Field label={t('admin.settings.maxUpload')} hint={t('admin.settings.maxUploadHint', { max: data.hardLimits.maxUploadMb })} error={fieldError(error, 'maxUploadMb')}>
-            {(p) => <Input {...p} type="number" min={1} max={data.hardLimits.maxUploadMb} value={form.maxUploadMb} onChange={(e) => set('maxUploadMb', Number(e.target.value))} className="max-w-40" />}
+          <Field
+            label={t('admin.settings.maxUpload')}
+            hint={t('admin.settings.maxUploadHint', { max: data.hardLimits.maxUploadMb })}
+            error={fieldError(error, 'maxUploadMb')}
+          >
+            {(p) => (
+              <Input
+                {...p}
+                type="number"
+                min={1}
+                max={data.hardLimits.maxUploadMb}
+                value={form.maxUploadMb}
+                onChange={(e) => set('maxUploadMb', Number(e.target.value))}
+                className="max-w-40"
+              />
+            )}
           </Field>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-fg-2">{t('admin.settings.communityCreation')}</span>
@@ -300,11 +410,12 @@ function SettingsForm({ data, onSaved }: { data: SettingsResponse; onSaved: () =
           </div>
         </div>
       </SettingsCard>
-      {error !== null && !['instanceName', 'welcomeMessage', 'appealContact', 'maxUploadMb'].some((k) => fieldError(error, k)) && (
-        <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
-          {errorMessage(error)}
-        </p>
-      )}
+      {error !== null &&
+        !['instanceName', 'welcomeMessage', 'appealContact', 'maxUploadMb'].some((k) => fieldError(error, k)) && (
+          <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
+            {errorMessage(error)}
+          </p>
+        )}
       <div className="flex justify-end gap-2">
         <Button variant="ghost" disabled={!dirty || busy} onClick={() => setForm(data.settings)}>
           {t('common.actions.cancel')}
@@ -318,10 +429,15 @@ function SettingsForm({ data, onSaved }: { data: SettingsResponse; onSaved: () =
 }
 
 export function InstanceSettingsSection() {
-  const query = useQuery({ queryKey: ['admin', 'settings'], queryFn: () => api.get<SettingsResponse>('/api/admin/settings') });
+  const query = useQuery({
+    queryKey: ['admin', 'settings'],
+    queryFn: () => api.get<SettingsResponse>('/api/admin/settings'),
+  });
   if (query.isError) return <p className="text-sm text-danger">{errorMessage(query.error)}</p>;
   if (!query.data) return <Skeleton className="h-96 rounded-xl" />;
-  return <SettingsForm key={JSON.stringify(query.data.settings)} data={query.data} onSaved={() => void query.refetch()} />;
+  return (
+    <SettingsForm key={JSON.stringify(query.data.settings)} data={query.data} onSaved={() => void query.refetch()} />
+  );
 }
 
 /* ----------------------------------------------------------------- Backups */
@@ -335,7 +451,10 @@ interface BackupItem {
 export function BackupsSection({ overview }: { overview: AdminOverview | undefined }) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const list = useQuery({ queryKey: ['admin', 'backups'], queryFn: () => api.get<{ backups: BackupItem[] }>('/api/admin/backups').then((r) => r.backups) });
+  const list = useQuery({
+    queryKey: ['admin', 'backups'],
+    queryFn: () => api.get<{ backups: BackupItem[] }>('/api/admin/backups').then((r) => r.backups),
+  });
   const create = async () => {
     setBusy(true);
     try {
@@ -354,9 +473,19 @@ export function BackupsSection({ overview }: { overview: AdminOverview | undefin
     <div className="flex flex-col gap-5">
       <SettingsCard>
         <p className="text-sm text-fg-2">{t('admin.backups.hint')}</p>
-        {interval !== undefined && <p className="mt-2 text-sm text-fg-muted">{interval > 0 ? t('admin.backups.automatic', { hours: interval }) : t('admin.backups.automaticOff')}</p>}
+        {interval !== undefined && (
+          <p className="mt-2 text-sm text-fg-muted">
+            {interval > 0 ? t('admin.backups.automatic', { hours: interval }) : t('admin.backups.automaticOff')}
+          </p>
+        )}
         <p className="mt-2 text-sm text-fg-muted">{t('admin.backups.restoreHint')}</p>
-        <Button variant="primary" className="mt-4" loading={busy} onClick={() => void create()} data-testid="create-backup">
+        <Button
+          variant="primary"
+          className="mt-4"
+          loading={busy}
+          onClick={() => void create()}
+          data-testid="create-backup"
+        >
           <Archive /> {t('admin.backups.create')}
         </Button>
       </SettingsCard>
@@ -374,7 +503,9 @@ export function BackupsSection({ overview }: { overview: AdminOverview | undefin
                 <Archive className="size-4 shrink-0 text-fg-muted" />
                 <span className="min-w-0 flex-1 truncate font-mono text-sm text-fg">{b.file}</span>
                 <span className="text-xs whitespace-nowrap text-fg-muted">{formatBytes(b.bytes)}</span>
-                <span className="hidden text-xs whitespace-nowrap text-fg-muted sm:inline">{formatDateTime(b.createdAt)}</span>
+                <span className="hidden text-xs whitespace-nowrap text-fg-muted sm:inline">
+                  {formatDateTime(b.createdAt)}
+                </span>
               </li>
             ))}
           </ul>
@@ -388,14 +519,19 @@ export function BackupsSection({ overview }: { overview: AdminOverview | undefin
 
 export function auditActionText(e: AuditEventDTO): string {
   const target = e.targetLabel ?? e.targetId ?? '';
-  return tMaybe(`admin.audit.actions.${e.action}`, { target }) ?? t('admin.audit.actions.fallback', { action: e.action });
+  return (
+    tMaybe(`admin.audit.actions.${e.action}`, { target }) ?? t('admin.audit.actions.fallback', { action: e.action })
+  );
 }
 
 export function AuditSection() {
   const list = useInfiniteQuery({
     queryKey: ['admin', 'audit'],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => api.get<{ events: AuditEventDTO[] }>(`/api/admin/audit${pageParam ? `?before=${pageParam}` : ''}`).then((r) => r.events),
+    queryFn: ({ pageParam }) =>
+      api
+        .get<{ events: AuditEventDTO[] }>(`/api/admin/audit${pageParam ? `?before=${pageParam}` : ''}`)
+        .then((r) => r.events),
     getNextPageParam: (last) => (last.length === 100 ? last[last.length - 1]?.createdAt : undefined),
   });
   const events = list.data?.pages.flat() ?? [];
@@ -403,17 +539,31 @@ export function AuditSection() {
   if (events.length === 0) return <EmptyState icon={ScrollText} title={t('admin.audit.empty')} />;
   return (
     <div className="flex flex-col gap-4">
-      <ol className="divide-y divide-line-subtle rounded-xl border border-line-subtle bg-sidebar/60" data-testid="admin-audit">
+      <ol
+        className="divide-y divide-line-subtle rounded-xl border border-line-subtle bg-sidebar/60"
+        data-testid="admin-audit"
+      >
         {events.map((e) => (
           <li key={e.id} className="flex items-start gap-3 px-4 py-3">
-            {e.actor ? <UserAvatar name={e.actor.displayName} src={e.actor.avatarUrl} size="sm" /> : <span className="grid size-7 place-items-center rounded-full bg-active text-[10px] text-fg-muted">CLI</span>}
+            {e.actor ? (
+              <UserAvatar name={e.actor.displayName} src={e.actor.avatarUrl} size="sm" />
+            ) : (
+              <span className="grid size-7 place-items-center rounded-full bg-active text-[10px] text-fg-muted">
+                CLI
+              </span>
+            )}
             <div className="min-w-0 flex-1 text-sm">
               <p className="text-fg-2">
-                <span className="font-semibold text-fg">{e.actor?.displayName ?? t('admin.audit.system')}</span> {auditActionText(e)}
+                <span className="font-semibold text-fg">{e.actor?.displayName ?? t('admin.audit.system')}</span>{' '}
+                {auditActionText(e)}
               </p>
               {e.reason && <p className="mt-0.5 text-xs text-fg-muted">“{e.reason}”</p>}
             </div>
-            <time className="text-xs whitespace-nowrap text-fg-muted" dateTime={new Date(e.createdAt).toISOString()} title={formatDateTime(e.createdAt)}>
+            <time
+              className="text-xs whitespace-nowrap text-fg-muted"
+              dateTime={new Date(e.createdAt).toISOString()}
+              title={formatDateTime(e.createdAt)}
+            >
               {formatRelative(e.createdAt)}
             </time>
           </li>

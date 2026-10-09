@@ -23,7 +23,12 @@ beforeAll(async () => {
   general = community.channels.find((c: any) => c.name === 'general');
   const inv = (await alice.post(`/api/communities/${community.id}/invites`, {})).body.invite;
   await bob.post(`/api/invites/${inv.code}/accept`);
-  for (const text of ['Sidechain compression on the pad bus', 'Café vibes: field recording from Lisbon', 'Mastering for vinyl needs mono bass', 'The vocal chain uses a plate reverb']) {
+  for (const text of [
+    'Sidechain compression on the pad bus',
+    'Café vibes: field recording from Lisbon',
+    'Mastering for vinyl needs mono bass',
+    'The vocal chain uses a plate reverb',
+  ]) {
     await alice.post(`/api/channels/${general.id}/messages`, { content: text, nonce: nonce() });
   }
 });
@@ -58,7 +63,9 @@ describe('search', () => {
   });
 
   it('never returns messages from channels the searcher cannot read', async () => {
-    const priv = (await alice.post(`/api/communities/${community.id}/channels`, { name: 'private-notes', isPrivate: true })).body.channel;
+    const priv = (
+      await alice.post(`/api/communities/${community.id}/channels`, { name: 'private-notes', isPrivate: true })
+    ).body.channel;
     await alice.post(`/api/channels/${priv.id}/messages`, { content: 'confidential reverb settings', nonce: nonce() });
     const results = (await bob.get('/api/search/messages?q=confidential')).body.results;
     expect(results).toEqual([]);
@@ -77,10 +84,15 @@ describe('operations', () => {
   it('cleans up unattached uploads older than an hour', async () => {
     const fd = new FormData();
     fd.append('file', new Blob(['orphan text']), 'orphan.txt');
-    const att = (await alice.req('POST', `/api/channels/${general.id}/attachments`, undefined, { raw: fd })).body.attachment;
+    const att = (await alice.req('POST', `/api/channels/${general.id}/attachments`, undefined, { raw: fd })).body
+      .attachment;
     const { uploads } = await import('../src/db/schema');
     const { eq } = await import('drizzle-orm');
-    srv.ctx.db.update(uploads).set({ createdAt: Date.now() - 2 * 3600_000 }).where(eq(uploads.id, att.id)).run();
+    srv.ctx.db
+      .update(uploads)
+      .set({ createdAt: Date.now() - 2 * 3600_000 })
+      .where(eq(uploads.id, att.id))
+      .run();
     const result = await runCleanup(srv.ctx);
     expect(result.files).toBeGreaterThanOrEqual(1);
     expect(srv.ctx.db.select().from(uploads).where(eq(uploads.id, att.id)).get()).toBeUndefined();
@@ -89,9 +101,19 @@ describe('operations', () => {
   it('persists data across a restart, and a backup restores into a fresh data directory', async () => {
     const tmp = fs.mkdtempSync(path.join(srv.dataDir, 'restart-'));
     const env = {
-      NODE_ENV: 'test', HOST: '127.0.0.1', PORT: '0', APP_ORIGIN: ORIGIN, LOG_LEVEL: 'silent', MAIL_TRANSPORT: 'outbox',
-      RATE_LIMIT_MODE: 'relaxed', ARGON2_MEMORY_KIB: '8192', ARGON2_ITERATIONS: '1', BACKUP_INTERVAL_HOURS: '0',
-      DATA_DIR: path.join(tmp, 'data'), BACKUP_DIR: path.join(tmp, 'backups'), WEB_DIST_DIR: path.join(tmp, 'none'),
+      NODE_ENV: 'test',
+      HOST: '127.0.0.1',
+      PORT: '0',
+      APP_ORIGIN: ORIGIN,
+      LOG_LEVEL: 'silent',
+      MAIL_TRANSPORT: 'outbox',
+      RATE_LIMIT_MODE: 'relaxed',
+      ARGON2_MEMORY_KIB: '8192',
+      ARGON2_ITERATIONS: '1',
+      BACKUP_INTERVAL_HOURS: '0',
+      DATA_DIR: path.join(tmp, 'data'),
+      BACKUP_DIR: path.join(tmp, 'backups'),
+      WEB_DIST_DIR: path.join(tmp, 'none'),
     } as const;
     // First run: create data.
     let server = await startServer(loadConfig(env), { jobs: false });

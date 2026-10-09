@@ -21,12 +21,24 @@ export function EmojiGrid({ onPick }: { onPick: (emoji: string) => void }) {
   );
 }
 
-export function EmojiPicker({ onPick, children, open, onOpenChange }: { onPick: (emoji: string) => void; children: ReactNode; open?: boolean; onOpenChange?: (o: boolean) => void }) {
+export function EmojiPicker({
+  onPick,
+  children,
+  open,
+  onOpenChange,
+}: {
+  onPick: (emoji: string) => void;
+  children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+}) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent side="top" align="end" className="w-auto p-2">
-        <p className="px-1 pb-1.5 text-2xs font-semibold tracking-wide text-fg-muted uppercase">{t('chat.emoji.frequently')}</p>
+        <p className="px-1 pb-1.5 text-2xs font-semibold tracking-wide text-fg-muted uppercase">
+          {t('chat.emoji.frequently')}
+        </p>
         <EmojiGrid onPick={onPick} />
       </PopoverContent>
     </Popover>

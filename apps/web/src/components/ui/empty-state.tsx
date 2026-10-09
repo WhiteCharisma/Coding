@@ -13,9 +13,18 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, body, actions, className, tone = 'default' }: EmptyStateProps) {
   return (
-    <div className={cn('mx-auto flex max-w-sm flex-col items-center px-6 py-12 text-center animate-rise-in', className)}>
+    <div
+      className={cn('mx-auto flex max-w-sm flex-col items-center px-6 py-12 text-center animate-rise-in', className)}
+    >
       {Icon && (
-        <div className={cn('mb-4 grid size-12 place-items-center rounded-xl border', tone === 'danger' ? 'border-danger/30 bg-danger-soft text-danger' : 'border-line bg-elevated text-accent-text')}>
+        <div
+          className={cn(
+            'mb-4 grid size-12 place-items-center rounded-xl border',
+            tone === 'danger'
+              ? 'border-danger/30 bg-danger-soft text-danger'
+              : 'border-line bg-elevated text-accent-text',
+          )}
+        >
           <Icon className="size-5" />
         </div>
       )}

@@ -1,7 +1,24 @@
-import { api, createCommunity, createInvite, expect, joinWithInvite, messageRow, secondUser, sendMessage, signUp, test, unique } from './fixtures';
+import {
+  api,
+  createCommunity,
+  createInvite,
+  expect,
+  joinWithInvite,
+  messageRow,
+  secondUser,
+  sendMessage,
+  signUp,
+  test,
+  unique,
+} from './fixtures';
 
 test.describe('direct messages', () => {
-  test('start a conversation from a profile and get a live reply', async ({ page, context, browser, consoleErrors }) => {
+  test('start a conversation from a profile and get a live reply', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     await signUp(context, { displayName: 'Priya Natarajan' });
     const b = await secondUser(browser, consoleErrors);
     const theo = await signUp(b.context, { displayName: 'Theo Lindqvist' });
@@ -15,7 +32,10 @@ test.describe('direct messages', () => {
     // Theo sees an unread badge on Messages and the conversation.
     await expect(b.page.getByTestId('rail-dms')).toContainText('1');
     await b.page.getByTestId('rail-dms').click();
-    await b.page.getByRole('link', { name: /Priya Natarajan/ }).first().click();
+    await b.page
+      .getByRole('link', { name: /Priya Natarajan/ })
+      .first()
+      .click();
     await expect(messageRow(b.page, 'Want to score the trailer together?')).toBeVisible();
     await sendMessage(b.page, 'Absolutely — sending stems tonight');
     await expect(messageRow(page, 'Absolutely — sending stems tonight')).toBeVisible();
@@ -27,14 +47,22 @@ test.describe('direct messages', () => {
     const closed = await signUp(b.context);
     await api(b.context).patch('/api/me/preferences', { dmPolicy: 'nobody' });
     await signUp(context);
-    const res = await context.request.post('/api/dms', { data: { userIds: [closed.id] }, headers: { 'X-Requested-With': 'CreatorNetwork' } });
+    const res = await context.request.post('/api/dms', {
+      data: { userIds: [closed.id] },
+      headers: { 'X-Requested-With': 'CreatorNetwork' },
+    });
     expect(res.status()).toBe(403);
     await b.context.close();
   });
 });
 
 test.describe('search', () => {
-  test('finds messages in your communities but never in ones you are not in', async ({ page, context, browser, consoleErrors }) => {
+  test('finds messages in your communities but never in ones you are not in', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
     const token = unique('zebrafinch');
     await signUp(context);
     const community = await createCommunity(context);

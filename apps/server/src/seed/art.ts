@@ -11,7 +11,11 @@ export function hex(h: string): RGB {
   return [parseInt(v.slice(0, 2), 16), parseInt(v.slice(2, 4), 16), parseInt(v.slice(4, 6), 16)];
 }
 
-const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const mix = (a: RGB, b: RGB, t: number): RGB => [
+  a[0] + (b[0] - a[0]) * t,
+  a[1] + (b[1] - a[1]) * t,
+  a[2] + (b[2] - a[2]) * t,
+];
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smooth = (e0: number, e1: number, x: number) => {
   const t = clamp01((x - e0) / (e1 - e0));
@@ -76,9 +80,16 @@ export function sunsetGrid(size: number, palette: string[]): Buffer {
     const z = 1 / Math.max(0.02, depth);
     const gx = Math.abs(((u - 0.5) * z * 4) % 1);
     const gz = Math.abs((z * 0.6) % 1);
-    const line = Math.max(1 - smooth(0, 0.06 * z * px * 40, Math.min(gx, 1 - gx)), 1 - smooth(0, 0.08, Math.min(gz, 1 - gz)));
+    const line = Math.max(
+      1 - smooth(0, 0.06 * z * px * 40, Math.min(gx, 1 - gx)),
+      1 - smooth(0, 0.08, Math.min(gz, 1 - gz)),
+    );
     // Fade lines towards the horizon where they would alias into noise.
-    return mix(mix(ground as RGB, skyMid as RGB, (1 - depth) * 0.25), grid as RGB, line * smooth(0.04, 0.5, depth) * 0.9);
+    return mix(
+      mix(ground as RGB, skyMid as RGB, (1 - depth) * 0.25),
+      grid as RGB,
+      line * smooth(0.04, 0.5, depth) * 0.9,
+    );
   });
 }
 
@@ -142,7 +153,8 @@ export function dunes(size: number, palette: string[], seed: string): Buffer {
     let c = gradient([cols[0] as RGB, mix(cols[0] as RGB, [255, 255, 255], 0.15)], v);
     for (let i = 0; i < layers; i++) {
       const base = 0.35 + (i / layers) * 0.55;
-      const edge = base + Math.sin(u * (freqs[i] as number) + (phases[i] as number)) * 0.05 + Math.sin(u * 13 + i) * 0.012;
+      const edge =
+        base + Math.sin(u * (freqs[i] as number) + (phases[i] as number)) * 0.05 + Math.sin(u * 13 + i) * 0.012;
       const cover = smooth(edge - px, edge + px, v);
       c = mix(c, mix(cols[i + 1] as RGB, [0, 0, 0], (v - edge) * 0.6), cover);
     }

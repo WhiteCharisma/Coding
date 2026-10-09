@@ -49,7 +49,13 @@ export function DmPage() {
     <SidebarLayout mobileView="content" sidebar={<DmSidebar />} contentLabel={name}>
       <ChannelHeader
         title={name}
-        icon={dm.kind === 'group_dm' ? <Users className="size-5 shrink-0 text-fg-faint" /> : <UserAvatar name={first?.displayName ?? name} src={first?.avatarUrl} size="sm" />}
+        icon={
+          dm.kind === 'group_dm' ? (
+            <Users className="size-5 shrink-0 text-fg-faint" />
+          ) : (
+            <UserAvatar name={first?.displayName ?? name} src={first?.avatarUrl} size="sm" />
+          )
+        }
         backTo="/dm"
         panelButtons={['pins']}
         activePanel={panel}
@@ -67,10 +73,23 @@ export function DmPage() {
           mentionCandidates={others}
           beginning={
             <div className="px-4 pt-10 pb-4">
-              {dm.kind === 'dm' && first ? <UserAvatar name={first.displayName} src={first.avatarUrl} size="xl" /> : <span className="grid size-16 place-items-center rounded-full bg-elevated"><Users className="size-7 text-fg-2" /></span>}
+              {dm.kind === 'dm' && first ? (
+                <UserAvatar name={first.displayName} src={first.avatarUrl} size="xl" />
+              ) : (
+                <span className="grid size-16 place-items-center rounded-full bg-elevated">
+                  <Users className="size-7 text-fg-2" />
+                </span>
+              )}
               <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight text-fg">{name}</h2>
-              {dm.kind === 'dm' && first && <p className="text-sm text-fg-muted">@{first.username}{first.headline ? ` · ${first.headline}` : ''}</p>}
-              <p className="mt-2 text-sm text-fg-muted">{dm.kind === 'dm' ? t('chat.list.beginningDm', { name }) : t('chat.list.beginningGroup', { name })}</p>
+              {dm.kind === 'dm' && first && (
+                <p className="text-sm text-fg-muted">
+                  @{first.username}
+                  {first.headline ? ` · ${first.headline}` : ''}
+                </p>
+              )}
+              <p className="mt-2 text-sm text-fg-muted">
+                {dm.kind === 'dm' ? t('chat.list.beginningDm', { name }) : t('chat.list.beginningGroup', { name })}
+              </p>
             </div>
           }
         />

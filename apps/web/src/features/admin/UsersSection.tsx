@@ -13,7 +13,16 @@ import { ConfirmDialog } from '../../components/ui/confirm';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { EmptyState } from '../../components/ui/empty-state';
 import { Field, Input, Select, Textarea } from '../../components/ui/input';
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from '../../components/ui/menu';
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuTrigger,
+} from '../../components/ui/menu';
 import { Skeleton } from '../../components/ui/skeleton';
 import { toast } from '../../components/ui/toast';
 import { UserAvatar } from '../../components/user/UserAvatar';
@@ -61,8 +70,23 @@ function SuspendDialog({ user, onClose, onDone }: { user: AdminUser; onClose: ()
         onDone();
       }}
     >
-      <Field label={t('admin.users.reason')}>{(p) => <Textarea {...p} rows={3} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} autoFocus />}</Field>
-      <Field label={t('admin.users.days')}>{(p) => <Input {...p} type="number" min={1} max={3650} value={days} onChange={(e) => setDays(e.target.value)} />}</Field>
+      <Field label={t('admin.users.reason')}>
+        {(p) => (
+          <Textarea
+            {...p}
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            maxLength={500}
+            autoFocus
+          />
+        )}
+      </Field>
+      <Field label={t('admin.users.days')}>
+        {(p) => (
+          <Input {...p} type="number" min={1} max={3650} value={days} onChange={(e) => setDays(e.target.value)} />
+        )}
+      </Field>
     </ConfirmDialog>
   );
 }
@@ -82,7 +106,9 @@ function DeleteDialog({ user, onClose, onDone }: { user: AdminUser; onClose: () 
           await api.del(`/api/admin/users/${user.id}`, { deleteMessages });
         } catch (err) {
           if (err instanceof ApiError && err.code === 'owns_communities') {
-            const names = ((err.details as { communities?: { name: string }[] } | undefined)?.communities ?? []).map((c) => c.name).join(', ');
+            const names = ((err.details as { communities?: { name: string }[] } | undefined)?.communities ?? [])
+              .map((c) => c.name)
+              .join(', ');
             throw new Error(`${err.message} (${names})`, { cause: err });
           }
           throw err;
@@ -92,14 +118,31 @@ function DeleteDialog({ user, onClose, onDone }: { user: AdminUser; onClose: () 
       }}
     >
       <label className="flex items-center gap-2 text-sm text-fg-2">
-        <input type="checkbox" checked={deleteMessages} onChange={(e) => setDeleteMessages(e.target.checked)} className="size-4 accent-[var(--danger)]" />
+        <input
+          type="checkbox"
+          checked={deleteMessages}
+          onChange={(e) => setDeleteMessages(e.target.checked)}
+          className="size-4 accent-[var(--danger)]"
+        />
         {t('admin.users.deleteMessages')}
       </label>
     </ConfirmDialog>
   );
 }
 
-function UserRow({ u, isAdmin, selfId, open, onChanged }: { u: AdminUser; isAdmin: boolean; selfId: string; open: (d: Dialogs) => void; onChanged: () => void }) {
+function UserRow({
+  u,
+  isAdmin,
+  selfId,
+  open,
+  onChanged,
+}: {
+  u: AdminUser;
+  isAdmin: boolean;
+  selfId: string;
+  open: (d: Dialogs) => void;
+  onChanged: () => void;
+}) {
   const self = u.id === selfId;
   const canAct = !self && u.status !== 'deleted' && (isAdmin || u.platformRole === 'member');
   const setRole = async (role: PlatformRole) => {
@@ -142,16 +185,23 @@ function UserRow({ u, isAdmin, selfId, open, onChanged }: { u: AdminUser; isAdmi
           )}
           {u.isDemo && <DemoBadge />}
           {u.platformRole !== 'member' && <Badge tone="info">{t(`admin.users.roles.${u.platformRole}`)}</Badge>}
-          {u.status !== 'active' && <Badge tone={u.status === 'suspended' ? 'warning' : 'neutral'}>{t(`admin.users.statuses.${u.status}`)}</Badge>}
+          {u.status !== 'active' && (
+            <Badge tone={u.status === 'suspended' ? 'warning' : 'neutral'}>
+              {t(`admin.users.statuses.${u.status}`)}
+            </Badge>
+          )}
           {self && <span className="text-xs text-fg-muted">({t('common.labels.you')})</span>}
         </p>
         <p className="truncate text-xs text-fg-muted">
           @{u.username} · {u.email}
-          {!u.emailVerified && u.status !== 'deleted' && <span className="text-warning"> · {t('admin.users.unverified')}</span>}
+          {!u.emailVerified && u.status !== 'deleted' && (
+            <span className="text-warning"> · {t('admin.users.unverified')}</span>
+          )}
         </p>
         {u.status === 'suspended' && (
           <p className="truncate text-xs text-fg-muted">
-            {u.suspendedUntil ? t('admin.users.until', { date: formatDate(u.suspendedUntil) }) : ''} {u.suspensionReason ? `“${u.suspensionReason}”` : ''}
+            {u.suspendedUntil ? t('admin.users.until', { date: formatDate(u.suspendedUntil) }) : ''}{' '}
+            {u.suspensionReason ? `“${u.suspensionReason}”` : ''}
           </p>
         )}
       </div>
@@ -220,7 +270,9 @@ export function UsersSection({ isAdmin, selfId }: { isAdmin: boolean; selfId: st
     queryKey: ['admin', 'users', term, status, role],
     initialPageParam: 0,
     queryFn: ({ pageParam }) => {
-      const qs = new URLSearchParams(Object.entries({ q: term, status, role, before: pageParam ? String(pageParam) : '' }).filter(([, v]) => v));
+      const qs = new URLSearchParams(
+        Object.entries({ q: term, status, role, before: pageParam ? String(pageParam) : '' }).filter(([, v]) => v),
+      );
       return api.get<{ users: AdminUser[] }>(`/api/admin/users?${qs}`).then((r) => r.users);
     },
     getNextPageParam: (last) => (last.length === 100 ? last[last.length - 1]?.createdAt : undefined),
@@ -235,9 +287,21 @@ export function UsersSection({ isAdmin, selfId }: { isAdmin: boolean; selfId: st
       <div className="flex flex-wrap gap-2">
         <div className="relative min-w-56 flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-muted" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('admin.users.search')} aria-label={t('admin.users.search')} className="pl-9" type="search" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t('admin.users.search')}
+            aria-label={t('admin.users.search')}
+            className="pl-9"
+            type="search"
+          />
         </div>
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={t('admin.users.status')} className="w-40">
+        <Select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          aria-label={t('admin.users.status')}
+          className="w-40"
+        >
           <option value="">{t('admin.users.allStatuses')}</option>
           {(['active', 'suspended', 'deleted'] as const).map((s) => (
             <option key={s} value={s}>
@@ -245,7 +309,12 @@ export function UsersSection({ isAdmin, selfId }: { isAdmin: boolean; selfId: st
             </option>
           ))}
         </Select>
-        <Select value={role} onChange={(e) => setRole(e.target.value)} aria-label={t('admin.users.role')} className="w-40">
+        <Select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          aria-label={t('admin.users.role')}
+          className="w-40"
+        >
           <option value="">{t('admin.users.allRoles')}</option>
           {PLATFORM_ROLES.map((r) => (
             <option key={r} value={r}>
@@ -276,13 +345,23 @@ export function UsersSection({ isAdmin, selfId }: { isAdmin: boolean; selfId: st
           {t('common.actions.loadMore')}
         </Button>
       )}
-      {dialog?.kind === 'suspend' && <SuspendDialog user={dialog.user} onClose={() => setDialog(null)} onDone={refresh} />}
-      {dialog?.kind === 'delete' && <DeleteDialog user={dialog.user} onClose={() => setDialog(null)} onDone={refresh} />}
+      {dialog?.kind === 'suspend' && (
+        <SuspendDialog user={dialog.user} onClose={() => setDialog(null)} onDone={refresh} />
+      )}
+      {dialog?.kind === 'delete' && (
+        <DeleteDialog user={dialog.user} onClose={() => setDialog(null)} onDone={refresh} />
+      )}
       {dialog?.kind === 'reset' && dialog.link && (
         <Dialog open onOpenChange={(o) => !o && setDialog(null)}>
           <DialogContent title={t('admin.users.resetLink')} description={t('admin.users.resetLinkHint')} size="md">
             <div className="flex gap-2">
-              <Input readOnly value={dialog.link} onFocus={(e) => e.currentTarget.select()} aria-label={t('admin.users.resetLink')} className="font-mono text-xs" />
+              <Input
+                readOnly
+                value={dialog.link}
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label={t('admin.users.resetLink')}
+                className="font-mono text-xs"
+              />
               <Button variant="primary" onClick={() => void copyText(dialog.link ?? '')}>
                 {t('common.actions.copy')}
               </Button>

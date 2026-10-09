@@ -43,10 +43,16 @@ export const users = sqliteTable(
     avatarId: text('avatar_id').references((): AnySQLiteColumn => uploads.id, { onDelete: 'set null' }),
     headline: text('headline').notNull().default(''),
     bio: text('bio').notNull().default(''),
-    disciplines: text('disciplines', { mode: 'json' }).$type<Discipline[]>().notNull().default(sql`'[]'`),
+    disciplines: text('disciplines', { mode: 'json' })
+      .$type<Discipline[]>()
+      .notNull()
+      .default(sql`'[]'`),
     location: text('location').notNull().default(''),
     timezone: text('timezone').notNull().default(''),
-    links: text('links', { mode: 'json' }).$type<ProfileLink[]>().notNull().default(sql`'[]'`),
+    links: text('links', { mode: 'json' })
+      .$type<ProfileLink[]>()
+      .notNull()
+      .default(sql`'[]'`),
     currentProjects: text('current_projects').notNull().default(''),
     bannerHue: integer('banner_hue'),
     platformRole: text('platform_role').$type<PlatformRole>().notNull().default('member'),
@@ -59,7 +65,10 @@ export const users = sqliteTable(
       .$type<Partial<NotificationPrefs>>()
       .notNull()
       .default(sql`'{}'`),
-    mutedCommunityIds: text('muted_community_ids', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
+    mutedCommunityIds: text('muted_community_ids', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
     onboardingCompletedAt: integer('onboarding_completed_at'),
     isDemo: integer('is_demo', { mode: 'boolean' }).notNull().default(false),
     createdAt: integer('created_at').notNull(),
@@ -159,7 +168,10 @@ export const communities = sqliteTable(
     description: text('description').notNull().default(''),
     iconId: text('icon_id').references(() => uploads.id, { onDelete: 'set null' }),
     visibility: text('visibility').$type<'public' | 'private'>().notNull().default('private'),
-    tags: text('tags', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
+    tags: text('tags', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
     ownerId: text('owner_id')
       .notNull()
       .references(() => users.id),
@@ -401,7 +413,10 @@ export const messageMentions = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
   },
-  (t) => [primaryKey({ columns: [t.messageId, t.userId] }), index('message_mentions_user_idx').on(t.userId, t.messageId)],
+  (t) => [
+    primaryKey({ columns: [t.messageId, t.userId] }),
+    index('message_mentions_user_idx').on(t.userId, t.messageId),
+  ],
 );
 
 export const messageReactions = sqliteTable(
@@ -446,7 +461,10 @@ export const notifications = sqliteTable(
     communityId: text('community_id').references(() => communities.id, { onDelete: 'cascade' }),
     channelId: text('channel_id').references(() => channels.id, { onDelete: 'cascade' }),
     messageId: text('message_id').references(() => messages.id, { onDelete: 'set null' }),
-    data: text('data', { mode: 'json' }).$type<Record<string, unknown>>().notNull().default(sql`'{}'`),
+    data: text('data', { mode: 'json' })
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'`),
     count: integer('count').notNull().default(1),
     readAt: integer('read_at'),
     createdAt: integer('created_at').notNull(),
@@ -484,7 +502,10 @@ export const reports = sqliteTable(
     reason: text('reason').notNull(),
     details: text('details').notNull().default(''),
     /** Copy of the reported content at report time, so evidence survives edits/deletion. */
-    snapshot: text('snapshot', { mode: 'json' }).$type<Record<string, unknown>>().notNull().default(sql`'{}'`),
+    snapshot: text('snapshot', { mode: 'json' })
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'`),
     status: text('status').$type<'open' | 'resolved' | 'dismissed'>().notNull().default('open'),
     resolvedBy: text('resolved_by').references(() => users.id, { onDelete: 'set null' }),
     resolutionNote: text('resolution_note').notNull().default(''),
@@ -511,7 +532,10 @@ export const auditEvents = sqliteTable(
     /** Human-readable label captured at the time (e.g. username), never message content. */
     targetLabel: text('target_label'),
     reason: text('reason'),
-    metadata: text('metadata', { mode: 'json' }).$type<Record<string, unknown>>().notNull().default(sql`'{}'`),
+    metadata: text('metadata', { mode: 'json' })
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'`),
     createdAt: integer('created_at').notNull(),
   },
   (t) => [

@@ -38,13 +38,26 @@ export function InviteList({ invites, onRevoked }: { invites: InviteDTO[]; onRev
             <span className="block truncate font-mono text-sm text-fg">{inv.code}</span>
             <span className="block truncate text-xs text-fg-muted">
               {inv.targetUser ? `→ @${inv.targetUser.username} · ` : ''}
-              {inv.maxUses ? t('community.invite.usedCount', { uses: inv.uses, max: inv.maxUses }) : t('community.invite.usedCountUnlimited', { uses: inv.uses })}
+              {inv.maxUses
+                ? t('community.invite.usedCount', { uses: inv.uses, max: inv.maxUses })
+                : t('community.invite.usedCountUnlimited', { uses: inv.uses })}
               {' · '}
-              {inv.expiresAt ? t('community.invite.expiresAt', { date: formatRelative(inv.expiresAt).replace(/^in /, '') }) : t('community.invite.noExpiry')}
+              {inv.expiresAt
+                ? t('community.invite.expiresAt', { date: formatRelative(inv.expiresAt).replace(/^in /, '') })
+                : t('community.invite.noExpiry')}
               {inv.inviter ? ` · ${inv.inviter.displayName}` : ''}
             </span>
           </span>
-          <Button variant="ghost" size="icon-sm" aria-label={t('common.actions.copyLink')} onClick={() => void navigator.clipboard.writeText(inviteUrl(inv.code)).then(() => toast.success(t('common.actions.copied')))}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t('common.actions.copyLink')}
+            onClick={() =>
+              void navigator.clipboard
+                .writeText(inviteUrl(inv.code))
+                .then(() => toast.success(t('common.actions.copied')))
+            }
+          >
             <Copy />
           </Button>
           <Button
@@ -66,7 +79,15 @@ export function InviteList({ invites, onRevoked }: { invites: InviteDTO[]; onRev
   );
 }
 
-export function InviteDialog({ community, open, onOpenChange }: { community: CommunityDTO; open: boolean; onOpenChange: (o: boolean) => void }) {
+export function InviteDialog({
+  community,
+  open,
+  onOpenChange,
+}: {
+  community: CommunityDTO;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const qc = useQueryClient();
   const canInvite = hasCommunityPerm(community, Permission.CREATE_INVITES);
   const [expiry, setExpiry] = useState('168');
@@ -104,7 +125,10 @@ export function InviteDialog({ community, open, onOpenChange }: { community: Com
     e.preventDefault();
     setDirectBusy(true);
     try {
-      await api.post(`/api/communities/${community.id}/invites`, { targetUsername: username.trim().replace(/^@/, '').toLowerCase(), expiresInHours: 168 });
+      await api.post(`/api/communities/${community.id}/invites`, {
+        targetUsername: username.trim().replace(/^@/, '').toLowerCase(),
+        expiresInHours: 168,
+      });
       toast.success(t('community.invite.directSent', { username: username.replace(/^@/, '') }));
       setUsername('');
       void qc.invalidateQueries({ queryKey: ['community', community.id, 'invites'] });
@@ -140,7 +164,9 @@ export function InviteDialog({ community, open, onOpenChange }: { community: Com
                     <Select {...p} value={uses} onChange={(e) => setUses(e.target.value)}>
                       {USE_OPTIONS.map((o) => (
                         <option key={o} value={o}>
-                          {o === 'unlimited' ? t('community.invite.unlimited') : t('community.invite.uses', { count: Number(o) })}
+                          {o === 'unlimited'
+                            ? t('community.invite.unlimited')
+                            : t('community.invite.uses', { count: Number(o) })}
                         </option>
                       ))}
                     </Select>
@@ -150,7 +176,14 @@ export function InviteDialog({ community, open, onOpenChange }: { community: Com
               {link ? (
                 <div className="flex items-center gap-2 rounded-lg border border-accent-border bg-accent-soft p-1.5 pl-3">
                   <Link2 className="size-4 shrink-0 text-accent-text" />
-                  <input readOnly value={link} aria-label={t('community.invite.linkLabel')} onFocus={(e) => e.target.select()} className="min-w-0 flex-1 bg-transparent font-mono text-sm text-fg focus:outline-none" data-testid="invite-link" />
+                  <input
+                    readOnly
+                    value={link}
+                    aria-label={t('community.invite.linkLabel')}
+                    onFocus={(e) => e.target.select()}
+                    className="min-w-0 flex-1 bg-transparent font-mono text-sm text-fg focus:outline-none"
+                    data-testid="invite-link"
+                  />
                   <Button
                     variant="primary"
                     size="sm"
@@ -165,14 +198,25 @@ export function InviteDialog({ community, open, onOpenChange }: { community: Com
                   </Button>
                 </div>
               ) : null}
-              <Button variant={link ? 'secondary' : 'primary'} loading={busy} onClick={() => void create()} data-testid="create-invite">
+              <Button
+                variant={link ? 'secondary' : 'primary'}
+                loading={busy}
+                onClick={() => void create()}
+                data-testid="create-invite"
+              >
                 <Link2 /> {t('community.invite.generate')}
               </Button>
             </section>
             <section>
               <h3 className="mb-2 text-sm font-medium text-fg-2">{t('community.invite.direct')}</h3>
               <form onSubmit={(e) => void sendDirect(e)} className="flex gap-2">
-                <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder={t('community.invite.directPlaceholder')} aria-label={t('community.invite.directPlaceholder')} className="flex-1" />
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={t('community.invite.directPlaceholder')}
+                  aria-label={t('community.invite.directPlaceholder')}
+                  className="flex-1"
+                />
                 <Button type="submit" loading={directBusy} disabled={username.trim().length < 3}>
                   <Send /> {t('community.invite.directSend')}
                 </Button>

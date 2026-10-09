@@ -28,12 +28,16 @@ export function registerMessageRoutes(app: FastifyInstance, ctx: AppContext): vo
   });
 
   // REST equivalent of the `message:send` socket event (same validation, idempotency and broadcast).
-  app.post<IdParams>('/api/channels/:id/messages', { config: rateLimit(30 * m, '10 seconds') }, async (request, reply) => {
-    const { user } = requireAuth(request);
-    const result = svc.sendMessage(ctx, user, id(request.params.id), parse(sendMessageSchema, request.body));
-    reply.status(result.created ? 201 : 200);
-    return { message: result.message };
-  });
+  app.post<IdParams>(
+    '/api/channels/:id/messages',
+    { config: rateLimit(30 * m, '10 seconds') },
+    async (request, reply) => {
+      const { user } = requireAuth(request);
+      const result = svc.sendMessage(ctx, user, id(request.params.id), parse(sendMessageSchema, request.body));
+      reply.status(result.created ? 201 : 200);
+      return { message: result.message };
+    },
+  );
 
   app.get<IdParams>('/api/messages/:id', async (request) => {
     const { user } = requireAuth(request);

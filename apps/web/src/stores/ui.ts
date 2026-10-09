@@ -23,7 +23,8 @@ function write(key: string, value: string): void {
 }
 
 export function applyTheme(theme: Theme): void {
-  const resolved = theme === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : theme;
+  const resolved =
+    theme === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : theme;
   document.documentElement.setAttribute('data-theme', resolved);
   const meta = document.querySelector('meta[name="theme-color"]');
   meta?.setAttribute('content', resolved === 'light' ? '#ece7df' : '#1b1916');
@@ -50,7 +51,10 @@ export const useUi = create<UiState>((set, get) => ({
   theme: read<Theme>('cn.theme', 'dark', ['dark', 'light', 'system']),
   density: read<Density>('cn.density', 'comfortable', ['comfortable', 'compact']),
   motion: read<MotionPref>('cn.motion', 'full', ['full', 'reduced']),
-  contextPanel: read<'members' | 'pins' | 'none'>('cn.panel', 'members', ['members', 'pins', 'none']) === 'none' ? null : read<'members' | 'pins'>('cn.panel', 'members', ['members', 'pins']),
+  contextPanel:
+    read<'members' | 'pins' | 'none'>('cn.panel', 'members', ['members', 'pins', 'none']) === 'none'
+      ? null
+      : read<'members' | 'pins'>('cn.panel', 'members', ['members', 'pins']),
   mobileSidebarOpen: false,
   atBottom: true,
   setTheme: (theme) => {

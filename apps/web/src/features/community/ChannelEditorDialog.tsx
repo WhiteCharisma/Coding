@@ -1,4 +1,12 @@
-import { CHANNEL_PERMISSIONS, Permission, permissionNames, type ChannelDTO, type CommunityDTO, type OverwriteDTO, type PermissionName } from '@creator-network/shared';
+import {
+  CHANNEL_PERMISSIONS,
+  Permission,
+  permissionNames,
+  type ChannelDTO,
+  type CommunityDTO,
+  type OverwriteDTO,
+  type PermissionName,
+} from '@creator-network/shared';
 import { useQuery } from '@tanstack/react-query';
 import { Check, Minus, Trash2, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
@@ -28,14 +36,39 @@ function triOf(ow: OverwriteDTO | undefined, bit: number): Tri {
 
 function TriToggle({ value, onChange, label }: { value: Tri; onChange: (v: Tri) => void; label: string }) {
   const opts: { v: Tri; icon: typeof Check; text: string; cls: string }[] = [
-    { v: 'deny', icon: X, text: t('community.settings.channels.deny'), cls: 'data-[on=true]:bg-danger data-[on=true]:text-white' },
-    { v: 'inherit', icon: Minus, text: t('community.settings.channels.inherit'), cls: 'data-[on=true]:bg-overlay data-[on=true]:text-fg' },
-    { v: 'allow', icon: Check, text: t('community.settings.channels.allow'), cls: 'data-[on=true]:bg-success data-[on=true]:text-white' },
+    {
+      v: 'deny',
+      icon: X,
+      text: t('community.settings.channels.deny'),
+      cls: 'data-[on=true]:bg-danger data-[on=true]:text-white',
+    },
+    {
+      v: 'inherit',
+      icon: Minus,
+      text: t('community.settings.channels.inherit'),
+      cls: 'data-[on=true]:bg-overlay data-[on=true]:text-fg',
+    },
+    {
+      v: 'allow',
+      icon: Check,
+      text: t('community.settings.channels.allow'),
+      cls: 'data-[on=true]:bg-success data-[on=true]:text-white',
+    },
   ];
   return (
     <div role="radiogroup" aria-label={label} className="inline-flex rounded-md border border-line bg-inset p-0.5">
       {opts.map(({ v, icon: Icon, text, cls }) => (
-        <button key={v} type="button" role="radio" aria-checked={value === v} aria-label={text} title={text} data-on={value === v} onClick={() => onChange(v)} className={cn('grid size-7 place-items-center rounded text-fg-muted transition-colors', cls)}>
+        <button
+          key={v}
+          type="button"
+          role="radio"
+          aria-checked={value === v}
+          aria-label={text}
+          title={text}
+          data-on={value === v}
+          onClick={() => onChange(v)}
+          className={cn('grid size-7 place-items-center rounded text-fg-muted transition-colors', cls)}
+        >
           <Icon className="size-3.5" />
         </button>
       ))}
@@ -45,7 +78,11 @@ function TriToggle({ value, onChange, label }: { value: Tri; onChange: (v: Tri) 
 
 function PermissionsEditor({ community, channel }: { community: CommunityDTO; channel: ChannelDTO }) {
   const [roleId, setRoleId] = useState(community.everyoneRoleId);
-  const overwrites = useQuery({ queryKey: ['overwrites', channel.id], queryFn: () => api.get<{ overwrites: OverwriteDTO[] }>(`/api/channels/${channel.id}/overwrites`).then((r) => r.overwrites) });
+  const overwrites = useQuery({
+    queryKey: ['overwrites', channel.id],
+    queryFn: () =>
+      api.get<{ overwrites: OverwriteDTO[] }>(`/api/channels/${channel.id}/overwrites`).then((r) => r.overwrites),
+  });
   const roles = [...community.roles].sort((a, b) => b.position - a.position);
   const current = overwrites.data?.find((o) => o.targetType === 'role' && o.targetId === roleId);
 
@@ -66,7 +103,11 @@ function PermissionsEditor({ community, channel }: { community: CommunityDTO; ch
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-fg-muted">{t('community.settings.channels.permissionsHint')}</p>
-      <Select value={roleId} onChange={(e) => setRoleId(e.target.value)} aria-label={t('community.settings.roles.title')}>
+      <Select
+        value={roleId}
+        onChange={(e) => setRoleId(e.target.value)}
+        aria-label={t('community.settings.roles.title')}
+      >
         {roles.map((r) => (
           <option key={r.id} value={r.id}>
             {r.name}
@@ -80,7 +121,11 @@ function PermissionsEditor({ community, channel }: { community: CommunityDTO; ch
               <span className="block text-ui text-fg">{t(`community.permissions.${perm}`)}</span>
               <span className="block text-xs text-fg-muted">{t(`community.permissionHints.${perm}`)}</span>
             </span>
-            <TriToggle label={t(`community.permissions.${perm}`)} value={triOf(current, Permission[perm])} onChange={(v) => void set(perm, v)} />
+            <TriToggle
+              label={t(`community.permissions.${perm}`)}
+              value={triOf(current, Permission[perm])}
+              onChange={(v) => void set(perm, v)}
+            />
           </li>
         ))}
       </ul>
@@ -114,10 +159,17 @@ export function ChannelEditorDialog({ community, channel, open, onOpenChange }: 
     try {
       if (channel) {
         await api.patch(`/api/channels/${channel.id}`, { name, topic, categoryId: categoryId || null });
-        if (isPrivate !== channel.isPrivate) await api.put(`/api/channels/${channel.id}/privacy`, { isPrivate, allowedRoleIds });
+        if (isPrivate !== channel.isPrivate)
+          await api.put(`/api/channels/${channel.id}/privacy`, { isPrivate, allowedRoleIds });
         toast.success(t('community.settings.overview.saved'));
       } else {
-        const res = await api.post<{ channel: ChannelDTO }>(`/api/communities/${community.id}/channels`, { name, topic, categoryId: categoryId || null, isPrivate, allowedRoleIds });
+        const res = await api.post<{ channel: ChannelDTO }>(`/api/communities/${community.id}/channels`, {
+          name,
+          topic,
+          categoryId: categoryId || null,
+          isPrivate,
+          allowedRoleIds,
+        });
         toast.success(t('community.settings.channels.created'));
         onOpenChange(false);
         void navigate(`/c/${community.id}/${res.channel.id}`);
@@ -133,11 +185,34 @@ export function ChannelEditorDialog({ community, channel, open, onOpenChange }: 
 
   const details = (
     <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
-      <Field label={t('community.settings.channels.channelName')} error={fieldError(error, 'name')} hint="#lowercase-with-dashes">
-        {(p) => <Input {...p} value={name} onChange={(e) => setName(e.target.value)} maxLength={40} required autoFocus={!channel} placeholder="feedback-loop" />}
+      <Field
+        label={t('community.settings.channels.channelName')}
+        error={fieldError(error, 'name')}
+        hint="#lowercase-with-dashes"
+      >
+        {(p) => (
+          <Input
+            {...p}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={40}
+            required
+            autoFocus={!channel}
+            placeholder="feedback-loop"
+          />
+        )}
       </Field>
       <Field label={t('community.settings.channels.topic')} optional={t('common.labels.optional')}>
-        {(p) => <Textarea {...p} value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={300} rows={2} placeholder={t('community.settings.channels.topicPlaceholder')} />}
+        {(p) => (
+          <Textarea
+            {...p}
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            maxLength={300}
+            rows={2}
+            placeholder={t('community.settings.channels.topicPlaceholder')}
+          />
+        )}
       </Field>
       <Field label={t('community.settings.channels.category')}>
         {(p) => (
@@ -151,21 +226,42 @@ export function ChannelEditorDialog({ community, channel, open, onOpenChange }: 
           </Select>
         )}
       </Field>
-      <Switch checked={isPrivate} onCheckedChange={setIsPrivate} label={t('community.settings.channels.private')} description={t('community.settings.channels.privateHint')} />
+      <Switch
+        checked={isPrivate}
+        onCheckedChange={setIsPrivate}
+        label={t('community.settings.channels.private')}
+        description={t('community.settings.channels.privateHint')}
+      />
       {isPrivate && roles.length > 0 && (!channel || !channel.isPrivate) && (
         <fieldset className="rounded-lg border border-line-subtle p-3">
-          <legend className="px-1 text-sm font-medium text-fg-2">{t('community.settings.channels.allowedRoles')}</legend>
+          <legend className="px-1 text-sm font-medium text-fg-2">
+            {t('community.settings.channels.allowedRoles')}
+          </legend>
           <div className="flex flex-wrap gap-2">
             {roles.map((r) => (
-              <label key={r.id} className="flex cursor-pointer items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-sm text-fg-2 has-[:checked]:border-accent-border has-[:checked]:bg-accent-soft">
-                <input type="checkbox" className="accent-[var(--accent)]" checked={allowedRoleIds.includes(r.id)} onChange={(e) => setAllowedRoleIds((cur) => (e.target.checked ? [...cur, r.id] : cur.filter((x) => x !== r.id)))} />
+              <label
+                key={r.id}
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-sm text-fg-2 has-[:checked]:border-accent-border has-[:checked]:bg-accent-soft"
+              >
+                <input
+                  type="checkbox"
+                  className="accent-[var(--accent)]"
+                  checked={allowedRoleIds.includes(r.id)}
+                  onChange={(e) =>
+                    setAllowedRoleIds((cur) => (e.target.checked ? [...cur, r.id] : cur.filter((x) => x !== r.id)))
+                  }
+                />
                 <span style={r.color ? { color: r.color } : undefined}>{r.name}</span>
               </label>
             ))}
           </div>
         </fieldset>
       )}
-      {error !== null && !fieldError(error, 'name') && <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{errorMessage(error)}</p>}
+      {error !== null && !fieldError(error, 'name') && (
+        <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
+          {errorMessage(error)}
+        </p>
+      )}
       <div className="flex items-center justify-between gap-2">
         {channel ? (
           <Button variant="danger-ghost" onClick={() => setConfirmDelete(true)}>

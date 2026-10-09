@@ -2,7 +2,17 @@ import { io as ioClient } from 'socket.io-client';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { messages } from '../src/db/schema';
-import { createTestServer, nextEvent, noEvent, nonce, ORIGIN, sendViaSocket, sleep, type TestClient, type TestServer } from './helpers';
+import {
+  createTestServer,
+  nextEvent,
+  noEvent,
+  nonce,
+  ORIGIN,
+  sendViaSocket,
+  sleep,
+  type TestClient,
+  type TestServer,
+} from './helpers';
 
 let srv: TestServer;
 let alice: TestClient;
@@ -29,7 +39,12 @@ afterAll(async () => {
 
 describe('socket authentication', () => {
   it('rejects connections without a valid session', async () => {
-    const socket = ioClient(srv.url, { transports: ['websocket'], extraHeaders: { origin: ORIGIN }, reconnection: false, forceNew: true });
+    const socket = ioClient(srv.url, {
+      transports: ['websocket'],
+      extraHeaders: { origin: ORIGIN },
+      reconnection: false,
+      forceNew: true,
+    });
     const err = await new Promise<Error>((resolve) => socket.once('connect_error', resolve));
     expect(err.message).toBe('unauthorized');
     socket.disconnect();
@@ -113,13 +128,20 @@ describe('real-time delivery', () => {
   });
 
   it('private channel messages only reach members with access', async () => {
-    const priv = (await alice.post(`/api/communities/${community.id}/channels`, { name: 'leads-only', isPrivate: true })).body.channel;
+    const priv = (
+      await alice.post(`/api/communities/${community.id}/channels`, { name: 'leads-only', isPrivate: true })
+    ).body.channel;
     const b = await bob.socket();
     const quiet = noEvent(b, 'message:new', 500, (m: any) => m.channelId === priv.id);
     await alice.post(`/api/channels/${priv.id}/messages`, { content: 'secret plans', nonce: nonce() });
     expect(await quiet).toBe(true);
     // Granting access joins the room without reconnecting.
-    await alice.put(`/api/channels/${priv.id}/overwrites`, { targetType: 'member', targetId: bob.user.id, allow: 1, deny: 0 });
+    await alice.put(`/api/channels/${priv.id}/overwrites`, {
+      targetType: 'member',
+      targetId: bob.user.id,
+      allow: 1,
+      deny: 0,
+    });
     const now = nextEvent(b, 'message:new', 3000, (m: any) => m.channelId === priv.id);
     await alice.post(`/api/channels/${priv.id}/messages`, { content: 'welcome in', nonce: nonce() });
     expect((await now).content).toBe('welcome in');
@@ -129,7 +151,8 @@ describe('real-time delivery', () => {
   it('broadcasts edits, deletes and reactions', async () => {
     const a = await alice.socket();
     const b = await bob.socket();
-    const msg = (await alice.post(`/api/channels/${general.id}/messages`, { content: 'v1', nonce: nonce() })).body.message;
+    const msg = (await alice.post(`/api/channels/${general.id}/messages`, { content: 'v1', nonce: nonce() })).body
+      .message;
     const upd = nextEvent(b, 'message:update', 3000, (m: any) => m.id === msg.id);
     await alice.patch(`/api/messages/${msg.id}`, { content: 'v2' });
     expect((await upd).content).toBe('v2');
@@ -164,7 +187,9 @@ describe('typing and presence', () => {
   it('reports presence for connected users', async () => {
     const a = await alice.socket();
     const b = await bob.socket();
-    const statuses = await new Promise<any>((resolve) => b.emit('presence:query', { userIds: [alice.user.id, outsider.user.id] }, resolve));
+    const statuses = await new Promise<any>((resolve) =>
+      b.emit('presence:query', { userIds: [alice.user.id, outsider.user.id] }, resolve),
+    );
     expect(statuses[alice.user.id]).toBe('online');
     expect(statuses[outsider.user.id]).toBe('offline');
     a.disconnect();
@@ -182,7 +207,10 @@ describe('reconnection and sessions', () => {
     b.disconnect();
     const missed: string[] = [];
     for (let i = 0; i < 3; i++) {
-      missed.push((await alice.post(`/api/channels/${general.id}/messages`, { content: `missed ${i}`, nonce: nonce() })).body.message.id);
+      missed.push(
+        (await alice.post(`/api/channels/${general.id}/messages`, { content: `missed ${i}`, nonce: nonce() })).body
+          .message.id,
+      );
     }
     const b2 = await bob.socket();
     const catchUp = (await bob.get(`/api/channels/${general.id}/messages?after=${lastSeen.id}`)).body;
@@ -209,7 +237,11 @@ describe('reconnection and sessions', () => {
 
   it('rate-limits message bursts on a socket', async () => {
     const a = await alice.socket();
-    const results = await Promise.all(Array.from({ length: 16 }, (_, i) => sendViaSocket(a, { channelId: general.id, content: `burst ${i}`, nonce: nonce() })));
+    const results = await Promise.all(
+      Array.from({ length: 16 }, (_, i) =>
+        sendViaSocket(a, { channelId: general.id, content: `burst ${i}`, nonce: nonce() }),
+      ),
+    );
     const limited = results.filter((r) => !r.ok && r.error.code === 'rate_limited');
     expect(limited.length).toBeGreaterThan(0);
     expect(limited.every((r) => r.error.retryable)).toBe(true);

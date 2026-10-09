@@ -19,7 +19,9 @@ export function PresenceIcon({ status, className }: { status: PresenceStatus; cl
           <rect x="3" y="5" width="6" height="2" rx="1" fill="var(--bg-sidebar)" />
         </>
       )}
-      {status === 'offline' && <circle cx="6" cy="6" r="3.6" fill="none" stroke="var(--presence-offline)" strokeWidth="2.4" />}
+      {status === 'offline' && (
+        <circle cx="6" cy="6" r="3.6" fill="none" stroke="var(--presence-offline)" strokeWidth="2.4" />
+      )}
     </svg>
   );
 }

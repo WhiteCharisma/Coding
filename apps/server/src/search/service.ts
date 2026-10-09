@@ -38,7 +38,11 @@ export function searchMessages(ctx: AppContext, user: UserRow, q: z.output<typeo
 
   let authorId: string | null = null;
   if (q.author) {
-    const author = ctx.db.select({ id: users.id }).from(users).where(sql`${users.username} = ${q.author}`).get();
+    const author = ctx.db
+      .select({ id: users.id })
+      .from(users)
+      .where(sql`${users.username} = ${q.author}`)
+      .get();
     if (!author) return empty;
     authorId = author.id;
   }
@@ -55,9 +59,16 @@ export function searchMessages(ctx: AppContext, user: UserRow, q: z.output<typeo
   if (q.to) conditions.push(sql`m.created_at <= ${q.to}`);
   if (q.before) conditions.push(sql`m.id < ${q.before}`);
   if (q.has === 'link') conditions.push(sql`(m.content like '%http://%' or m.content like '%https://%')`);
-  if (q.has === 'file') conditions.push(sql`exists (select 1 from uploads u where u.message_id = m.id and u.status = 'attached')`);
-  if (q.has === 'image') conditions.push(sql`exists (select 1 from uploads u where u.message_id = m.id and u.status = 'attached' and u.mime like 'image/%')`);
-  if (q.has === 'audio') conditions.push(sql`exists (select 1 from uploads u where u.message_id = m.id and u.status = 'attached' and u.mime like 'audio/%')`);
+  if (q.has === 'file')
+    conditions.push(sql`exists (select 1 from uploads u where u.message_id = m.id and u.status = 'attached')`);
+  if (q.has === 'image')
+    conditions.push(
+      sql`exists (select 1 from uploads u where u.message_id = m.id and u.status = 'attached' and u.mime like 'image/%')`,
+    );
+  if (q.has === 'audio')
+    conditions.push(
+      sql`exists (select 1 from uploads u where u.message_id = m.id and u.status = 'attached' and u.mime like 'audio/%')`,
+    );
   const where = sql.join(conditions, sql` and `);
   const limit = q.limit + 1;
 
@@ -73,19 +84,32 @@ export function searchMessages(ctx: AppContext, user: UserRow, q: z.output<typeo
       where messages_fts match ${fts} and ${where}
       order by m.id desc limit ${limit}`);
   } else {
-    rows = ctx.db.all<Row>(sql`select ${cols}, null as hl from messages m where ${where} order by m.id desc limit ${limit}`);
+    rows = ctx.db.all<Row>(
+      sql`select ${cols}, null as hl from messages m where ${where} order by m.id desc limit ${limit}`,
+    );
   }
   const page = rows.slice(0, q.limit).map((r) => ({ ...r, mentionEveryone: Boolean(r.mentionEveryone) }));
   const dtos = toMessageDTOs(ctx.db, page, user.id);
 
   const chanIds = [...new Set(page.map((r) => r.channelId))];
   const chanRows = chanIds.length
-    ? ctx.db.select({ id: channels.id, name: channels.name, kind: channels.kind, communityId: channels.communityId }).from(channels).where(inArray(channels.id, chanIds)).all()
+    ? ctx.db
+        .select({ id: channels.id, name: channels.name, kind: channels.kind, communityId: channels.communityId })
+        .from(channels)
+        .where(inArray(channels.id, chanIds))
+        .all()
     : [];
   const chanById = new Map(chanRows.map((c) => [c.id, c]));
   const commIds = [...new Set(chanRows.map((c) => c.communityId).filter((x): x is string => !!x))];
   const commNames = new Map(
-    commIds.length ? ctx.db.select({ id: communities.id, name: communities.name }).from(communities).where(inArray(communities.id, commIds)).all().map((c) => [c.id, c.name]) : [],
+    commIds.length
+      ? ctx.db
+          .select({ id: communities.id, name: communities.name })
+          .from(communities)
+          .where(inArray(communities.id, commIds))
+          .all()
+          .map((c) => [c.id, c.name])
+      : [],
   );
   const results: SearchResultDTO[] = dtos.map((message, i) => {
     const ch = chanById.get(message.channelId);

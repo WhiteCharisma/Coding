@@ -7,4 +7,20 @@ import { dm, explore, home, notifications, profile, report, search } from './en/
 import { admin, settings } from './en/settings';
 import { shell } from './en/shell';
 
-export const en = { common, auth, onboarding, shell, chat, community, home, explore, dm, notifications, search, profile, report, settings, admin };
+export const en = {
+  common,
+  auth,
+  onboarding,
+  shell,
+  chat,
+  community,
+  home,
+  explore,
+  dm,
+  notifications,
+  search,
+  profile,
+  report,
+  settings,
+  admin,
+};

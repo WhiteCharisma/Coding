@@ -69,7 +69,9 @@ export function AuthLayout({ children, title, subtitle }: { children: ReactNode;
           <WaveformArt className="h-full" />
         </div>
         <div className="absolute inset-x-12 bottom-10">
-          <p className="font-display text-xl font-medium tracking-tight text-fg-2 text-balance">{t('common.tagline')}</p>
+          <p className="font-display text-xl font-medium tracking-tight text-fg-2 text-balance">
+            {t('common.tagline')}
+          </p>
         </div>
       </aside>
     </div>

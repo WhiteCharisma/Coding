@@ -19,7 +19,11 @@ function sharesCommunity(db: DbOrTx, a: string, b: string): boolean {
 }
 
 /** Can `from` start a conversation with `to`? Returns a reason when not. */
-export function dmBlockReason(db: DbOrTx, from: UserRow, to: Pick<UserRow, 'id' | 'status' | 'dmPolicy'>): string | null {
+export function dmBlockReason(
+  db: DbOrTx,
+  from: UserRow,
+  to: Pick<UserRow, 'id' | 'status' | 'dmPolicy'>,
+): string | null {
   if (to.status !== 'active') return 'This account is not available.';
   if (isBlockedEitherWay(db, from.id, to.id)) return 'You cannot message this user.';
   // Platform staff can always reach users (moderation notices / appeals).
@@ -132,7 +136,10 @@ export function openDm(ctx: AppContext, user: UserRow, userIds: string[], name?:
     if (existing) return toDmDTOs(ctx.db, [existing], user.id)[0] as DmChannelDTO;
     const channelId = newId(now);
     ctx.db.transaction((tx) => {
-      tx.insert(channels).values({ id: channelId, kind: 'dm', dmKey, createdAt: now, updatedAt: now }).onConflictDoNothing().run();
+      tx.insert(channels)
+        .values({ id: channelId, kind: 'dm', dmKey, createdAt: now, updatedAt: now })
+        .onConflictDoNothing()
+        .run();
       const created = tx.select({ id: channels.id }).from(channels).where(eq(channels.dmKey, dmKey)).get();
       if (created?.id === channelId) {
         tx.insert(channelParticipants)
@@ -147,10 +154,13 @@ export function openDm(ctx: AppContext, user: UserRow, userIds: string[], name?:
     notifyParticipants(ctx, ch.id, [user.id, other.id]);
     return toDmDTOs(ctx.db, [ch], user.id)[0] as DmChannelDTO;
   }
-  if (targets.length + 1 > LIMITS.groupDmMax) throw badRequest(`Group conversations can have at most ${LIMITS.groupDmMax} people.`);
+  if (targets.length + 1 > LIMITS.groupDmMax)
+    throw badRequest(`Group conversations can have at most ${LIMITS.groupDmMax} people.`);
   const channelId = newId(now);
   ctx.db.transaction((tx) => {
-    tx.insert(channels).values({ id: channelId, kind: 'group_dm', name: name ?? '', ownerId: user.id, createdAt: now, updatedAt: now }).run();
+    tx.insert(channels)
+      .values({ id: channelId, kind: 'group_dm', name: name ?? '', ownerId: user.id, createdAt: now, updatedAt: now })
+      .run();
     tx.insert(channelParticipants)
       .values([user.id, ...targets.map((t) => t.id)].map((userId) => ({ channelId, userId, joinedAt: now })))
       .run();
@@ -160,7 +170,12 @@ export function openDm(ctx: AppContext, user: UserRow, userIds: string[], name?:
 }
 
 function participantIds(db: DbOrTx, channelId: string): string[] {
-  return db.select({ id: channelParticipants.userId }).from(channelParticipants).where(eq(channelParticipants.channelId, channelId)).all().map((r) => r.id);
+  return db
+    .select({ id: channelParticipants.userId })
+    .from(channelParticipants)
+    .where(eq(channelParticipants.channelId, channelId))
+    .all()
+    .map((r) => r.id);
 }
 
 export function renameGroup(ctx: AppContext, user: UserRow, channelId: string, name: string): DmChannelDTO {
@@ -178,14 +193,20 @@ export function addParticipants(ctx: AppContext, user: UserRow, channelId: strin
   const fresh = userIds.filter((id) => !current.includes(id));
   if (fresh.length === 0) return getDm(ctx, user, channelId);
   const targets = loadTargets(ctx, user, fresh);
-  if (current.length + targets.length > LIMITS.groupDmMax) throw badRequest(`Group conversations can have at most ${LIMITS.groupDmMax} people.`);
+  if (current.length + targets.length > LIMITS.groupDmMax)
+    throw badRequest(`Group conversations can have at most ${LIMITS.groupDmMax} people.`);
   const now = Date.now();
   const lastId = ch.lastMessageId;
   ctx.db.transaction((tx) => {
-    tx.insert(channelParticipants).values(targets.map((t) => ({ channelId, userId: t.id, joinedAt: now }))).run();
+    tx.insert(channelParticipants)
+      .values(targets.map((t) => ({ channelId, userId: t.id, joinedAt: now })))
+      .run();
     if (lastId) {
       for (const t of targets) {
-        tx.insert(readStates).values({ userId: t.id, channelId, lastReadId: lastId, updatedAt: now }).onConflictDoNothing().run();
+        tx.insert(readStates)
+          .values({ userId: t.id, channelId, lastReadId: lastId, updatedAt: now })
+          .onConflictDoNothing()
+          .run();
       }
     }
   });
@@ -201,8 +222,12 @@ export function removeParticipant(ctx: AppContext, user: UserRow, channelId: str
   if (!current.includes(targetId)) throw notFound('Participant not found.');
   const remaining = current.filter((id) => id !== targetId);
   ctx.db.transaction((tx) => {
-    tx.delete(channelParticipants).where(and(eq(channelParticipants.channelId, channelId), eq(channelParticipants.userId, targetId))).run();
-    tx.delete(readStates).where(and(eq(readStates.channelId, channelId), eq(readStates.userId, targetId))).run();
+    tx.delete(channelParticipants)
+      .where(and(eq(channelParticipants.channelId, channelId), eq(channelParticipants.userId, targetId)))
+      .run();
+    tx.delete(readStates)
+      .where(and(eq(readStates.channelId, channelId), eq(readStates.userId, targetId)))
+      .run();
     if (remaining.length === 0) {
       tx.delete(channels).where(eq(channels.id, channelId)).run();
     } else if (ch.ownerId === targetId) {
@@ -211,5 +236,3 @@ export function removeParticipant(ctx: AppContext, user: UserRow, channelId: str
   });
   notifyParticipants(ctx, channelId, [...remaining, targetId]);
 }
-
-

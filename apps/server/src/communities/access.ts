@@ -174,7 +174,12 @@ export function requireChannelAccess(db: DbOrTx, channelId: string, userId: stri
   return access;
 }
 
-export function requireChannelPermission(db: DbOrTx, channelId: string, userId: string, permission: number): ChannelAccess {
+export function requireChannelPermission(
+  db: DbOrTx,
+  channelId: string,
+  userId: string,
+  permission: number,
+): ChannelAccess {
   const access = requireChannelAccess(db, channelId, userId);
   if (!hasPerm(access.permissions, permission)) {
     if (permission === Permission.SEND_MESSAGES && access.channel.kind === 'dm') {
@@ -273,5 +278,3 @@ export function computeUserChannelPermissions(db: DbOrTx, userId: string): UserC
   }
   return result;
 }
-
-

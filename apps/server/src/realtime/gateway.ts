@@ -128,7 +128,8 @@ export class SocketGateway implements Realtime {
     socket.on('channel:read', (payload) => this.handleRead(socket, payload));
     socket.on('presence:set', (payload) => {
       const parsed = activityPayload.safeParse(payload);
-      if (parsed.success && socket.data.buckets.misc.take()) this.presence.setActivity(userId, socket.id, parsed.data.status);
+      if (parsed.success && socket.data.buckets.misc.take())
+        this.presence.setActivity(userId, socket.id, parsed.data.status);
     });
     socket.on('presence:query', (payload, ack) => {
       if (typeof ack !== 'function') return;
@@ -179,7 +180,8 @@ export class SocketGateway implements Realtime {
   private async handleSend(socket: ClientSocket, payload: unknown, ack: unknown): Promise<void> {
     if (typeof ack !== 'function') return;
     const reply = ack as (res: SendAck) => void;
-    const fail = (code: string, message: string, retryable: boolean) => reply({ ok: false, error: { code, message, retryable } });
+    const fail = (code: string, message: string, retryable: boolean) =>
+      reply({ ok: false, error: { code, message, retryable } });
     try {
       if (!socket.data.buckets.send.take()) {
         fail('rate_limited', 'You are sending messages too quickly. Please wait a moment.', true);
@@ -254,7 +256,8 @@ export class SocketGateway implements Realtime {
     ]);
     for (const socket of sockets) {
       for (const room of socket.rooms) {
-        if ((room.startsWith('channel:') || room.startsWith('community:')) && !wanted.has(room)) void socket.leave(room);
+        if ((room.startsWith('channel:') || room.startsWith('community:')) && !wanted.has(room))
+          void socket.leave(room);
       }
       const missing = [...wanted].filter((r) => !socket.rooms.has(r));
       if (missing.length) void socket.join(missing);
@@ -280,15 +283,27 @@ export class SocketGateway implements Realtime {
 
   /* --------------------------------------------------------------- Emits */
 
-  toChannel<E extends keyof ServerToClientEvents>(channelId: string, event: E, ...payload: Parameters<ServerToClientEvents[E]>): void {
+  toChannel<E extends keyof ServerToClientEvents>(
+    channelId: string,
+    event: E,
+    ...payload: Parameters<ServerToClientEvents[E]>
+  ): void {
     this.io.to(`channel:${channelId}`).emit(event, ...payload);
   }
 
-  toUser<E extends keyof ServerToClientEvents>(userId: string, event: E, ...payload: Parameters<ServerToClientEvents[E]>): void {
+  toUser<E extends keyof ServerToClientEvents>(
+    userId: string,
+    event: E,
+    ...payload: Parameters<ServerToClientEvents[E]>
+  ): void {
     this.io.to(`user:${userId}`).emit(event, ...payload);
   }
 
-  toCommunity<E extends keyof ServerToClientEvents>(communityId: string, event: E, ...payload: Parameters<ServerToClientEvents[E]>): void {
+  toCommunity<E extends keyof ServerToClientEvents>(
+    communityId: string,
+    event: E,
+    ...payload: Parameters<ServerToClientEvents[E]>
+  ): void {
     this.io.to(`community:${communityId}`).emit(event, ...payload);
   }
 

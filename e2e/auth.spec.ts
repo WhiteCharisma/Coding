@@ -32,7 +32,6 @@ test.describe('registration and onboarding', () => {
     await expect(page.getByText('Producer & synth nerd')).toBeVisible();
     await expect(page.getByText('Music production')).toBeVisible();
   });
-
 });
 
 test.describe('registration errors', () => {

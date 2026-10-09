@@ -4,7 +4,15 @@ import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 
 /** Multi-select chip list for creative disciplines (max LIMITS.disciplinesMax). */
-export function DisciplinePicker({ value, onChange, label }: { value: Discipline[]; onChange: (v: Discipline[]) => void; label: string }) {
+export function DisciplinePicker({
+  value,
+  onChange,
+  label,
+}: {
+  value: Discipline[];
+  onChange: (v: Discipline[]) => void;
+  label: string;
+}) {
   const full = value.length >= LIMITS.disciplinesMax;
   return (
     <fieldset>
@@ -21,7 +29,9 @@ export function DisciplinePicker({ value, onChange, label }: { value: Discipline
               onClick={() => onChange(on ? value.filter((x) => x !== d) : [...value, d])}
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition-[background-color,border-color,color] duration-[var(--dur-fast)] disabled:opacity-40',
-                on ? 'border-accent-border bg-accent-soft text-accent-text' : 'border-line text-fg-2 hover:border-line-strong hover:text-fg',
+                on
+                  ? 'border-accent-border bg-accent-soft text-accent-text'
+                  : 'border-line text-fg-2 hover:border-line-strong hover:text-fg',
               )}
             >
               {on && <Check className="size-3.5" />}

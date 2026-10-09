@@ -13,7 +13,9 @@ export function timeFromId(id: string): number {
 export function createNonce(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 22);
+  return Array.from(bytes, (b) => b.toString(36).padStart(2, '0'))
+    .join('')
+    .slice(0, 22);
 }
 
 const dayMs = 24 * 60 * 60 * 1000;
@@ -42,7 +44,10 @@ export function formatDayLabel(t: number, labels: { today: string; yesterday: st
   if (day === today) return labels.today;
   if (day === today - dayMs) return labels.yesterday;
   const sameYear = new Date(t).getFullYear() === new Date().getFullYear();
-  return new Intl.DateTimeFormat(getLocale(), sameYear ? { weekday: 'long', day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' }).format(t);
+  return new Intl.DateTimeFormat(
+    getLocale(),
+    sameYear ? { weekday: 'long', day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' },
+  ).format(t);
 }
 
 export function isSameDay(a: number, b: number): boolean {

@@ -29,7 +29,12 @@ export function onUnauthorized(listener: Listener): () => void {
 
 const CSRF = { 'X-Requested-With': 'CreatorNetwork' };
 
-async function request<T>(method: string, path: string, body?: unknown, init: { signal?: AbortSignal; quiet401?: boolean } = {}): Promise<T> {
+async function request<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  init: { signal?: AbortSignal; quiet401?: boolean } = {},
+): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, {
@@ -65,7 +70,8 @@ async function request<T>(method: string, path: string, body?: unknown, init: { 
 }
 
 export const api = {
-  get: <T>(path: string, init?: { signal?: AbortSignal; quiet401?: boolean }) => request<T>('GET', path, undefined, init),
+  get: <T>(path: string, init?: { signal?: AbortSignal; quiet401?: boolean }) =>
+    request<T>('GET', path, undefined, init),
   post: <T>(path: string, body: unknown = {}, init?: { signal?: AbortSignal }) => request<T>('POST', path, body, init),
   put: <T>(path: string, body: unknown = {}) => request<T>('PUT', path, body),
   patch: <T>(path: string, body: unknown = {}) => request<T>('PATCH', path, body),
@@ -78,7 +84,11 @@ export interface UploadHandle<T> {
 }
 
 /** Multipart upload with progress events (fetch cannot report upload progress). */
-export function uploadWithProgress<T>(path: string, form: FormData, onProgress?: (fraction: number) => void): UploadHandle<T> {
+export function uploadWithProgress<T>(
+  path: string,
+  form: FormData,
+  onProgress?: (fraction: number) => void,
+): UploadHandle<T> {
   const xhr = new XMLHttpRequest();
   const promise = new Promise<T>((resolve, reject) => {
     xhr.open('POST', path);
@@ -101,7 +111,8 @@ export function uploadWithProgress<T>(path: string, form: FormData, onProgress?:
         reject(new ApiError(xhr.status, e?.code ?? 'upload_failed', e?.message ?? fallback));
       }
     };
-    xhr.onerror = () => reject(new ApiError(0, 'network', 'The upload was interrupted. Check your connection and retry.'));
+    xhr.onerror = () =>
+      reject(new ApiError(0, 'network', 'The upload was interrupted. Check your connection and retry.'));
     xhr.onabort = () => reject(new ApiError(0, 'aborted', 'Upload cancelled.'));
     xhr.send(form);
   });

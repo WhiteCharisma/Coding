@@ -14,7 +14,15 @@ export interface ReportTarget {
   label: string;
 }
 
-export function ReportDialog({ open, onOpenChange, target }: { open: boolean; onOpenChange: (o: boolean) => void; target: ReportTarget }) {
+export function ReportDialog({
+  open,
+  onOpenChange,
+  target,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  target: ReportTarget;
+}) {
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState('');
   const [busy, setBusy] = useState(false);
@@ -54,17 +62,45 @@ export function ReportDialog({ open, onOpenChange, target }: { open: boolean; on
             <legend className="mb-2 text-sm font-medium text-fg-2">{t('report.reason')}</legend>
             <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
               {REPORT_REASONS.map((r) => (
-                <label key={r} className={cn('flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-sm transition-colors', reason === r ? 'border-danger/60 bg-danger-soft text-fg' : 'border-line text-fg-2 hover:border-line-strong')}>
-                  <input type="radio" name="reason" value={r} checked={reason === r} onChange={() => setReason(r)} className="accent-[var(--danger)]" />
+                <label
+                  key={r}
+                  className={cn(
+                    'flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-sm transition-colors',
+                    reason === r
+                      ? 'border-danger/60 bg-danger-soft text-fg'
+                      : 'border-line text-fg-2 hover:border-line-strong',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="reason"
+                    value={r}
+                    checked={reason === r}
+                    onChange={() => setReason(r)}
+                    className="accent-[var(--danger)]"
+                  />
                   {t(`report.reasons.${r}`)}
                 </label>
               ))}
             </div>
           </fieldset>
           <Field label={t('report.details')} optional={t('common.labels.optional')}>
-            {(p) => <Textarea {...p} value={details} onChange={(e) => setDetails(e.target.value)} placeholder={t('report.detailsPlaceholder')} maxLength={1000} rows={3} />}
+            {(p) => (
+              <Textarea
+                {...p}
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                placeholder={t('report.detailsPlaceholder')}
+                maxLength={1000}
+                rows={3}
+              />
+            )}
           </Field>
-          {error && <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>}
+          {error && (
+            <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
+              {error}
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

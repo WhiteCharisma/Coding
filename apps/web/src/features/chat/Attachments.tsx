@@ -58,7 +58,9 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
       <button
         type="button"
         onClick={() => togglePlay(a.url, (a.durationMs ?? 0) / 1000)}
-        aria-label={playing ? t('chat.attachments.pause', { name: title }) : t('chat.attachments.play', { name: title })}
+        aria-label={
+          playing ? t('chat.attachments.pause', { name: title }) : t('chat.attachments.play', { name: title })
+        }
         className={cn(
           'grid size-11 shrink-0 place-items-center rounded-full transition-[transform,background-color] duration-[var(--dur-fast)] active:scale-95',
           playing ? 'bg-accent text-accent-fg shadow-glow' : 'bg-accent text-accent-fg hover:bg-accent-hover',
@@ -92,7 +94,10 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
           className="relative mt-1.5 h-9 cursor-pointer rounded"
         >
           <Waveform peaks={peaks} className="text-fg-faint/60" />
-          <div className="absolute inset-y-0 left-0 overflow-hidden transition-[width] duration-300 ease-linear" style={{ width: `${progress * 100}%` }}>
+          <div
+            className="absolute inset-y-0 left-0 overflow-hidden transition-[width] duration-300 ease-linear"
+            style={{ width: `${progress * 100}%` }}
+          >
             <div className="h-full" style={{ width: progress > 0 ? `${100 / progress}%` : '100%' }}>
               <Waveform peaks={peaks} className="text-accent" />
             </div>
@@ -105,7 +110,11 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
           {error && <span className="text-[11px] text-danger">{t('chat.attachments.audioUnsupported')}</span>}
         </div>
       </div>
-      <a href={downloadUrl(a)} aria-label={`${t('chat.attachments.download')} ${a.name}`} className="self-start rounded-md p-1.5 text-fg-muted transition-colors hover:bg-hover hover:text-fg">
+      <a
+        href={downloadUrl(a)}
+        aria-label={`${t('chat.attachments.download')} ${a.name}`}
+        className="self-start rounded-md p-1.5 text-fg-muted transition-colors hover:bg-hover hover:text-fg"
+      >
         <Download className="size-4" />
       </a>
     </div>
@@ -119,18 +128,49 @@ function ImageTile({ a, onOpen, single }: { a: AttachmentDTO; onOpen: () => void
       type="button"
       onClick={onOpen}
       aria-label={t('chat.attachments.open')}
-      className={cn('group/img relative block overflow-hidden rounded-lg border border-line-subtle bg-inset', single ? 'max-w-[min(100%,420px)]' : 'aspect-square')}
-      style={single ? { aspectRatio: String(ratio), maxHeight: 360, width: ratio >= 1 ? 'min(100%, 420px)' : undefined, height: ratio < 1 ? 360 : undefined } : undefined}
+      className={cn(
+        'group/img relative block overflow-hidden rounded-lg border border-line-subtle bg-inset',
+        single ? 'max-w-[min(100%,420px)]' : 'aspect-square',
+      )}
+      style={
+        single
+          ? {
+              aspectRatio: String(ratio),
+              maxHeight: 360,
+              width: ratio >= 1 ? 'min(100%, 420px)' : undefined,
+              height: ratio < 1 ? 360 : undefined,
+            }
+          : undefined
+      }
     >
-      <img src={a.url} alt={t('chat.attachments.imageAlt', { name: a.name })} loading="lazy" decoding="async" width={a.width ?? undefined} height={a.height ?? undefined} className="size-full object-cover transition-transform duration-[var(--dur-slow)] ease-out group-hover/img:scale-[1.02]" draggable={false} />
+      <img
+        src={a.url}
+        alt={t('chat.attachments.imageAlt', { name: a.name })}
+        loading="lazy"
+        decoding="async"
+        width={a.width ?? undefined}
+        height={a.height ?? undefined}
+        className="size-full object-cover transition-transform duration-[var(--dur-slow)] ease-out group-hover/img:scale-[1.02]"
+        draggable={false}
+      />
     </button>
   );
 }
 
 function FileCard({ a }: { a: AttachmentDTO }) {
-  const Icon = a.mime === 'application/zip' ? FileArchive : a.mime === 'application/pdf' || a.mime === 'text/plain' ? FileText : a.kind === 'audio' ? FileAudio : File;
+  const Icon =
+    a.mime === 'application/zip'
+      ? FileArchive
+      : a.mime === 'application/pdf' || a.mime === 'text/plain'
+        ? FileText
+        : a.kind === 'audio'
+          ? FileAudio
+          : File;
   return (
-    <a href={downloadUrl(a)} className="flex w-full max-w-sm items-center gap-3 rounded-xl border border-line bg-elevated/70 p-3 transition-colors hover:border-line-strong">
+    <a
+      href={downloadUrl(a)}
+      className="flex w-full max-w-sm items-center gap-3 rounded-xl border border-line bg-elevated/70 p-3 transition-colors hover:border-line-strong"
+    >
       <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-text">
         <Icon className="size-5" />
       </span>
@@ -162,17 +202,34 @@ export const Attachments = memo(function Attachments({ items }: { items: Attachm
         a.kind === 'audio' ? (
           <AudioCard key={a.id} a={a} />
         ) : a.kind === 'video' ? (
-          <video key={a.id} src={a.url} controls preload="none" className="max-h-80 w-full max-w-md rounded-lg border border-line-subtle bg-black" />
+          <video
+            key={a.id}
+            src={a.url}
+            controls
+            preload="none"
+            className="max-h-80 w-full max-w-md rounded-lg border border-line-subtle bg-black"
+          />
         ) : (
           <FileCard key={a.id} a={a} />
         ),
       )}
       <Dialog open={open !== null} onOpenChange={(o) => !o && setOpen(null)}>
         {open && (
-          <DialogContent title={open.name} size="xl" description={`${open.width ?? '?'}×${open.height ?? '?'} · ${formatBytes(open.size)}`}>
+          <DialogContent
+            title={open.name}
+            size="xl"
+            description={`${open.width ?? '?'}×${open.height ?? '?'} · ${formatBytes(open.size)}`}
+          >
             <div className="flex flex-col items-center gap-3">
-              <img src={open.url} alt={t('chat.attachments.imageAlt', { name: open.name })} className="max-h-[70dvh] w-auto rounded-lg object-contain" />
-              <a href={downloadUrl(open)} className="inline-flex items-center gap-2 text-sm font-medium text-accent-text hover:underline">
+              <img
+                src={open.url}
+                alt={t('chat.attachments.imageAlt', { name: open.name })}
+                className="max-h-[70dvh] w-auto rounded-lg object-contain"
+              />
+              <a
+                href={downloadUrl(open)}
+                className="inline-flex items-center gap-2 text-sm font-medium text-accent-text hover:underline"
+              >
                 <Download className="size-4" /> {t('chat.attachments.download')}
               </a>
             </div>

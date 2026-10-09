@@ -29,33 +29,35 @@ Creator Network is a **single-process monolith** designed for one modest Linux V
 
 ## Stack decisions
 
-| Area | Choice | Why |
-|---|---|---|
-| Runtime | Node.js 24 LTS in Docker (develop on ≥22.12) | LTS until 2028; better-sqlite3 13 requires ≥22 |
-| HTTP | Fastify 5.12 | Fast, schema-friendly, first-party plugins for cookies, rate limits, helmet, multipart, static |
-| Real-time | Socket.IO 4.8 | Rooms, acknowledgements, automatic reconnection, WebSocket with HTTP long-polling fallback |
-| DB | SQLite 3.53 via better-sqlite3 13 (WAL) | Zero-ops, in-process, fast; FTS5 built in; consistent online backup API |
-| ORM | Drizzle 0.45 + drizzle-kit migrations | Type-safe SQL close to the metal; plain SQL migration files committed to Git |
-| Validation | Zod 4 schemas in `packages/shared` | One source of truth for server enforcement and client form feedback |
-| Passwords | Argon2id (`argon2` 0.45, OWASP params 19 MiB/2/1) | Memory-hard; maintained native binding with prebuilt binaries |
-| Frontend | React 19, Vite 8, TypeScript 6, React Router 8 (declarative mode) | Mature, fast builds, code splitting per route |
-| Styling | Tailwind CSS 4 + CSS-variable design tokens; Radix primitives in shadcn/ui style | Accessible primitives, original visual identity |
-| Client state | Zustand (realtime state), TanStack Query (request/response data) | Fine-grained subscriptions; caching/invalidation without boilerplate |
-| Motion | CSS transitions + Motion 12 for enter/exit & layout only | Small cost, respects reduced motion |
-| Proxy/TLS | Caddy 2.11 | Automatic HTTPS with Let's Encrypt, simple config |
-| Tests | Vitest 5, Playwright 1.56 | Unit/integration + real-browser end-to-end |
+| Area         | Choice                                                                           | Why                                                                                            |
+| ------------ | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Runtime      | Node.js 24 LTS in Docker (develop on ≥22.12)                                     | LTS until 2028; better-sqlite3 13 requires ≥22                                                 |
+| HTTP         | Fastify 5.12                                                                     | Fast, schema-friendly, first-party plugins for cookies, rate limits, helmet, multipart, static |
+| Real-time    | Socket.IO 4.8                                                                    | Rooms, acknowledgements, automatic reconnection, WebSocket with HTTP long-polling fallback     |
+| DB           | SQLite 3.53 via better-sqlite3 13 (WAL)                                          | Zero-ops, in-process, fast; FTS5 built in; consistent online backup API                        |
+| ORM          | Drizzle 0.45 + drizzle-kit migrations                                            | Type-safe SQL close to the metal; plain SQL migration files committed to Git                   |
+| Validation   | Zod 4 schemas in `packages/shared`                                               | One source of truth for server enforcement and client form feedback                            |
+| Passwords    | Argon2id (`argon2` 0.45, OWASP params 19 MiB/2/1)                                | Memory-hard; maintained native binding with prebuilt binaries                                  |
+| Frontend     | React 19, Vite 8, TypeScript 6, React Router 8 (declarative mode)                | Mature, fast builds, code splitting per route                                                  |
+| Styling      | Tailwind CSS 4 + CSS-variable design tokens; Radix primitives in shadcn/ui style | Accessible primitives, original visual identity                                                |
+| Client state | Zustand (realtime state), TanStack Query (request/response data)                 | Fine-grained subscriptions; caching/invalidation without boilerplate                           |
+| Motion       | CSS transitions + Motion 12 for enter/exit & layout only                         | Small cost, respects reduced motion                                                            |
+| Proxy/TLS    | Caddy 2.11                                                                       | Automatic HTTPS with Let's Encrypt, simple config                                              |
+| Tests        | Vitest 5, Playwright 1.56                                                        | Unit/integration + real-browser end-to-end                                                     |
 
 TypeScript is pinned to 6.0.x because `typescript-eslint` does not support TypeScript 7 yet.
 
 ## Key design decisions
 
 ### One "channel" model for community channels and direct messages
+
 `channels.kind` is `text` (belongs to a community), `dm` (exactly two participants,
 `dm_key` unique per pair) or `group_dm` (2–10 participants). Messages, reactions, pins,
 read states, typing, search and notifications work identically for all three. Access
 rules differ and are centralised in `communities/permissions.ts` (`getChannelAccess`).
 
 ### Permissions
+
 Discord-style bitfields (`packages/shared/src/permissions.ts`): the owner has everything;
 otherwise `@everyone | member roles`; `ADMINISTRATOR` grants everything; channel overwrites
 apply in order @everyone → roles → member. A private channel is one where @everyone is
@@ -63,6 +65,7 @@ denied `VIEW_CHANNEL`. Role hierarchy: members can only manage roles strictly be
 highest role, and can only grant permissions they hold themselves.
 
 ### Message durability and idempotency
+
 1. The client generates a `nonce` per message and keeps it in a local outbox (localStorage).
 2. `message:send` (Socket.IO with acknowledgement) → server validates, authorises, writes the
    message in one transaction, and only then acknowledges with the stored message.
@@ -76,16 +79,19 @@ IDs are monotonic ULIDs generated in-process; because better-sqlite3 is synchron
 one process, commit order equals ID order, so "after <id>" catch-up queries cannot skip rows.
 
 ### Real-time authorization
+
 Sockets are joined to `channel:<id>` rooms **by the server** after computing permissions; clients
 cannot request arbitrary rooms. Any membership/role/overwrite change triggers `syncUserRooms`
 for affected users so revoked access stops real-time delivery immediately. Every socket event
 that names a channel re-checks permissions.
 
 ### Search
+
 `messages_fts` (FTS5, external content keyed by `messages.seq`, a stable INTEGER PRIMARY KEY).
 Queries always join `messages` and filter by the set of channel IDs the user may read.
 
 ### Files
+
 Uploads are streamed to a temp file with a size cap, the type is detected from the file
 signature (magic bytes) — never the extension — and checked against an allowlist, then moved to
 `uploads/<2 chars>/<2 chars>/<ulid>` with no extension. Downloads go through
@@ -93,6 +99,7 @@ signature (magic bytes) — never the extension — and checked against an allow
 a sandboxing CSP and `Content-Disposition: attachment` for non-media types.
 
 ### Data retention
+
 - Deleting a message blanks its content (tombstone keeps reply chains intact); its files are
   removed by the cleanup job.
 - Deleting an account anonymises the user row ("Deleted user"), removes sessions, memberships,

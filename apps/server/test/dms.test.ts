@@ -1,5 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createTestServer, nextEvent, noEvent, nonce, sendViaSocket, type TestClient, type TestServer } from './helpers';
+import {
+  createTestServer,
+  nextEvent,
+  noEvent,
+  nonce,
+  sendViaSocket,
+  type TestClient,
+  type TestServer,
+} from './helpers';
 
 let srv: TestServer;
 let alice: TestClient;
@@ -51,12 +59,18 @@ describe('direct messages', () => {
   it('aggregates DM notifications per conversation and clears them on read', async () => {
     const dm = (await carol.post('/api/dms', { userIds: [bob.user.id] })).body.dm;
     let last = '';
-    for (let i = 0; i < 3; i++) last = (await carol.post(`/api/channels/${dm.id}/messages`, { content: `ping ${i}`, nonce: nonce() })).body.message.id;
-    const notes = (await bob.get('/api/notifications?unread=1')).body.notifications.filter((n: any) => n.type === 'dm' && n.channelId === dm.id);
+    for (let i = 0; i < 3; i++)
+      last = (await carol.post(`/api/channels/${dm.id}/messages`, { content: `ping ${i}`, nonce: nonce() })).body
+        .message.id;
+    const notes = (await bob.get('/api/notifications?unread=1')).body.notifications.filter(
+      (n: any) => n.type === 'dm' && n.channelId === dm.id,
+    );
     expect(notes).toHaveLength(1);
     expect(notes[0].count).toBe(3);
     await bob.post(`/api/channels/${dm.id}/read`, { messageId: last });
-    const after = (await bob.get('/api/notifications?unread=1')).body.notifications.filter((n: any) => n.channelId === dm.id);
+    const after = (await bob.get('/api/notifications?unread=1')).body.notifications.filter(
+      (n: any) => n.channelId === dm.id,
+    );
     expect(after).toHaveLength(0);
   });
 
@@ -71,7 +85,9 @@ describe('direct messages', () => {
     const blocks = (await carol.get('/api/me/blocks')).body.users.map((u: any) => u.id);
     expect(blocks).toContain(alice.user.id);
     expect((await carol.del(`/api/users/${alice.user.id}/block`)).status).toBe(204);
-    expect((await alice.post(`/api/channels/${dm.id}/messages`, { content: 'hello again', nonce: nonce() })).status).toBe(201);
+    expect(
+      (await alice.post(`/api/channels/${dm.id}/messages`, { content: 'hello again', nonce: nonce() })).status,
+    ).toBe(201);
   });
 
   it('respects the recipient’s DM policy', async () => {

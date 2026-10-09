@@ -6,9 +6,25 @@ interface Option<T extends string> {
 }
 
 /** Accessible single-choice control (radio group semantics). */
-export function Segmented<T extends string>({ value, onChange, options, label, className }: { value: T; onChange: (v: T) => void; options: Option<T>[]; label: string; className?: string }) {
+export function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+  label,
+  className,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: Option<T>[];
+  label: string;
+  className?: string;
+}) {
   return (
-    <div role="radiogroup" aria-label={label} className={cn('inline-flex rounded-lg border border-line bg-inset p-1', className)}>
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className={cn('inline-flex rounded-lg border border-line bg-inset p-1', className)}
+    >
       {options.map((o) => (
         <button
           key={o.value}

@@ -40,7 +40,11 @@ function self(): SelfUser | null {
 
 /** True when the user is looking at the newest messages of this channel. */
 export function isViewing(channelId: string): boolean {
-  return useChat.getState().activeChannelId === channelId && document.visibilityState === 'visible' && useUi.getState().atBottom;
+  return (
+    useChat.getState().activeChannelId === channelId &&
+    document.visibilityState === 'visible' &&
+    useUi.getState().atBottom
+  );
 }
 
 async function checkSession(): Promise<void> {
@@ -101,7 +105,8 @@ function queryDmPresence(): void {
   const me = self();
   if (!socket?.connected || !me) return;
   const ids = new Set<string>();
-  for (const d of Object.values(useChat.getState().dms)) for (const p of d.participants) if (p.id !== me.id) ids.add(p.id);
+  for (const d of Object.values(useChat.getState().dms))
+    for (const p of d.participants) if (p.id !== me.id) ids.add(p.id);
   if (ids.size === 0) return;
   socket.emit('presence:query', { userIds: [...ids].slice(0, 500) }, (res) => useChat.getState().mergePresence(res));
 }
@@ -143,8 +148,15 @@ function notificationToast(n: NotificationDTO): void {
   else if (n.type === 'invite') text = t('notifications.types.invite', { actor, community: n.communityName ?? '' });
   else if (n.type === 'dm' && n.count === 1) text = t('notifications.types.dm', { actor, count: 1 });
   if (!text) return;
-  const target = n.channelId ? (n.communityId ? `/c/${n.communityId}/${n.channelId}` : `/dm/${n.channelId}`) : '/notifications';
-  toast.info(text, { label: t('common.actions.open'), onClick: () => navigate?.(n.messageId && n.communityId ? `${target}?m=${n.messageId}` : target) });
+  const target = n.channelId
+    ? n.communityId
+      ? `/c/${n.communityId}/${n.channelId}`
+      : `/dm/${n.channelId}`
+    : '/notifications';
+  toast.info(text, {
+    label: t('common.actions.open'),
+    onClick: () => navigate?.(n.messageId && n.communityId ? `${target}?m=${n.messageId}` : target),
+  });
 }
 
 function trackActivity(): void {
@@ -165,7 +177,13 @@ function trackActivity(): void {
 
 export function startRealtime(): void {
   if (socket) return;
-  const s: ClientSocket = io({ path: '/socket.io', transports: ['websocket', 'polling'], withCredentials: true, reconnectionDelay: 800, reconnectionDelayMax: 10_000 });
+  const s: ClientSocket = io({
+    path: '/socket.io',
+    transports: ['websocket', 'polling'],
+    withCredentials: true,
+    reconnectionDelay: 800,
+    reconnectionDelayMax: 10_000,
+  });
   socket = s;
   useChat.getState().setConnection('connecting');
   useMessages.getState().setTransport({
@@ -237,10 +255,14 @@ export function startRealtime(): void {
   s.on('user:update', ({ userId }) => {
     const me = self();
     if (me && userId === me.id) {
-      void api.get<{ user: SelfUser }>('/api/auth/session').then((r) => useSession.getState().setUser(r.user)).catch(() => undefined);
+      void api
+        .get<{ user: SelfUser }>('/api/auth/session')
+        .then((r) => useSession.getState().setUser(r.user))
+        .catch(() => undefined);
     } else {
       // Blocks change DM permissions on both sides.
-      for (const d of Object.values(useChat.getState().dms)) if (d.participants.some((p) => p.id === userId)) void refreshDm(d.id);
+      for (const d of Object.values(useChat.getState().dms))
+        if (d.participants.some((p) => p.id === userId)) void refreshDm(d.id);
     }
     void queryClient.invalidateQueries({ queryKey: ['profile'] });
   });

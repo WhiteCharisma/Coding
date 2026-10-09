@@ -1,4 +1,10 @@
-import { LIMITS, type CommunityDTO, type Discipline, type InvitePreviewDTO, type SelfUser } from '@creator-network/shared';
+import {
+  LIMITS,
+  type CommunityDTO,
+  type Discipline,
+  type InvitePreviewDTO,
+  type SelfUser,
+} from '@creator-network/shared';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Check, Hash, MessagesSquare, Plus, UserRound } from 'lucide-react';
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'motion/react';
@@ -38,17 +44,25 @@ function PendingInvite({ code, onJoined }: { code: string; onJoined: (c: Communi
   const [busy, setBusy] = useState(false);
   const preview = useQuery({
     queryKey: ['invite-preview', code],
-    queryFn: () => api.get<{ invite: InvitePreviewDTO }>(`/api/invites/${encodeURIComponent(code)}`).then((r) => r.invite),
+    queryFn: () =>
+      api.get<{ invite: InvitePreviewDTO }>(`/api/invites/${encodeURIComponent(code)}`).then((r) => r.invite),
     retry: false,
   });
-  if (preview.isError) return <p className="rounded-xl border border-line bg-elevated p-4 text-sm text-fg-muted">{t('auth.invite.invalidBody')}</p>;
+  if (preview.isError)
+    return (
+      <p className="rounded-xl border border-line bg-elevated p-4 text-sm text-fg-muted">
+        {t('auth.invite.invalidBody')}
+      </p>
+    );
   if (!preview.data) return <Skeleton className="h-20 rounded-2xl" />;
   const inv = preview.data;
   const isMember = inv.alreadyMember || !!joined[inv.community.id];
   const accept = async () => {
     setBusy(true);
     try {
-      const { community } = await api.post<{ community: CommunityDTO }>(`/api/invites/${encodeURIComponent(code)}/accept`);
+      const { community } = await api.post<{ community: CommunityDTO }>(
+        `/api/invites/${encodeURIComponent(code)}/accept`,
+      );
       useChat.getState().upsertCommunity(community);
       onJoined(community);
     } catch (err) {
@@ -58,12 +72,17 @@ function PendingInvite({ code, onJoined }: { code: string; onJoined: (c: Communi
     }
   };
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-accent-border bg-accent-soft p-4" data-testid="onboarding-invite">
+    <div
+      className="flex items-center gap-4 rounded-2xl border border-accent-border bg-accent-soft p-4"
+      data-testid="onboarding-invite"
+    >
       <CommunityIcon name={inv.community.name} src={inv.community.iconUrl} size="md" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-fg">{inv.community.name}</p>
         <p className="text-sm text-fg-muted">
-          {inv.inviter ? t('auth.invite.by', { name: inv.inviter.displayName }) : t('common.labels.members', { count: inv.community.memberCount })}
+          {inv.inviter
+            ? t('auth.invite.by', { name: inv.inviter.displayName })
+            : t('common.labels.members', { count: inv.community.memberCount })}
         </p>
       </div>
       {isMember ? (
@@ -89,7 +108,9 @@ function CommunityStep({ invite, onJoined }: { invite: string | null; onJoined: 
     <div className="flex flex-col gap-7">
       {invite && (
         <section>
-          <h2 className="mb-2 text-sm font-semibold tracking-wide text-fg-2">{t('onboarding.community.pendingInvite')}</h2>
+          <h2 className="mb-2 text-sm font-semibold tracking-wide text-fg-2">
+            {t('onboarding.community.pendingInvite')}
+          </h2>
           <PendingInvite code={invite} onJoined={onJoined} />
         </section>
       )}
@@ -221,34 +242,74 @@ export default function OnboardingPage() {
       <div className="flex min-h-dvh flex-col bg-app">
         <header className="mx-auto flex w-full max-w-2xl items-center justify-between gap-4 px-5 pt-6 sm:px-8">
           <Logo name={config?.instanceName ?? t('common.appName')} />
-          <span className="font-mono text-xs text-fg-muted">{t('onboarding.progress', { current: stepIndex + 1, total: STEPS.length })}</span>
+          <span className="font-mono text-xs text-fg-muted">
+            {t('onboarding.progress', { current: stepIndex + 1, total: STEPS.length })}
+          </span>
         </header>
         <div className="mx-auto mt-5 flex w-full max-w-2xl gap-1.5 px-5 sm:px-8" aria-hidden>
           {STEPS.map((s, i) => (
-            <span key={s} className={cn('h-1 flex-1 rounded-full transition-colors duration-[var(--dur-slow)]', i <= stepIndex ? 'bg-accent' : 'bg-line')} />
+            <span
+              key={s}
+              className={cn(
+                'h-1 flex-1 rounded-full transition-colors duration-[var(--dur-slow)]',
+                i <= stepIndex ? 'bg-accent' : 'bg-line',
+              )}
+            />
           ))}
         </div>
         <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-5 pt-10 pb-32 sm:px-8">
           <AnimatePresence mode="wait" custom={direction} initial={false}>
-            <m.div key={step} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: reduce ? 0.12 : 0.28, ease: [0.22, 1, 0.36, 1] }}>
+            <m.div
+              key={step}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: reduce ? 0.12 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+            >
               {step === 'profile' && (
                 <>
                   <StepHeading title={t('onboarding.profile.title')} subtitle={t('onboarding.profile.subtitle')} />
                   <div className="flex flex-col gap-6">
                     <AvatarUploader hint={t('onboarding.profile.avatarHint')} />
                     <Field label={t('onboarding.profile.headline')} optional={t('common.labels.optional')}>
-                      {(p) => <Input {...p} value={headline} onChange={(e) => setHeadline(e.target.value)} maxLength={LIMITS.headlineMax} placeholder={t('onboarding.profile.headlinePlaceholder')} />}
+                      {(p) => (
+                        <Input
+                          {...p}
+                          value={headline}
+                          onChange={(e) => setHeadline(e.target.value)}
+                          maxLength={LIMITS.headlineMax}
+                          placeholder={t('onboarding.profile.headlinePlaceholder')}
+                        />
+                      )}
                     </Field>
                     <Field label={t('onboarding.profile.bio')} optional={t('common.labels.optional')}>
-                      {(p) => <Textarea {...p} value={bio} onChange={(e) => setBio(e.target.value)} maxLength={LIMITS.bioMax} rows={4} placeholder={t('onboarding.profile.bioPlaceholder')} />}
+                      {(p) => (
+                        <Textarea
+                          {...p}
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                          maxLength={LIMITS.bioMax}
+                          rows={4}
+                          placeholder={t('onboarding.profile.bioPlaceholder')}
+                        />
+                      )}
                     </Field>
                   </div>
                 </>
               )}
               {step === 'disciplines' && (
                 <>
-                  <StepHeading title={t('onboarding.disciplines.title')} subtitle={t('onboarding.disciplines.subtitle', { max: LIMITS.disciplinesMax })} />
-                  <DisciplinePicker value={disciplines} onChange={setDisciplines} label={t('onboarding.disciplines.title')} />
+                  <StepHeading
+                    title={t('onboarding.disciplines.title')}
+                    subtitle={t('onboarding.disciplines.subtitle', { max: LIMITS.disciplinesMax })}
+                  />
+                  <DisciplinePicker
+                    value={disciplines}
+                    onChange={setDisciplines}
+                    label={t('onboarding.disciplines.title')}
+                  />
                 </>
               )}
               {step === 'community' && (
@@ -268,7 +329,12 @@ export default function OnboardingPage() {
         </main>
         <footer className="fixed inset-x-0 bottom-0 border-t border-line-subtle bg-app/90 backdrop-blur-md">
           <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-5 py-4 sm:px-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <Button variant="ghost" onClick={() => go(-1)} disabled={stepIndex === 0 || busy} className={cn(stepIndex === 0 && 'invisible')}>
+            <Button
+              variant="ghost"
+              onClick={() => go(-1)}
+              disabled={stepIndex === 0 || busy}
+              className={cn(stepIndex === 0 && 'invisible')}
+            >
               <ArrowLeft /> {t('common.actions.back')}
             </Button>
             <div className="flex items-center gap-2">
@@ -277,7 +343,13 @@ export default function OnboardingPage() {
                   {t('common.actions.skip')}
                 </Button>
               )}
-              <Button variant="primary" size="lg" loading={busy} onClick={() => void saveAndNext()} data-testid="onboarding-next">
+              <Button
+                variant="primary"
+                size="lg"
+                loading={busy}
+                onClick={() => void saveAndNext()}
+                data-testid="onboarding-next"
+              >
                 {step === 'tour' ? t('onboarding.tour.finish') : t('common.actions.continue')}
                 {step !== 'tour' && <ArrowRight />}
               </Button>

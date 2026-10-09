@@ -1,4 +1,12 @@
-import { DM_POLICIES, NOTIFICATION_PREF_KEYS, PRESENCE_PREFERENCES, type DmPolicy, type NotificationPrefKey, type SelfUser, type UserSummary } from '@creator-network/shared';
+import {
+  DM_POLICIES,
+  NOTIFICATION_PREF_KEYS,
+  PRESENCE_PREFERENCES,
+  type DmPolicy,
+  type NotificationPrefKey,
+  type SelfUser,
+  type UserSummary,
+} from '@creator-network/shared';
 import { useQuery } from '@tanstack/react-query';
 import { t } from '../../i18n';
 import { api, errorMessage } from '../../lib/api';
@@ -55,7 +63,12 @@ export function NotificationsSection({ user }: { user: SelfUser }) {
               <li key={c.id} className="flex items-center gap-3">
                 <CommunityIcon name={c.name} src={c.iconUrl} size="sm" />
                 <span className="min-w-0 flex-1 truncate text-ui text-fg">{c.name}</span>
-                <Button size="sm" onClick={() => void savePreferences({ mutedCommunityIds: user.mutedCommunityIds.filter((x) => x !== c.id) })}>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    void savePreferences({ mutedCommunityIds: user.mutedCommunityIds.filter((x) => x !== c.id) })
+                  }
+                >
                   {t('settings.notifications.unmute')}
                 </Button>
               </li>
@@ -119,7 +132,10 @@ export function AppearanceSection() {
 }
 
 function BlockedList() {
-  const blocks = useQuery({ queryKey: ['blocks'], queryFn: () => api.get<{ users: UserSummary[] }>('/api/me/blocks').then((r) => r.users) });
+  const blocks = useQuery({
+    queryKey: ['blocks'],
+    queryFn: () => api.get<{ users: UserSummary[] }>('/api/me/blocks').then((r) => r.users),
+  });
   const unblock = async (u: UserSummary) => {
     try {
       await api.del(`/api/users/${u.id}/block`);
@@ -149,15 +165,34 @@ function BlockedList() {
 }
 
 export function PrivacySection({ user }: { user: SelfUser }) {
-  const labels: Record<DmPolicy, string> = { everyone: t('settings.privacy.dmEveryone'), communities: t('settings.privacy.dmCommunities'), nobody: t('settings.privacy.dmNobody') };
+  const labels: Record<DmPolicy, string> = {
+    everyone: t('settings.privacy.dmEveryone'),
+    communities: t('settings.privacy.dmCommunities'),
+    nobody: t('settings.privacy.dmNobody'),
+  };
   return (
     <div className="flex flex-col gap-5">
       <SectionHeader title={t('settings.privacy.title')} />
       <SettingsCard title={t('settings.privacy.dmPolicy')}>
         <div role="radiogroup" aria-label={t('settings.privacy.dmPolicy')} className="flex flex-col gap-2">
           {DM_POLICIES.map((p) => (
-            <label key={p} className={cn('flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-ui transition-colors', user.dmPolicy === p ? 'border-accent-border bg-accent-soft text-fg' : 'border-line text-fg-2 hover:border-line-strong')}>
-              <input type="radio" name="dm-policy" value={p} checked={user.dmPolicy === p} onChange={() => void savePreferences({ dmPolicy: p })} className="size-4 accent-[var(--accent)]" />
+            <label
+              key={p}
+              className={cn(
+                'flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-ui transition-colors',
+                user.dmPolicy === p
+                  ? 'border-accent-border bg-accent-soft text-fg'
+                  : 'border-line text-fg-2 hover:border-line-strong',
+              )}
+            >
+              <input
+                type="radio"
+                name="dm-policy"
+                value={p}
+                checked={user.dmPolicy === p}
+                onChange={() => void savePreferences({ dmPolicy: p })}
+                className="size-4 accent-[var(--accent)]"
+              />
               {labels[p]}
             </label>
           ))}
@@ -166,8 +201,21 @@ export function PrivacySection({ user }: { user: SelfUser }) {
       <SettingsCard title={t('settings.privacy.presence')}>
         <div role="radiogroup" aria-label={t('settings.privacy.presence')} className="grid gap-2 sm:grid-cols-2">
           {PRESENCE_PREFERENCES.map((p) => (
-            <label key={p} className={cn('flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors', user.presence === p ? 'border-accent-border bg-accent-soft' : 'border-line hover:border-line-strong')}>
-              <input type="radio" name="presence" value={p} checked={user.presence === p} onChange={() => void setPresencePreference(p)} className="sr-only" />
+            <label
+              key={p}
+              className={cn(
+                'flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors',
+                user.presence === p ? 'border-accent-border bg-accent-soft' : 'border-line hover:border-line-strong',
+              )}
+            >
+              <input
+                type="radio"
+                name="presence"
+                value={p}
+                checked={user.presence === p}
+                onChange={() => void setPresencePreference(p)}
+                className="sr-only"
+              />
               <PresenceIcon status={p === 'invisible' ? 'offline' : p} className="mt-1 size-3 shrink-0" />
               <span>
                 <span className="block text-ui text-fg">{t(`common.presence.${p}`)}</span>

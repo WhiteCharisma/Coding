@@ -60,7 +60,11 @@ export function synthesize(spec: TrackSpec, peakCount = 96): RenderedTrack {
     const hits = spec.style === 'synthwave' ? 8 : spec.style === 'musicbox' ? 1 : 2;
     for (let k = 0; k < hits; k++) {
       const f = midiToFreq(root);
-      add(start + (k * bar) / hits, (bar / hits) * 0.95, (t) => (Math.sin(2 * Math.PI * f * t) + 0.35 * Math.sin(4 * Math.PI * f * t)) * Math.exp(-t * 3) * 0.32);
+      add(
+        start + (k * bar) / hits,
+        (bar / hits) * 0.95,
+        (t) => (Math.sin(2 * Math.PI * f * t) + 0.35 * Math.sin(4 * Math.PI * f * t)) * Math.exp(-t * 3) * 0.32,
+      );
     }
   });
 
@@ -77,7 +81,13 @@ export function synthesize(spec: TrackSpec, peakCount = 96): RenderedTrack {
         });
       }
       if (k % 2 === 1) {
-        add(t0, 0.25, (t) => ((rnd() * 2 - 1) * Math.exp(-t * 20) * 0.22 + Math.sin(2 * Math.PI * 185 * t) * Math.exp(-t * 28) * 0.12) * (spec.style === 'lofi' ? 0.7 : 1));
+        add(
+          t0,
+          0.25,
+          (t) =>
+            ((rnd() * 2 - 1) * Math.exp(-t * 20) * 0.22 + Math.sin(2 * Math.PI * 185 * t) * Math.exp(-t * 28) * 0.12) *
+            (spec.style === 'lofi' ? 0.7 : 1),
+        );
       }
       let last = 0;
       add(t0 + beat / 2, 0.06, (t) => {
@@ -97,7 +107,9 @@ export function synthesize(spec: TrackSpec, peakCount = 96): RenderedTrack {
       const box = spec.style === 'musicbox';
       add(i * (beat / 2), 1.6, (t) => {
         const env = Math.exp(-t * (box ? 3 : 4.5)) * Math.min(1, t / 0.004);
-        const tone = Math.sin(2 * Math.PI * f * t) + (box ? 0.25 * Math.sin(2 * Math.PI * f * 2.76 * t) : 0.2 * Math.sin(4 * Math.PI * f * t));
+        const tone =
+          Math.sin(2 * Math.PI * f * t) +
+          (box ? 0.25 * Math.sin(2 * Math.PI * f * 2.76 * t) : 0.2 * Math.sin(4 * Math.PI * f * t));
         return tone * env * (box ? 0.2 : 0.12);
       });
     });

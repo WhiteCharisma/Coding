@@ -141,7 +141,15 @@ export function registerAuthRoutes(app: FastifyInstance, ctx: AppContext): void 
   app.post('/api/auth/sessions/revoke-others', async (request) => {
     const { user, session } = requireAuth(request);
     const revoked = revokeUserSessions(ctx, user.id, session.id);
-    audit(ctx.db, { scope: 'platform', actorId: user.id, action: 'user.sessions_revoked', targetType: 'user', targetId: user.id, targetLabel: user.username, metadata: { revoked } });
+    audit(ctx.db, {
+      scope: 'platform',
+      actorId: user.id,
+      action: 'user.sessions_revoked',
+      targetType: 'user',
+      targetId: user.id,
+      targetLabel: user.username,
+      metadata: { revoked },
+    });
     return { revoked };
   });
 

@@ -1,6 +1,16 @@
 import type { MessageDTO } from '@creator-network/shared';
 import { AlertCircle, ArrowDown, Clock, RotateCcw, Trash2 } from 'lucide-react';
-import { Fragment, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { formatDayLabel, isSameDay } from '../../lib/format';
@@ -21,7 +31,11 @@ const EMPTY_PENDING: PendingMessage[] = [];
 
 function DaySeparator({ time }: { time: number }) {
   return (
-    <div role="separator" className="relative my-4 flex items-center px-4" aria-label={formatDayLabel(time, { today: t('common.labels.today'), yesterday: t('common.labels.yesterday') })}>
+    <div
+      role="separator"
+      className="relative my-4 flex items-center px-4"
+      aria-label={formatDayLabel(time, { today: t('common.labels.today'), yesterday: t('common.labels.yesterday') })}
+    >
       <div className="h-px flex-1 bg-line-subtle" />
       <span className="mx-3 font-mono text-[11px] font-medium tracking-wide text-fg-muted uppercase">
         {formatDayLabel(time, { today: t('common.labels.today'), yesterday: t('common.labels.yesterday') })}
@@ -35,34 +49,69 @@ function NewDivider() {
   return (
     <div role="separator" className="relative my-2 flex items-center pr-4 pl-4" aria-label={t('chat.list.newMessages')}>
       <div className="h-px flex-1 bg-danger/60" />
-      <span className="ml-2 rounded-sm bg-danger px-1.5 py-px text-[10px] font-bold tracking-wider text-white uppercase">{t('chat.list.newMessages')}</span>
+      <span className="ml-2 rounded-sm bg-danger px-1.5 py-px text-[10px] font-bold tracking-wider text-white uppercase">
+        {t('chat.list.newMessages')}
+      </span>
     </div>
   );
 }
 
-const PendingRow = memo(function PendingRow({ p, onRetry, onDiscard }: { p: PendingMessage; onRetry: () => void; onDiscard: () => void }) {
+const PendingRow = memo(function PendingRow({
+  p,
+  onRetry,
+  onDiscard,
+}: {
+  p: PendingMessage;
+  onRetry: () => void;
+  onDiscard: () => void;
+}) {
   const user = useSession((s) => s.user);
-  const formatted = useMemo(() => formatMessage(p.content, { mentions: new Set(), selfUsername: user?.username ?? '' }), [p.content, user?.username]);
+  const formatted = useMemo(
+    () => formatMessage(p.content, { mentions: new Set(), selfUsername: user?.username ?? '' }),
+    [p.content, user?.username],
+  );
   if (!user) return null;
   return (
     <div className="px-4 pt-1 pb-0.5" data-pending-nonce={p.nonce}>
       <div className="flex gap-3">
         <div className="w-10 shrink-0">
-          <UserAvatar name={user.displayName} src={user.avatarUrl} size="lg" className={cn(p.status !== 'failed' && 'opacity-70')} />
+          <UserAvatar
+            name={user.displayName}
+            src={user.avatarUrl}
+            size="lg"
+            className={cn(p.status !== 'failed' && 'opacity-70')}
+          />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-fg">{user.displayName}</p>
-          {p.content && <div className={cn('text-base break-words whitespace-pre-wrap [overflow-wrap:anywhere]', p.status === 'failed' ? 'text-fg-2' : 'text-fg-muted')}>{formatted}</div>}
+          {p.content && (
+            <div
+              className={cn(
+                'text-base break-words whitespace-pre-wrap [overflow-wrap:anywhere]',
+                p.status === 'failed' ? 'text-fg-2' : 'text-fg-muted',
+              )}
+            >
+              {formatted}
+            </div>
+          )}
           {p.attachments.length > 0 && <Attachments items={p.attachments} />}
           <div className="mt-1 flex items-center gap-2 text-xs" role="status">
             {p.status === 'failed' ? (
               <>
                 <AlertCircle className="size-3.5 text-danger" />
                 <span className="text-danger">{p.error ?? t('chat.message.failed')}</span>
-                <button type="button" onClick={onRetry} className="inline-flex items-center gap-1 font-semibold text-accent-text hover:underline">
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="inline-flex items-center gap-1 font-semibold text-accent-text hover:underline"
+                >
                   <RotateCcw className="size-3" /> {t('chat.message.retry')}
                 </button>
-                <button type="button" onClick={onDiscard} className="inline-flex items-center gap-1 text-fg-muted hover:text-danger">
+                <button
+                  type="button"
+                  onClick={onDiscard}
+                  className="inline-flex items-center gap-1 text-fg-muted hover:text-danger"
+                >
                   <Trash2 className="size-3" /> {t('chat.message.discard')}
                 </button>
               </>
@@ -177,7 +226,10 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
     if (state.hasMoreAfter) await useMessages.getState().loadLatest(channelId);
     const el = scrollRef.current;
     if (el) {
-      el.scrollTo({ top: el.scrollHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      });
       snapshot.current.atBottom = true;
     }
   };
@@ -197,7 +249,13 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
         dividerPlaced = true;
       }
       const compact =
-        !!prev && !newDay && !showDivider && !m.replyTo && prev.author?.id === m.author?.id && m.createdAt - prev.createdAt < GROUP_WINDOW_MS && prev.kind === m.kind;
+        !!prev &&
+        !newDay &&
+        !showDivider &&
+        !m.replyTo &&
+        prev.author?.id === m.author?.id &&
+        m.createdAt - prev.createdAt < GROUP_WINDOW_MS &&
+        prev.kind === m.kind;
       out.push(<Message key={m.id} message={m} compact={compact} highlighted={state.highlightId === m.id} ctx={ctx} />);
       prev = m;
     }
@@ -206,7 +264,13 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
 
   return (
     <div className="relative min-h-0 flex-1">
-      <div ref={scrollRef} onScroll={onScroll} className="scroll-area h-full [overflow-anchor:none]" data-testid="message-list" aria-busy={state.status === 'loading'}>
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="scroll-area h-full [overflow-anchor:none]"
+        data-testid="message-list"
+        aria-busy={state.status === 'loading'}
+      >
         <div className="flex min-h-full flex-col justify-end pb-3">
           <div ref={topSentinel} aria-hidden className="h-px" />
           {state.status === 'loading' && state.messages.length === 0 && <MessageSkeleton />}
@@ -229,7 +293,11 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
             {!state.hasMoreAfter &&
               pending.map((p) => (
                 <Fragment key={p.nonce}>
-                  <PendingRow p={p} onRetry={() => useMessages.getState().retry(channelId, p.nonce)} onDiscard={() => useMessages.getState().discard(channelId, p.nonce)} />
+                  <PendingRow
+                    p={p}
+                    onRetry={() => useMessages.getState().retry(channelId, p.nonce)}
+                    onDiscard={() => useMessages.getState().discard(channelId, p.nonce)}
+                  />
                 </Fragment>
               ))}
           </div>
@@ -243,7 +311,12 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
       </div>
       {showJump && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
-          <Button variant="secondary" size="sm" className="pointer-events-auto rounded-full shadow-lg animate-rise-in" onClick={() => void jumpToPresent()}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="pointer-events-auto rounded-full shadow-lg animate-rise-in"
+            onClick={() => void jumpToPresent()}
+          >
             <ArrowDown /> {t('chat.list.jumpToPresent')}
           </Button>
         </div>

@@ -22,7 +22,13 @@ function MemberRow({ user, color, isOwner }: { user: UserSummary; color: string 
   return (
     <li>
       <ProfilePopover username={user.username} side="left" disabled={user.deleted}>
-        <button type="button" className={cn('flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-hover', status === 'offline' && 'opacity-55 hover:opacity-100')}>
+        <button
+          type="button"
+          className={cn(
+            'flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-hover',
+            status === 'offline' && 'opacity-55 hover:opacity-100',
+          )}
+        >
           <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" presence={status} />
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
@@ -75,7 +81,8 @@ export function MembersPanel({ community, members }: { community: CommunityDTO; 
   }
   const rest = online.filter((m) => !placed.has(m.user.id));
   if (rest.length) sections.push({ title: t('community.members.online', { count: rest.length }), list: rest });
-  if (offline.length) sections.push({ title: t('community.members.offline', { count: offline.length }), list: offline });
+  if (offline.length)
+    sections.push({ title: t('community.members.offline', { count: offline.length }), list: offline });
 
   return (
     <div className="flex flex-col gap-4 p-3">
@@ -94,8 +101,16 @@ export function MembersPanel({ community, members }: { community: CommunityDTO; 
 }
 
 export function PinsPanel({ channelId }: { channelId: string }) {
-  const pins = useQuery({ queryKey: ['pins', channelId], queryFn: () => api.get<{ messages: MessageDTO[] }>(`/api/channels/${channelId}/pins`).then((r) => r.messages) });
-  if (pins.isLoading) return <div className="p-4"><Skeleton className="h-20 w-full" /></div>;
+  const pins = useQuery({
+    queryKey: ['pins', channelId],
+    queryFn: () => api.get<{ messages: MessageDTO[] }>(`/api/channels/${channelId}/pins`).then((r) => r.messages),
+  });
+  if (pins.isLoading)
+    return (
+      <div className="p-4">
+        <Skeleton className="h-20 w-full" />
+      </div>
+    );
   if (!pins.data?.length) return <p className="p-5 text-sm text-fg-muted">{t('chat.pins.empty')}</p>;
   return (
     <ul className="flex flex-col gap-2 p-3">
@@ -103,8 +118,12 @@ export function PinsPanel({ channelId }: { channelId: string }) {
         <li key={m.id} className="rounded-lg border border-line-subtle bg-elevated/60 p-3">
           <div className="flex items-center gap-2">
             <UserAvatar name={m.author?.displayName ?? '?'} src={m.author?.avatarUrl} size="sm" />
-            <span className="truncate text-sm font-semibold text-fg">{m.author?.displayName ?? t('common.labels.deletedUser')}</span>
-            <span className="ml-auto shrink-0 font-mono text-[10.5px] text-fg-muted">{formatDateTime(m.createdAt)}</span>
+            <span className="truncate text-sm font-semibold text-fg">
+              {m.author?.displayName ?? t('common.labels.deletedUser')}
+            </span>
+            <span className="ml-auto shrink-0 font-mono text-[10.5px] text-fg-muted">
+              {formatDateTime(m.createdAt)}
+            </span>
           </div>
           {m.content && <p className="mt-1.5 line-clamp-4 text-sm text-fg-2">{stripFormatting(m.content)}</p>}
           {m.attachments.length > 0 && (
@@ -112,7 +131,12 @@ export function PinsPanel({ channelId }: { channelId: string }) {
               <Paperclip className="size-3" /> {m.attachments.map((a) => a.name).join(', ')}
             </p>
           )}
-          <Button variant="link" size="sm" className="mt-1 h-auto" onClick={() => void useMessages.getState().jumpTo(channelId, m.id)}>
+          <Button
+            variant="link"
+            size="sm"
+            className="mt-1 h-auto"
+            onClick={() => void useMessages.getState().jumpTo(channelId, m.id)}
+          >
             {t('chat.pins.jump')}
           </Button>
         </li>
@@ -122,12 +146,25 @@ export function PinsPanel({ channelId }: { channelId: string }) {
 }
 
 /** Right-hand panel: inline on wide screens, a drawer elsewhere. */
-export function ContextPanel({ panel, title, onClose, children }: { panel: 'members' | 'pins' | null; title: string; onClose: () => void; children: ReactNode }) {
+export function ContextPanel({
+  panel,
+  title,
+  onClose,
+  children,
+}: {
+  panel: 'members' | 'pins' | null;
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
   const wide = useIsWide();
   if (wide) {
     if (!panel) return null;
     return (
-      <aside aria-label={title} className="flex w-[var(--context-width)] shrink-0 flex-col border-l border-line-subtle bg-sidebar animate-fade-in">
+      <aside
+        aria-label={title}
+        className="flex w-[var(--context-width)] shrink-0 flex-col border-l border-line-subtle bg-sidebar animate-fade-in"
+      >
         <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-line-subtle px-4">
           <h2 className="font-display text-sm font-semibold text-fg">{title}</h2>
           <Button variant="ghost" size="icon-sm" aria-label={t('shell.closePanel')} onClick={onClose}>

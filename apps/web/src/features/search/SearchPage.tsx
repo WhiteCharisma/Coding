@@ -29,13 +29,19 @@ function useDebounced<T>(value: T, ms: number): T {
 }
 
 function ResultRow({ r }: { r: SearchResultDTO }) {
-  const href = r.communityId ? `/c/${r.communityId}/${r.message.channelId}?m=${r.message.id}` : `/dm/${r.message.channelId}`;
+  const href = r.communityId
+    ? `/c/${r.communityId}/${r.message.channelId}?m=${r.message.id}`
+    : `/dm/${r.message.channelId}`;
   const dmName = useChat((s) => {
     const d = s.dms[r.message.channelId];
     return d ? d.name || d.participants.map((p) => p.displayName).join(', ') : null;
   });
   return (
-    <Link to={href} className="block rounded-xl border border-line-subtle bg-sidebar/60 p-3 transition-colors hover:border-line" aria-label={t('search.jump')}>
+    <Link
+      to={href}
+      className="block rounded-xl border border-line-subtle bg-sidebar/60 p-3 transition-colors hover:border-line"
+      aria-label={t('search.jump')}
+    >
       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 text-xs text-fg-muted">
         {r.channelKind === 'text' ? (
           <span className="inline-flex items-center gap-1">
@@ -54,7 +60,8 @@ function ResultRow({ r }: { r: SearchResultDTO }) {
         <UserAvatar name={r.message.author?.displayName ?? '?'} src={r.message.author?.avatarUrl} size="md" />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-sm font-semibold text-fg">
-            {r.message.author?.displayName ?? t('common.labels.deletedUser')} {r.message.author?.isDemo && <DemoBadge />}
+            {r.message.author?.displayName ?? t('common.labels.deletedUser')}{' '}
+            {r.message.author?.isDemo && <DemoBadge />}
           </p>
           <p className="text-sm break-words whitespace-pre-wrap text-fg-2">{renderHighlight(r.highlight)}</p>
           {r.message.attachments.length > 0 && (
@@ -100,14 +107,17 @@ export default function SearchPage() {
     enabled,
     initialPageParam: '',
     queryFn: ({ pageParam }) => {
-      const qs = new URLSearchParams(Object.entries({ ...searchKey, before: pageParam }).filter(([, v]) => v) as [string, string][]);
+      const qs = new URLSearchParams(
+        Object.entries({ ...searchKey, before: pageParam }).filter(([, v]) => v) as [string, string][],
+      );
       return api.get<{ results: SearchResultDTO[]; nextBefore: string | null }>(`/api/search/messages?${qs}`);
     },
     getNextPageParam: (last) => last.nextBefore ?? undefined,
   });
   const people = useQuery({
     queryKey: ['user-search', debounced],
-    queryFn: () => api.get<{ users: UserSummary[] }>(`/api/users/search?q=${encodeURIComponent(debounced)}`).then((r) => r.users),
+    queryFn: () =>
+      api.get<{ users: UserSummary[] }>(`/api/users/search?q=${encodeURIComponent(debounced)}`).then((r) => r.users),
     enabled: tab === 'people' && debounced.length > 0,
   });
   const explore = useExplore(tab === 'communities' ? debounced : '', null);
@@ -122,9 +132,25 @@ export default function SearchPage() {
           <div className="flex gap-2">
             <div className="relative flex-1">
               <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-muted" />
-              <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search.placeholder')} aria-label={t('search.placeholder')} className="h-11 pl-9" type="search" data-testid="search-input" />
+              <Input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={t('search.placeholder')}
+                aria-label={t('search.placeholder')}
+                className="h-11 pl-9"
+                type="search"
+                data-testid="search-input"
+              />
             </div>
-            <Button variant={showFilters ? 'primary' : 'secondary'} size="icon" className="size-11" aria-label={t('search.filters')} aria-pressed={showFilters} onClick={() => setShowFilters((s) => !s)}>
+            <Button
+              variant={showFilters ? 'primary' : 'secondary'}
+              size="icon"
+              className="size-11"
+              aria-label={t('search.filters')}
+              aria-pressed={showFilters}
+              onClick={() => setShowFilters((s) => !s)}
+            >
               <SlidersHorizontal />
             </Button>
           </div>
@@ -144,7 +170,12 @@ export default function SearchPage() {
               </Field>
               <Field label={t('search.channel')}>
                 {(p) => (
-                  <Select {...p} value={channelId} onChange={(e) => setParam('channelId', e.target.value)} disabled={!communityId}>
+                  <Select
+                    {...p}
+                    value={channelId}
+                    onChange={(e) => setParam('channelId', e.target.value)}
+                    disabled={!communityId}
+                  >
                     <option value="">{t('search.anyChannel')}</option>
                     {channelOptions.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -154,7 +185,16 @@ export default function SearchPage() {
                   </Select>
                 )}
               </Field>
-              <Field label={t('search.author')}>{(p) => <Input {...p} value={author} onChange={(e) => setParam('author', e.target.value)} placeholder={t('search.authorPlaceholder')} />}</Field>
+              <Field label={t('search.author')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    value={author}
+                    onChange={(e) => setParam('author', e.target.value)}
+                    placeholder={t('search.authorPlaceholder')}
+                  />
+                )}
+              </Field>
               <Field label={t('search.has')}>
                 {(p) => (
                   <Select {...p} value={has} onChange={(e) => setParam('has', e.target.value)}>
@@ -201,7 +241,11 @@ export default function SearchPage() {
                   </ul>
                   {messages.hasNextPage && (
                     <div className="mt-4 flex justify-center">
-                      <Button size="sm" loading={messages.isFetchingNextPage} onClick={() => void messages.fetchNextPage()}>
+                      <Button
+                        size="sm"
+                        loading={messages.isFetchingNextPage}
+                        onClick={() => void messages.fetchNextPage()}
+                      >
                         {t('common.actions.loadMore')}
                       </Button>
                     </div>

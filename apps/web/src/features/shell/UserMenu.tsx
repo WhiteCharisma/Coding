@@ -6,7 +6,16 @@ import { api, errorMessage } from '../../lib/api';
 import { cn } from '../../lib/cn';
 import { useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from '../../components/ui/menu';
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuTrigger,
+} from '../../components/ui/menu';
 import { PresenceIcon } from '../../components/user/Presence';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { toast } from '../../components/ui/toast';
@@ -32,7 +41,11 @@ export function UserMenu({ side = 'right', className }: { side?: 'right' | 'top'
   return (
     <Menu>
       <MenuTrigger asChild>
-        <button type="button" aria-label={t('shell.userMenu.label')} className={cn('rounded-full transition-transform active:scale-95', className)}>
+        <button
+          type="button"
+          aria-label={t('shell.userMenu.label')}
+          className={cn('rounded-full transition-transform active:scale-95', className)}
+        >
           <UserAvatar name={user.displayName} src={user.avatarUrl} size="lg" presence={shown} />
         </button>
       </MenuTrigger>
@@ -46,7 +59,10 @@ export function UserMenu({ side = 'right', className }: { side?: 'right' | 'top'
         </div>
         <MenuSeparator />
         <MenuLabel>{t('shell.userMenu.setStatus')}</MenuLabel>
-        <MenuRadioGroup value={user.presence} onValueChange={(v) => void setPresencePreference(v as PresencePreference)}>
+        <MenuRadioGroup
+          value={user.presence}
+          onValueChange={(v) => void setPresencePreference(v as PresencePreference)}
+        >
           {PREFS.map((p) => (
             <MenuRadioItem key={p} value={p}>
               <PresenceIcon status={p === 'invisible' ? 'offline' : p} className="size-3" />

@@ -25,7 +25,10 @@ export default function InvitePage() {
   const [error, setError] = useState<string | null>(null);
   const preview = useQuery({
     queryKey: ['invite-preview', code, status],
-    queryFn: () => api.get<{ invite: InvitePreviewDTO }>(`/api/invites/${encodeURIComponent(code)}`, { quiet401: true }).then((r) => r.invite),
+    queryFn: () =>
+      api
+        .get<{ invite: InvitePreviewDTO }>(`/api/invites/${encodeURIComponent(code)}`, { quiet401: true })
+        .then((r) => r.invite),
     enabled: status !== 'loading' && /^[A-Za-z0-9]{6,32}$/.test(code),
     retry: false,
   });
@@ -34,7 +37,9 @@ export default function InvitePage() {
     setBusy(true);
     setError(null);
     try {
-      const { community } = await api.post<{ community: CommunityDTO }>(`/api/invites/${encodeURIComponent(code)}/accept`);
+      const { community } = await api.post<{ community: CommunityDTO }>(
+        `/api/invites/${encodeURIComponent(code)}/accept`,
+      );
       if (useChat.getState().ready) useChat.getState().upsertCommunity(community);
       void navigate(`/c/${community.id}`, { replace: true });
     } catch (err) {
@@ -48,7 +53,18 @@ export default function InvitePage() {
   if (invalid) {
     return (
       <AuthLayout title={t('auth.invite.invalidTitle')}>
-        <EmptyState icon={Link2Off} tone="danger" title={t('auth.invite.invalidTitle')} body={t('auth.invite.invalidBody')} className="px-0" actions={<Button asChild variant="primary"><Link to="/">{t('common.errors.goHome')}</Link></Button>} />
+        <EmptyState
+          icon={Link2Off}
+          tone="danger"
+          title={t('auth.invite.invalidTitle')}
+          body={t('auth.invite.invalidBody')}
+          className="px-0"
+          actions={
+            <Button asChild variant="primary">
+              <Link to="/">{t('common.errors.goHome')}</Link>
+            </Button>
+          }
+        />
       </AuthLayout>
     );
   }
@@ -79,7 +95,8 @@ export default function InvitePage() {
           <div className="flex flex-col gap-1 text-sm text-fg-muted">
             {inv.inviter && (
               <p className="flex items-center gap-2">
-                <UserAvatar name={inv.inviter.displayName} src={inv.inviter.avatarUrl} size="xs" /> {t('auth.invite.by', { name: inv.inviter.displayName })}
+                <UserAvatar name={inv.inviter.displayName} src={inv.inviter.avatarUrl} size="xs" />{' '}
+                {t('auth.invite.by', { name: inv.inviter.displayName })}
               </p>
             )}
             {inv.expiresAt && <p>{t('auth.invite.expires', { date: formatDate(inv.expiresAt) })}</p>}
@@ -95,7 +112,13 @@ export default function InvitePage() {
                 <Link to={`/onboarding?invite=${encodeURIComponent(code)}`}>{t('auth.invite.accept')}</Link>
               </Button>
             ) : (
-              <Button variant="primary" size="lg" loading={busy} onClick={() => void accept()} data-testid="accept-invite">
+              <Button
+                variant="primary"
+                size="lg"
+                loading={busy}
+                onClick={() => void accept()}
+                data-testid="accept-invite"
+              >
                 {t('auth.invite.accept')}
               </Button>
             )

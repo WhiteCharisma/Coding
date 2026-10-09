@@ -34,7 +34,11 @@ const envSchema = z.object({
   ADDITIONAL_ORIGINS: csv,
   DATA_DIR: z.string().default('./data'),
   BACKUP_DIR: z.string().default('./backups'),
-  BACKUP_INTERVAL_HOURS: z.coerce.number().min(0).max(24 * 30).default(24),
+  BACKUP_INTERVAL_HOURS: z.coerce
+    .number()
+    .min(0)
+    .max(24 * 30)
+    .default(24),
   BACKUP_RETENTION: z.coerce.number().int().min(1).max(365).default(14),
   /** "false", "true", or a comma separated list of trusted proxy IPs/CIDRs. */
   TRUST_PROXY: z.string().default('false'),
@@ -106,7 +110,14 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env, overrides: P
   const dataDir = path.resolve(env.DATA_DIR);
 
   let mail: AppConfig['mail'];
-  const transport = env.MAIL_TRANSPORT === 'auto' ? (env.SMTP_HOST ? 'smtp' : isProduction ? 'disabled' : 'outbox') : env.MAIL_TRANSPORT;
+  const transport =
+    env.MAIL_TRANSPORT === 'auto'
+      ? env.SMTP_HOST
+        ? 'smtp'
+        : isProduction
+          ? 'disabled'
+          : 'outbox'
+      : env.MAIL_TRANSPORT;
   const from = env.MAIL_FROM ?? `${env.APP_NAME} <no-reply@${new URL(appOrigin).hostname}>`;
   if (transport === 'smtp') {
     if (!env.SMTP_HOST) throw new Error('MAIL_TRANSPORT=smtp requires SMTP_HOST');

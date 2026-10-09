@@ -49,7 +49,10 @@ const failures = new Map<string, FailureRecord>();
 function checkLock(key: string): void {
   const rec = failures.get(key);
   if (rec && rec.lockedUntil > Date.now()) {
-    throw tooMany('Too many failed sign-in attempts. Try again in a few minutes or reset your password.', 'login_locked');
+    throw tooMany(
+      'Too many failed sign-in attempts. Try again in a few minutes or reset your password.',
+      'login_locked',
+    );
   }
 }
 
@@ -75,7 +78,11 @@ export function resetLoginThrottle(): void {
 function assertPasswordAcceptable(password: string, username: string, email: string): void {
   const lower = password.toLowerCase();
   if (isCommonPassword(password) || lower === username || lower === email || lower.includes(username)) {
-    throw badRequest('Choose a less predictable password.', { issues: [{ path: 'password', message: 'Too common or contains your username' }] }, 'weak_password');
+    throw badRequest(
+      'Choose a less predictable password.',
+      { issues: [{ path: 'password', message: 'Too common or contains your username' }] },
+      'weak_password',
+    );
   }
 }
 
@@ -91,7 +98,12 @@ function normaliseInviteCode(code: string | undefined): string | undefined {
 function findUsableInvite(ctx: AppContext, code: string): { kind: 'registration' | 'community'; code: string } | null {
   const now = Date.now();
   const reg = ctx.db.select().from(registrationInvites).where(eq(registrationInvites.code, code)).get();
-  if (reg && !reg.revokedAt && (reg.expiresAt === null || reg.expiresAt > now) && (reg.maxUses === null || reg.uses < reg.maxUses)) {
+  if (
+    reg &&
+    !reg.revokedAt &&
+    (reg.expiresAt === null || reg.expiresAt > now) &&
+    (reg.maxUses === null || reg.uses < reg.maxUses)
+  ) {
     return { kind: 'registration', code };
   }
   const inv = ctx.db.select().from(invites).where(eq(invites.code, code)).get();
@@ -193,7 +205,9 @@ export async function register(ctx: AppContext, input: RegisterInput): Promise<U
   }
 
   if (ctx.mailer.enabled) {
-    sendVerificationEmail(ctx, user).catch((e: unknown) => ctx.log.error({ err: e }, 'failed to send verification email'));
+    sendVerificationEmail(ctx, user).catch((e: unknown) =>
+      ctx.log.error({ err: e }, 'failed to send verification email'),
+    );
   }
   return user;
 }
@@ -239,7 +253,14 @@ export async function login(ctx: AppContext, loginValue: string, password: strin
         .set({ status: 'active', suspendedUntil: null, suspensionReason: null, updatedAt: now })
         .where(eq(users.id, user.id))
         .run();
-      audit(ctx.db, { scope: 'platform', actorId: null, action: 'user.suspension_expired', targetType: 'user', targetId: user.id, targetLabel: user.username });
+      audit(ctx.db, {
+        scope: 'platform',
+        actorId: null,
+        action: 'user.suspension_expired',
+        targetType: 'user',
+        targetId: user.id,
+        targetLabel: user.username,
+      });
       user.status = 'active';
     } else {
       // Only revealed after a correct password, so this does not enable enumeration.
@@ -260,7 +281,13 @@ export async function login(ctx: AppContext, loginValue: string, password: strin
 
 /* ------------------------------------------------------ Email verification */
 
-function issueToken(ctx: AppContext, userId: string, purpose: 'verify_email' | 'reset_password', email: string, ttl: number): string {
+function issueToken(
+  ctx: AppContext,
+  userId: string,
+  purpose: 'verify_email' | 'reset_password',
+  email: string,
+  ttl: number,
+): string {
   const token = randomToken(32);
   const now = Date.now();
   ctx.db.transaction((tx) => {
@@ -270,7 +297,15 @@ function issueToken(ctx: AppContext, userId: string, purpose: 'verify_email' | '
       .where(and(eq(emailTokens.userId, userId), eq(emailTokens.purpose, purpose), isNull(emailTokens.usedAt)))
       .run();
     tx.insert(emailTokens)
-      .values({ id: newId(now), userId, purpose, tokenHash: sha256(token), email, createdAt: now, expiresAt: now + ttl })
+      .values({
+        id: newId(now),
+        userId,
+        purpose,
+        tokenHash: sha256(token),
+        email,
+        createdAt: now,
+        expiresAt: now + ttl,
+      })
       .run();
   });
   return token;
@@ -315,7 +350,10 @@ const resetRequests = new Map<string, number[]>();
 
 export async function requestPasswordReset(ctx: AppContext, email: string): Promise<void> {
   if (!ctx.mailer.enabled) {
-    throw unavailable('Password recovery by email is not available on this server. Contact an administrator.', 'email_unavailable');
+    throw unavailable(
+      'Password recovery by email is not available on this server. Contact an administrator.',
+      'email_unavailable',
+    );
   }
   // Per-address throttle (in addition to the per-IP route limit): 3 per hour.
   const now = Date.now();
@@ -374,7 +412,14 @@ export async function resetPassword(ctx: AppContext, token: string, password: st
   if (user.emailVerifiedAt === null && row.email === user.email) {
     ctx.db.update(users).set({ emailVerifiedAt: now }).where(eq(users.id, user.id)).run();
   }
-  audit(ctx.db, { scope: 'platform', actorId: user.id, action: 'user.password_reset', targetType: 'user', targetId: user.id, targetLabel: user.username });
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: user.id,
+    action: 'user.password_reset',
+    targetType: 'user',
+    targetId: user.id,
+    targetLabel: user.username,
+  });
   failures.delete(user.username);
   failures.delete(user.email);
   return user;
@@ -382,17 +427,32 @@ export async function resetPassword(ctx: AppContext, token: string, password: st
 
 /* -------------------------------------------------------- Account changes */
 
-export async function changePassword(ctx: AppContext, user: UserRow, input: z.infer<typeof changePasswordSchema>): Promise<void> {
+export async function changePassword(
+  ctx: AppContext,
+  user: UserRow,
+  input: z.infer<typeof changePasswordSchema>,
+): Promise<void> {
   if (!(await verifyPassword(user.passwordHash, input.currentPassword))) {
     throw new AppError(400, 'invalid_password', 'Your current password is incorrect.');
   }
   assertPasswordAcceptable(input.newPassword, user.username, user.email);
   const passwordHash = await hashPassword(input.newPassword);
   ctx.db.update(users).set({ passwordHash, updatedAt: Date.now() }).where(eq(users.id, user.id)).run();
-  audit(ctx.db, { scope: 'platform', actorId: user.id, action: 'user.password_changed', targetType: 'user', targetId: user.id, targetLabel: user.username });
+  audit(ctx.db, {
+    scope: 'platform',
+    actorId: user.id,
+    action: 'user.password_changed',
+    targetType: 'user',
+    targetId: user.id,
+    targetLabel: user.username,
+  });
 }
 
-export async function changeEmail(ctx: AppContext, user: UserRow, input: z.infer<typeof changeEmailSchema>): Promise<UserRow> {
+export async function changeEmail(
+  ctx: AppContext,
+  user: UserRow,
+  input: z.infer<typeof changeEmailSchema>,
+): Promise<UserRow> {
   if (!(await verifyPassword(user.passwordHash, input.password))) {
     throw new AppError(400, 'invalid_password', 'Your password is incorrect.');
   }
@@ -400,10 +460,16 @@ export async function changeEmail(ctx: AppContext, user: UserRow, input: z.infer
   const taken = ctx.db.select({ id: users.id }).from(users).where(eq(users.email, input.email)).get();
   if (taken) throw conflict('That email address cannot be used.', 'email_unavailable');
   const now = Date.now();
-  ctx.db.update(users).set({ email: input.email, emailVerifiedAt: null, updatedAt: now }).where(eq(users.id, user.id)).run();
+  ctx.db
+    .update(users)
+    .set({ email: input.email, emailVerifiedAt: null, updatedAt: now })
+    .where(eq(users.id, user.id))
+    .run();
   const updated = { ...user, email: input.email, emailVerifiedAt: null, updatedAt: now };
   if (ctx.mailer.enabled) {
-    sendVerificationEmail(ctx, updated).catch((e: unknown) => ctx.log.error({ err: e }, 'failed to send verification email'));
+    sendVerificationEmail(ctx, updated).catch((e: unknown) =>
+      ctx.log.error({ err: e }, 'failed to send verification email'),
+    );
   }
   return updated;
 }
@@ -420,11 +486,20 @@ export async function deleteAccount(
   if (!(await verifyPassword(user.passwordHash, password))) {
     throw new AppError(400, 'invalid_password', 'Your password is incorrect.');
   }
-  const owned = ctx.db.select({ id: communities.id, name: communities.name }).from(communities).where(eq(communities.ownerId, user.id)).all();
+  const owned = ctx.db
+    .select({ id: communities.id, name: communities.name })
+    .from(communities)
+    .where(eq(communities.ownerId, user.id))
+    .all();
   if (owned.length > 0) {
-    throw new AppError(409, 'owns_communities', 'Transfer or delete the communities you own before deleting your account.', {
-      communities: owned,
-    });
+    throw new AppError(
+      409,
+      'owns_communities',
+      'Transfer or delete the communities you own before deleting your account.',
+      {
+        communities: owned,
+      },
+    );
   }
   await anonymiseUser(ctx, user.id, { deleteMessages, actorId: user.id, action: 'user.self_deleted' });
 }
@@ -483,10 +558,16 @@ export async function anonymiseUser(
       })
       .where(eq(users.id, user.id))
       .run();
-    tx.update(uploads).set({ status: 'deleted' }).where(and(eq(uploads.uploaderId, user.id), inArray(uploads.purpose, ['avatar']))).run();
+    tx.update(uploads)
+      .set({ status: 'deleted' })
+      .where(and(eq(uploads.uploaderId, user.id), inArray(uploads.purpose, ['avatar'])))
+      .run();
     tx.delete(communityMembers).where(eq(communityMembers.userId, user.id)).run();
     for (const communityId of memberships) {
-      tx.update(communities).set({ memberCount: sql`max(${communities.memberCount} - 1, 0)` }).where(eq(communities.id, communityId)).run();
+      tx.update(communities)
+        .set({ memberCount: sql`max(${communities.memberCount} - 1, 0)` })
+        .where(eq(communities.id, communityId))
+        .run();
     }
     if (groupDms.length > 0) {
       tx.delete(channelParticipants)
@@ -495,10 +576,20 @@ export async function anonymiseUser(
     }
     tx.delete(readStates).where(eq(readStates.userId, user.id)).run();
     tx.delete(notifications).where(eq(notifications.userId, user.id)).run();
-    tx.delete(userBlocks).where(or(eq(userBlocks.blockerId, user.id), eq(userBlocks.blockedId, user.id))).run();
+    tx.delete(userBlocks)
+      .where(or(eq(userBlocks.blockerId, user.id), eq(userBlocks.blockedId, user.id)))
+      .run();
     tx.delete(emailTokens).where(eq(emailTokens.userId, user.id)).run();
     tx.delete(invites).where(eq(invites.targetUserId, user.id)).run();
-    audit(tx, { scope: 'platform', actorId: opts.actorId, action: opts.action, targetType: 'user', targetId: user.id, targetLabel: user.username, metadata: { deleteMessages: opts.deleteMessages } });
+    audit(tx, {
+      scope: 'platform',
+      actorId: opts.actorId,
+      action: opts.action,
+      targetType: 'user',
+      targetId: user.id,
+      targetLabel: user.username,
+      metadata: { deleteMessages: opts.deleteMessages },
+    });
   });
 
   // Sessions last: revoking also disconnects sockets.
@@ -516,7 +607,10 @@ export async function anonymiseUser(
         .map((m) => m.id);
       if (batch.length === 0) break;
       ctx.db.transaction((tx) => {
-        tx.update(messages).set({ content: '', deletedAt: now, updatedAt: now, pinnedAt: null, pinnedBy: null }).where(inArray(messages.id, batch)).run();
+        tx.update(messages)
+          .set({ content: '', deletedAt: now, updatedAt: now, pinnedAt: null, pinnedBy: null })
+          .where(inArray(messages.id, batch))
+          .run();
         tx.update(uploads).set({ status: 'deleted' }).where(inArray(uploads.messageId, batch)).run();
       });
       await new Promise((r) => setImmediate(r));

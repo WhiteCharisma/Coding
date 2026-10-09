@@ -19,14 +19,24 @@ export function registerErrorHandler(app: FastifyInstance): void {
     if (error instanceof AppError) {
       if (error.status >= 500) request.log.error({ err: error }, error.message);
       void reply.status(error.status).send({
-        error: { code: error.code, message: error.message, ...(error.details !== undefined ? { details: error.details } : {}) },
+        error: {
+          code: error.code,
+          message: error.message,
+          ...(error.details !== undefined ? { details: error.details } : {}),
+        },
       });
       return;
     }
     const status = typeof error.statusCode === 'number' ? error.statusCode : 500;
     if (status < 500) {
       const code =
-        status === 413 ? 'payload_too_large' : status === 415 ? 'unsupported_media_type' : status === 429 ? 'rate_limited' : 'bad_request';
+        status === 413
+          ? 'payload_too_large'
+          : status === 415
+            ? 'unsupported_media_type'
+            : status === 429
+              ? 'rate_limited'
+              : 'bad_request';
       const message =
         status === 413
           ? 'That request is too large.'
@@ -39,9 +49,10 @@ export function registerErrorHandler(app: FastifyInstance): void {
       return;
     }
     request.log.error({ err: error }, 'unhandled error');
-    void reply.status(500).send({ error: { code: 'internal', message: 'Something went wrong on our side. Please try again.' } });
+    void reply
+      .status(500)
+      .send({ error: { code: 'internal', message: 'Something went wrong on our side. Please try again.' } });
   });
-
 }
 
 /**
@@ -51,10 +62,17 @@ export function registerErrorHandler(app: FastifyInstance): void {
 export function registerNotFoundHandler(app: FastifyInstance, opts: { spaFallback: boolean }): void {
   app.setNotFoundHandler((request, reply) => {
     const accept = String(request.headers.accept ?? '');
-    if (opts.spaFallback && request.method === 'GET' && !request.url.startsWith('/api/') && accept.includes('text/html')) {
+    if (
+      opts.spaFallback &&
+      request.method === 'GET' &&
+      !request.url.startsWith('/api/') &&
+      accept.includes('text/html')
+    ) {
       void reply.header('Cache-Control', 'no-cache').type('text/html').sendFile('index.html');
       return;
     }
-    void reply.status(404).send({ error: { code: 'not_found', message: `No route for ${request.method} ${request.url.split('?')[0]}` } });
+    void reply
+      .status(404)
+      .send({ error: { code: 'not_found', message: `No route for ${request.method} ${request.url.split('?')[0]}` } });
   });
 }

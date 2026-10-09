@@ -6,7 +6,13 @@ async function main(): Promise<void> {
   const server = await startServer(config);
   const { ctx } = server;
   ctx.log.info(
-    { url: server.url, origin: config.appOrigin, dataDir: config.dataDir, mail: ctx.mailer.transport, version: config.version },
+    {
+      url: server.url,
+      origin: config.appOrigin,
+      dataDir: config.dataDir,
+      mail: ctx.mailer.transport,
+      version: config.version,
+    },
     `${config.appName} is running`,
   );
   if (config.isProduction && !config.secureCookies) {

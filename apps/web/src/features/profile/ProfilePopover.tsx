@@ -15,7 +15,17 @@ import { UserAvatar } from '../../components/user/UserAvatar';
 import { openDmWith } from '../dm/NewDmDialog';
 import { bannerStyle, useProfile } from './useProfile';
 
-export function ProfilePopover({ username, children, side = 'right', disabled }: { username: string; children: ReactNode; side?: 'right' | 'left' | 'top' | 'bottom'; disabled?: boolean }) {
+export function ProfilePopover({
+  username,
+  children,
+  side = 'right',
+  disabled,
+}: {
+  username: string;
+  children: ReactNode;
+  side?: 'right' | 'left' | 'top' | 'bottom';
+  disabled?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const profile = useProfile(username, open);
   const me = useSession((s) => s.user);
@@ -39,7 +49,13 @@ export function ProfilePopover({ username, children, side = 'right', disabled }:
             <div className="h-20" style={bannerStyle(p.bannerHue)} />
             <div className="px-4 pb-4">
               <div className="-mt-9 mb-2">
-                <UserAvatar name={p.displayName} src={p.avatarUrl} size="xl" presence={presence} className="rounded-full ring-4 ring-overlay" />
+                <UserAvatar
+                  name={p.displayName}
+                  src={p.avatarUrl}
+                  size="xl"
+                  presence={presence}
+                  className="rounded-full ring-4 ring-overlay"
+                />
               </div>
               <div className="flex items-center gap-2">
                 <h3 className="truncate font-display text-lg font-semibold tracking-tight text-fg">{p.displayName}</h3>
@@ -56,7 +72,9 @@ export function ProfilePopover({ username, children, side = 'right', disabled }:
                   ))}
                 </ul>
               )}
-              {local && <p className="mt-2.5 font-mono text-[11px] text-fg-muted">{t('profile.localTime', { time: local })}</p>}
+              {local && (
+                <p className="mt-2.5 font-mono text-[11px] text-fg-muted">{t('profile.localTime', { time: local })}</p>
+              )}
               <div className="mt-4 flex gap-2">
                 {p.id !== me?.id && p.canMessage && (
                   <Button
@@ -75,7 +93,11 @@ export function ProfilePopover({ username, children, side = 'right', disabled }:
                     <MessageCircle /> {t('profile.sendMessage')}
                   </Button>
                 )}
-                <Link to={`/u/${p.username}`} onClick={() => setOpen(false)} className={buttonVariants({ size: 'sm', className: 'flex-1' })}>
+                <Link
+                  to={`/u/${p.username}`}
+                  onClick={() => setOpen(false)}
+                  className={buttonVariants({ size: 'sm', className: 'flex-1' })}
+                >
                   {t('common.actions.viewProfile')}
                 </Link>
               </div>

@@ -33,8 +33,10 @@ const useToasts = create<ToastState>((set, get) => ({
 }));
 
 export const toast = {
-  success: (message: string, action?: ToastItem['action']) => useToasts.getState().push({ tone: 'success', message, action }),
-  error: (message: string, action?: ToastItem['action']) => useToasts.getState().push({ tone: 'error', message, action }, 6500),
+  success: (message: string, action?: ToastItem['action']) =>
+    useToasts.getState().push({ tone: 'success', message, action }),
+  error: (message: string, action?: ToastItem['action']) =>
+    useToasts.getState().push({ tone: 'error', message, action }, 6500),
   info: (message: string, action?: ToastItem['action']) => useToasts.getState().push({ tone: 'info', message, action }),
 };
 
@@ -44,7 +46,11 @@ export function Toaster() {
   const items = useToasts((s) => s.items);
   const dismiss = useToasts((s) => s.dismiss);
   return (
-    <div aria-live="polite" aria-relevant="additions" className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--mobile-nav-height)+12px)] z-[var(--z-toast)] flex flex-col items-center gap-2 px-4 md:right-4 md:bottom-4 md:left-auto md:items-end">
+    <div
+      aria-live="polite"
+      aria-relevant="additions"
+      className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--mobile-nav-height)+12px)] z-[var(--z-toast)] flex flex-col items-center gap-2 px-4 md:right-4 md:bottom-4 md:left-auto md:items-end"
+    >
       {items.map((item) => {
         const Icon = icons[item.tone];
         return (
@@ -56,7 +62,12 @@ export function Toaster() {
               item.leaving ? 'animate-pop-out' : 'animate-rise-in',
             )}
           >
-            <Icon className={cn('mt-0.5 size-4', item.tone === 'success' ? 'text-success' : item.tone === 'error' ? 'text-danger' : 'text-info')} />
+            <Icon
+              className={cn(
+                'mt-0.5 size-4',
+                item.tone === 'success' ? 'text-success' : item.tone === 'error' ? 'text-danger' : 'text-info',
+              )}
+            />
             <p className="min-w-0 flex-1 leading-snug">{item.message}</p>
             {item.action && (
               <button
@@ -70,7 +81,12 @@ export function Toaster() {
                 {item.action.label}
               </button>
             )}
-            <button type="button" aria-label={t('common.actions.close')} className="-mr-1 rounded p-0.5 text-fg-muted hover:text-fg" onClick={() => dismiss(item.id)}>
+            <button
+              type="button"
+              aria-label={t('common.actions.close')}
+              className="-mr-1 rounded p-0.5 text-fg-muted hover:text-fg"
+              onClick={() => dismiss(item.id)}
+            >
               <X className="size-4" />
             </button>
           </div>

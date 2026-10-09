@@ -72,12 +72,22 @@ export default function WelcomePage() {
             {t('auth.welcome.ctaSecondary')}
           </Link>
         </header>
-        <main id="main" className="mx-auto grid max-w-6xl items-center gap-14 px-5 pt-8 pb-20 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:pt-16">
-          <m.div initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.08 } } }}>
+        <main
+          id="main"
+          className="mx-auto grid max-w-6xl items-center gap-14 px-5 pt-8 pb-20 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:pt-16"
+        >
+          <m.div
+            initial="hidden"
+            animate="show"
+            variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.08 } } }}
+          >
             <m.p variants={item} className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">
               {t('auth.welcome.eyebrow')}
             </m.p>
-            <m.h1 variants={item} className="mt-4 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-fg text-balance sm:text-5xl lg:text-[3.5rem]">
+            <m.h1
+              variants={item}
+              className="mt-4 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-fg text-balance sm:text-5xl lg:text-[3.5rem]"
+            >
               {t('auth.welcome.title')}
             </m.h1>
             <m.p variants={item} className="mt-5 max-w-xl text-lg text-fg-2">
@@ -85,7 +95,11 @@ export default function WelcomePage() {
             </m.p>
             <m.div variants={item} className="mt-8 flex flex-wrap gap-3">
               {!closed && (
-                <Link to="/register" className={buttonVariants({ variant: 'primary', size: 'lg' })} data-testid="cta-register">
+                <Link
+                  to="/register"
+                  className={buttonVariants({ variant: 'primary', size: 'lg' })}
+                  data-testid="cta-register"
+                >
                   {t('auth.welcome.ctaPrimary')}
                 </Link>
               )}
@@ -107,7 +121,12 @@ export default function WelcomePage() {
               ))}
             </m.ul>
           </m.div>
-          <m.div initial={{ opacity: 0, scale: reduce ? 1 : 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="hidden lg:block">
+          <m.div
+            initial={{ opacity: 0, scale: reduce ? 1 : 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="hidden lg:block"
+          >
             <PreviewArt />
           </m.div>
         </main>

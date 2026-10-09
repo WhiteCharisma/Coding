@@ -1,4 +1,15 @@
-import { Bell, ChevronLeft, ChevronRight, LogOut, MonitorSmartphone, Palette, ShieldCheck, ShieldHalf, UserRound, UserRoundCog } from 'lucide-react';
+import {
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  MonitorSmartphone,
+  Palette,
+  ShieldCheck,
+  ShieldHalf,
+  UserRound,
+  UserRoundCog,
+} from 'lucide-react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
@@ -57,7 +68,10 @@ export default function SettingsPage() {
           })}
           {user.platformRole !== 'member' && (
             <li className="mt-2 border-t border-line-subtle pt-2">
-              <Link to="/admin" className="flex h-10 items-center gap-3 rounded-md px-3 text-ui text-fg-2 transition-colors hover:bg-hover hover:text-fg md:h-9">
+              <Link
+                to="/admin"
+                className="flex h-10 items-center gap-3 rounded-md px-3 text-ui text-fg-2 transition-colors hover:bg-hover hover:text-fg md:h-9"
+              >
                 <ShieldCheck className="size-4 text-accent-text" />
                 <span className="flex-1">{t('admin.title')}</span>
               </Link>
@@ -68,7 +82,12 @@ export default function SettingsPage() {
       <div className="border-t border-line-subtle p-2">
         <button
           type="button"
-          onClick={() => void useSession.getState().logout().then(() => navigate('/welcome', { replace: true }))}
+          onClick={() =>
+            void useSession
+              .getState()
+              .logout()
+              .then(() => navigate('/welcome', { replace: true }))
+          }
           className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-ui text-danger transition-colors hover:bg-danger-soft md:h-9"
         >
           <LogOut className="size-4" /> {t('shell.userMenu.signOut')}
@@ -78,10 +97,17 @@ export default function SettingsPage() {
   );
 
   return (
-    <SidebarLayout sidebar={sidebar} mobileView={section ? 'content' : 'sidebar'} contentLabel={t(`settings.sections.${active}`)}>
+    <SidebarLayout
+      sidebar={sidebar}
+      mobileView={section ? 'content' : 'sidebar'}
+      contentLabel={t(`settings.sections.${active}`)}
+    >
       <div className="scroll-area flex-1">
         <div className="mx-auto max-w-2xl px-4 pt-4 pb-16 md:px-8 md:pt-10">
-          <Link to="/settings" className="mb-4 inline-flex items-center gap-1 text-sm text-fg-muted hover:text-fg md:hidden">
+          <Link
+            to="/settings"
+            className="mb-4 inline-flex items-center gap-1 text-sm text-fg-muted hover:text-fg md:hidden"
+          >
             <ChevronLeft className="size-4" /> {t('settings.title')}
           </Link>
           <div key={active} className="animate-rise-in">
