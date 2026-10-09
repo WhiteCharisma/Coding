@@ -144,7 +144,8 @@ cd /opt/creator-network && ./deploy/update.sh          # or: ./deploy/update.sh 
 Takes a backup, pulls the new code (fast-forward only), rebuilds, restarts and waits for the
 health check. Expect a few seconds of downtime while the container restarts; open browsers
 reconnect automatically and queued messages are sent when the connection returns. If the new
-version is unhealthy, the script prints the exact rollback commands.
+version is unhealthy, the script prints the exact rollback commands. Each release has a runbook
+with what changes and how to go back: [RELEASE_0.2.md](RELEASE_0.2.md).
 
 ## 9. Pre-launch checklist (before inviting real users)
 

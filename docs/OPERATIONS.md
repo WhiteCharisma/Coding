@@ -95,8 +95,13 @@ then run `./deploy/restore.sh`.
    `git checkout <previous> && docker compose build app && docker compose up -d`, plus
    `./deploy/restore.sh <backup>` if the new version already migrated the database.
 
+Faster rollback: before updating, keep the running image under a second name
+(`docker tag creator-network:latest creator-network:pre-update`). Rolling back is then
+`git checkout <previous> && docker tag creator-network:pre-update creator-network:latest &&
+docker compose up -d --no-build` — no rebuild, about a minute.
+
 Database migrations only move forward. Read the release notes before updating across several
-versions.
+versions: [RELEASE_0.2.md](RELEASE_0.2.md) (no migration; step-by-step runbook).
 
 ## Moderation and accounts
 
