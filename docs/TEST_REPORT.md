@@ -32,6 +32,11 @@ and animation merging in `lib/cn.test.ts`. Changed tests, with the reason:
 - `apps/server/test/realtime.test.ts` queries the presence of a user who never connected: a user
   whose connection just closed now stays online for the reconnect grace period, on purpose.
 
+Deployment: the rehearsal copy was updated from the earlier 0.2 build to the Vista commit with
+the real `deploy/update.sh` (Docker + Caddy): backup first, healthy after 17 s, data, files and
+the old session intact, the new interface served without browser errors
+([RELEASE_0.2.md](RELEASE_0.2.md#rehearsal-done-on-a-copy-not-on-production)).
+
 ## Summary
 
 | Check                               | Result                                                                  | Time             |

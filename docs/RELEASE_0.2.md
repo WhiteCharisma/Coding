@@ -65,6 +65,12 @@ real `deploy/update.sh`:
   data to `data/pre-restore-<time>/` (nothing deleted);
 - rolling forward again with `update.sh` worked the same way. Every step of the runbook below was
   run as written, in this order, on the copy.
+- **after the Vista redesign**, the same copy (then on the earlier 0.2 build `8802d02`) was updated
+  with `./deploy/update.sh 86ed846`: backup first (0.58 MB), image rebuilt, healthy after 17 s.
+  Messages, the photo (identical SHA-256), its preview, the old session (REST and WebSocket), the
+  voice configuration and the `Permissions-Policy` were all unchanged; files still answer 401
+  without a session; the Vista desktop loaded through Caddy with that session and no browser
+  error. Later commits change documentation only.
 
 Speed compared with 0.1 on the same machine: [PERFORMANCE.md](PERFORMANCE.md#interface-release-02)
 (smaller first download, faster scrolling through history; opening a long channel ≈0.25 s
