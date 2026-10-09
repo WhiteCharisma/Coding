@@ -116,7 +116,16 @@ Update this file in the same commit as the work it describes.
   - unlock after the first gesture; per-sound de-duplication; silent in Do not disturb
   - tests: engine unit tests (fake AudioContext) + e2e (no sound before interaction, one send
     sound despite the server confirmation, receive chime, switching sounds off)
-- [ ] WebRTC voice with verified audio quality
+- [x] WebRTC voice with verified audio quality (docs/VOICE.md)
+  - voice rooms on every channel/DM (no schema change); server authorises (same rule as writing),
+    relays signals only within a room, one session per account, ends sessions on lost access,
+    20 s resume grace; STUN/TURN optional (short-lived HMAC credentials; opt-in coturn in deploy/turn)
+  - client: mesh + perfect negotiation, Opus tuned in SDP per mode (Voice 64k mono / Studio 320k
+    stereo CBR), sender caps, ICE restart, mute/deafen, PTT, sensitivity gate, devices + output
+    selection, mic test, speaking rings, measured connection details, mic released on leave
+  - measured in e2e (Chromium): 319.9 kbit/s Opus stereo, L/R separation ≥ 96 dB, voice 64.7k,
+    mute = silence, resume without interrupting audio; via coturn 4.6.1: relayed at 319.9 kbit/s
+  - not done: Firefox/Safari testing, SFU for large rooms, relay-only privacy mode
 - [ ] Responsive/a11y polish, docs, deployment and rollback notes
 
 ## Next steps (not done — require the owner's infrastructure or decisions)

@@ -1,0 +1,34 @@
+# OPTIONAL TURN/STUN relay for voice rooms (coturn). Not started by install.sh or update.sh.
+#
+# Read docs/VOICE.md → "STUN and TURN" first. Running it needs, on the VPS:
+#   - firewall: allow 3478/udp, 3478/tcp and the relay range 49160-49200/udp
+#     (5349/tcp only if you add TLS certificates for turns: URLs)
+#   - a DNS name (TURN_REALM) pointing at the VPS, and TURN_EXTERNAL_IP = its public IPv4
+#   - in .env: VOICE_TURN_SECRET (same value here and in the app), VOICE_STUN_URLS, VOICE_TURN_URLS
+#
+# Start:  docker compose -f deploy/turn/docker-compose.turn.yml --env-file .env up -d
+# Stop:   docker compose -f deploy/turn/docker-compose.turn.yml --env-file .env down
+#         (stateless: stopping or removing it never touches data/ or backups/)
+services:
+  coturn:
+    image: coturn/coturn:4.18.0
+    restart: unless-stopped
+    # Host networking: TURN needs many UDP ports and the real client addresses.
+    network_mode: host
+    read_only: true
+    tmpfs:
+      - /var/lib/coturn
+      - /tmp
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+    command:
+      - -c
+      - /etc/coturn/turnserver.conf
+      - --static-auth-secret=${VOICE_TURN_SECRET:?set VOICE_TURN_SECRET in .env}
+      - --realm=${TURN_REALM:?set TURN_REALM in .env, e.g. turn.example.com}
+      - --external-ip=${TURN_EXTERNAL_IP:?set TURN_EXTERNAL_IP in .env (public IPv4 of the VPS)}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

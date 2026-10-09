@@ -262,6 +262,8 @@ describe('CSRF and origin protection', () => {
     expect(res.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
     expect(res.headers.get('x-content-type-options')).toBe('nosniff');
     expect(res.headers.get('permissions-policy')).toContain('camera=()');
+    // Voice rooms need the microphone, for this origin only (never for embedded frames).
+    expect(res.headers.get('permissions-policy')).toContain('microphone=(self)');
   });
 });
 

@@ -36,6 +36,11 @@ export function publicConfig(ctx: AppContext): PublicConfig {
     communityCreation: s.communityCreation,
     appealContact: s.appealContact,
     version: ctx.config.version,
+    voice: {
+      enabled: ctx.config.voice.enabled,
+      maxParticipants: ctx.config.voice.maxParticipants,
+      maxBitrate: ctx.config.voice.maxBitrate,
+    },
   };
 }
 

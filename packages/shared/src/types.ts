@@ -77,6 +77,8 @@ export interface PublicConfig {
   communityCreation: 'everyone' | 'admins';
   appealContact: string;
   version: string;
+  /** Voice rooms: whether they are on, how many people fit, the highest bitrate allowed. */
+  voice: { enabled: boolean; maxParticipants: number; maxBitrate: number };
 }
 
 export interface SessionInfo {
@@ -348,6 +350,57 @@ export interface ReadStateEvent {
 export type SendAck =
   { ok: true; message: MessageDTO } | { ok: false; error: { code: string; message: string; retryable: boolean } };
 
+/* ------------------------------------------------------------------ Voice */
+
+/** One person in a channel's voice room (a voice session; one per account at a time). */
+export interface VoicePeerDTO {
+  /** Random id of this voice session, used to address WebRTC signals. */
+  peerId: string;
+  user: UserSummary;
+  muted: boolean;
+  deafened: boolean;
+  /** False while their connection to the server is being restored (media may continue). */
+  connected: boolean;
+  joinedAt: number;
+}
+
+export interface VoiceRoomDTO {
+  channelId: string;
+  peers: VoicePeerDTO[];
+}
+
+/** ICE server for RTCPeerConnection (STUN, or TURN with short-lived credentials). */
+export interface IceServerDTO {
+  urls: string[];
+  username?: string;
+  credential?: string;
+}
+
+export type VoiceJoinAck =
+  | {
+      ok: true;
+      peerId: string;
+      room: VoiceRoomDTO;
+      iceServers: IceServerDTO[];
+      /** Highest audio bitrate the server allows clients to request (bits per second). */
+      maxBitrate: number;
+      /** True when an earlier session of this device was resumed (connections kept). */
+      resumed: boolean;
+    }
+  | { ok: false; error: { code: string; message: string } };
+
+/** A WebRTC signalling message relayed between two peers of the same room. */
+export type VoiceSignal =
+  | { description: { type: 'offer' | 'answer'; sdp: string } }
+  | {
+      candidate: {
+        candidate: string;
+        sdpMid?: string | null;
+        sdpMLineIndex?: number | null;
+        usernameFragment?: string | null;
+      } | null;
+    };
+
 export interface ServerToClientEvents {
   'message:new': (message: MessageDTO) => void;
   'message:update': (message: MessageDTO) => void;
@@ -365,6 +418,11 @@ export interface ServerToClientEvents {
   'dm:update': (payload: { channelId: string }) => void;
   'user:update': (payload: { userId: string }) => void;
   'session:revoked': () => void;
+  /** Who is in a channel's voice room (sent to everyone who can see the channel). */
+  'voice:room': (room: VoiceRoomDTO) => void;
+  'voice:signal': (payload: { channelId: string; from: string; signal: VoiceSignal }) => void;
+  /** Your voice session ended without you leaving: joined on another device, or access lost. */
+  'voice:ended': (payload: { channelId: string; reason: 'elsewhere' | 'removed' | 'disabled' }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -377,4 +435,10 @@ export interface ClientToServerEvents {
   'channel:read': (payload: { channelId: string; messageId: string }) => void;
   'presence:set': (payload: { status: 'online' | 'idle' }) => void;
   'presence:query': (payload: { userIds: string[] }, ack: (res: Record<string, PresenceStatus>) => void) => void;
+  'voice:join': (payload: { channelId: string; resumePeerId?: string }, ack: (res: VoiceJoinAck) => void) => void;
+  'voice:leave': (payload: { channelId: string }) => void;
+  'voice:signal': (payload: { channelId: string; to: string; signal: VoiceSignal }) => void;
+  'voice:state': (payload: { channelId: string; muted: boolean; deafened: boolean }) => void;
+  /** Active voice rooms in the channels you can see. */
+  'voice:rooms': (payload: Record<string, never>, ack: (rooms: VoiceRoomDTO[]) => void) => void;
 }

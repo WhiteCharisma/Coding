@@ -23,6 +23,11 @@ const csv = z
       .filter(Boolean),
   );
 
+/** Comma separated STUN/TURN URLs (stun:, stuns:, turn:, turns:). */
+const iceUrls = csv.pipe(
+  z.array(z.string().regex(/^(stuns?|turns?):[^\s,]+$/, { error: 'Use stun:, stuns:, turn: or turns: URLs' })),
+);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   HOST: z.string().default('127.0.0.1'),
@@ -59,6 +64,22 @@ const envSchema = z.object({
   WEB_DIST_DIR: z.string().optional(),
   ARGON2_MEMORY_KIB: z.coerce.number().int().min(8192).max(262144).default(19456),
   ARGON2_ITERATIONS: z.coerce.number().int().min(1).max(10).default(2),
+  /** Voice rooms (WebRTC, peer to peer). See docs/VOICE.md. */
+  VOICE_ENABLED: bool(true),
+  VOICE_MAX_PARTICIPANTS: z.coerce.number().int().min(2).max(16).default(8),
+  /** Highest Opus bitrate clients may use (bits/s); 320000 allows the "Studio" stereo mode. */
+  VOICE_MAX_BITRATE: z.coerce.number().int().min(16000).max(510000).default(320000),
+  /** STUN servers (comma separated, e.g. stun:turn.example.com:3478). Empty: none. */
+  VOICE_STUN_URLS: iceUrls,
+  /** TURN servers (comma separated, e.g. turn:turn.example.com:3478?transport=udp). */
+  VOICE_TURN_URLS: iceUrls,
+  /** Shared secret of the TURN server's REST API (coturn: use-auth-secret / static-auth-secret). */
+  VOICE_TURN_SECRET: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined) // an empty line in .env means "not set"
+    .pipe(z.string().min(16, { error: 'Use at least 16 characters (e.g. openssl rand -hex 32)' }).optional()),
+  VOICE_TURN_TTL_HOURS: z.coerce.number().min(1).max(48).default(12),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -93,6 +114,15 @@ export interface AppConfig {
   webDistDir: string;
   argon2: { memoryCost: number; timeCost: number };
   version: string;
+  voice: {
+    enabled: boolean;
+    maxParticipants: number;
+    maxBitrate: number;
+    stunUrls: string[];
+    turnUrls: string[];
+    turnSecret: string | null;
+    turnTtlSeconds: number;
+  };
 }
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env, overrides: Partial<AppConfig> = {}): AppConfig {
@@ -102,6 +132,11 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env, overrides: P
     throw new Error(`Invalid configuration:\n${problems}`);
   }
   const env = parsed.data;
+  if (env.VOICE_TURN_URLS.length > 0 && !env.VOICE_TURN_SECRET) {
+    throw new Error(
+      'Invalid configuration:\n  - VOICE_TURN_URLS needs VOICE_TURN_SECRET (the TURN server shared secret)',
+    );
+  }
   const isProduction = env.NODE_ENV === 'production';
   const appOrigin = new URL(env.APP_ORIGIN).origin;
   const secureCookies =
@@ -173,6 +208,15 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env, overrides: P
     webDistDir,
     argon2: { memoryCost: env.ARGON2_MEMORY_KIB, timeCost: env.ARGON2_ITERATIONS },
     version: typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.1.0-dev',
+    voice: {
+      enabled: env.VOICE_ENABLED,
+      maxParticipants: env.VOICE_MAX_PARTICIPANTS,
+      maxBitrate: env.VOICE_MAX_BITRATE,
+      stunUrls: env.VOICE_STUN_URLS,
+      turnUrls: env.VOICE_TURN_URLS,
+      turnSecret: env.VOICE_TURN_SECRET ?? null,
+      turnTtlSeconds: Math.round(env.VOICE_TURN_TTL_HOURS * 3600),
+    },
     ...overrides,
   };
   return config;

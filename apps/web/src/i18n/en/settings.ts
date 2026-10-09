@@ -5,6 +5,7 @@ export const settings = {
     account: 'Account',
     sessions: 'Devices & sessions',
     notifications: 'Notifications',
+    voice: 'Voice & audio',
     appearance: 'Appearance',
     privacy: 'Privacy & safety',
   },

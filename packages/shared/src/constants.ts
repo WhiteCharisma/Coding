@@ -29,6 +29,9 @@ export const LIMITS = {
   reasonMax: 500,
   searchQueryMax: 200,
   waveformPeaks: 96,
+  /** Longest SDP accepted in voice signalling (audio-only SDPs are a few kB). */
+  voiceSdpMax: 32_000,
+  voiceCandidateMax: 2_000,
 } as const;
 
 export const USERNAME_PATTERN = /^[a-z0-9](?:[a-z0-9_.-]*[a-z0-9])?$/;

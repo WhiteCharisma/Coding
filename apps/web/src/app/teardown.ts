@@ -3,6 +3,7 @@ import { stopRealtime } from '../lib/realtime';
 import { useChat } from '../stores/chat';
 import { useMessages } from '../stores/messages';
 import { useUploads } from '../stores/uploads';
+import { useVoice } from '../stores/voice';
 
 /**
  * Clears everything a signed-in session loaded (loaded on demand after sign-out).
@@ -10,6 +11,7 @@ import { useUploads } from '../stores/uploads';
  * elsewhere), so they can be sent after signing in again; an explicit sign-out deletes them.
  */
 export function teardownSession({ discardUnsent }: { discardUnsent: boolean }): void {
+  useVoice.getState().reset(); // hangs up and releases the microphone
   stopRealtime();
   useChat.getState().reset();
   if (discardUnsent) useMessages.getState().discardOutbox();

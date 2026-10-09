@@ -19,6 +19,7 @@ import { parseCookieHeader, TokenBucket } from '../lib/rate';
 import { markRead, sendMessage } from '../messages/service';
 import type { UserRow } from '../users/dto';
 import { PresenceTracker } from './presence';
+import { VoiceRooms } from './voice';
 import type { Realtime } from './types';
 
 interface SocketData {
@@ -26,7 +27,14 @@ interface SocketData {
   sessionId: string;
   sessionExpiresAt: number;
   displayName: string;
-  buckets: { send: TokenBucket; typing: TokenBucket; read: TokenBucket; misc: TokenBucket };
+  buckets: {
+    send: TokenBucket;
+    typing: TokenBucket;
+    read: TokenBucket;
+    misc: TokenBucket;
+    voice: TokenBucket;
+    voiceJoin: TokenBucket;
+  };
   lastTyping: Map<string, number>;
 }
 
@@ -54,6 +62,7 @@ export class SocketGateway implements Realtime {
   private readonly presence: PresenceTracker;
   private readonly socketsByUser = new Map<string, Set<ClientSocket>>();
   private readonly sweeper: NodeJS.Timeout;
+  readonly voice: VoiceRooms;
 
   constructor(
     private readonly ctx: AppContext,
@@ -78,6 +87,11 @@ export class SocketGateway implements Realtime {
       },
     });
     this.presence = new PresenceTracker((userId, status) => this.publishPresence(userId, status));
+    this.voice = new VoiceRooms(ctx, {
+      toChannel: (channelId, room) => this.io.to(`channel:${channelId}`).emit('voice:room', room),
+      toSocket: (socketId, event, payload) =>
+        (this.io.to(socketId).emit as (e: string, p: unknown) => boolean)(event, payload),
+    });
 
     this.io.use((socket, next) => {
       const cookies = parseCookieHeader(socket.request.headers.cookie);
@@ -100,6 +114,9 @@ export class SocketGateway implements Realtime {
           typing: new TokenBucket(5, 0.5),
           read: new TokenBucket(20, 5),
           misc: new TokenBucket(20, 2),
+          // Joining a room with N people exchanges a few dozen ICE candidates per person.
+          voice: new TokenBucket(400, 80),
+          voiceJoin: new TokenBucket(6, 0.5),
         },
         lastTyping: new Map(),
       };
@@ -149,7 +166,41 @@ export class SocketGateway implements Realtime {
       ack(result);
     });
 
+    socket.on('voice:join', (payload, ack) => {
+      if (typeof ack !== 'function') return;
+      if (!socket.data.buckets.voiceJoin.take()) {
+        ack({ ok: false, error: { code: 'rate_limited', message: 'Please wait a moment before joining again.' } });
+        return;
+      }
+      if (!this.ensureSession(socket)) {
+        ack({ ok: false, error: { code: 'unauthorized', message: 'Your session has ended. Please sign in again.' } });
+        return;
+      }
+      try {
+        ack(this.voice.join(socket, payload));
+      } catch (err) {
+        this.ctx.log.error({ err }, 'voice:join failed');
+        ack({ ok: false, error: { code: 'internal', message: 'Voice is unavailable right now. Please try again.' } });
+      }
+    });
+    socket.on('voice:leave', (payload) => this.voice.leave(socket, payload));
+    socket.on('voice:signal', (payload) => {
+      if (socket.data.buckets.voice.take()) this.voice.signal(socket, payload);
+    });
+    socket.on('voice:state', (payload) => {
+      if (socket.data.buckets.voice.take()) this.voice.setState(socket, payload);
+    });
+    socket.on('voice:rooms', (_payload, ack) => {
+      if (typeof ack !== 'function') return;
+      if (!socket.data.buckets.misc.take()) {
+        ack([]);
+        return;
+      }
+      ack(this.voice.roomsVisibleTo((channelId) => socket.rooms.has(`channel:${channelId}`)));
+    });
+
     socket.on('disconnect', () => {
+      this.voice.disconnected(socket.id);
       const sockets = this.socketsByUser.get(userId);
       sockets?.delete(socket);
       if (sockets && sockets.size === 0) this.socketsByUser.delete(userId);
@@ -268,6 +319,8 @@ export class SocketGateway implements Realtime {
       const missing = [...wanted].filter((r) => !socket.rooms.has(r));
       if (missing.length) void socket.join(missing);
     }
+    // Permissions or memberships changed: a voice session may have lost its right to speak.
+    this.voice.revalidate(userId);
   }
 
   syncUserRooms(userId: string): void {
@@ -314,6 +367,7 @@ export class SocketGateway implements Realtime {
   }
 
   disconnectUser(userId: string): void {
+    this.voice.endUser(userId, 'removed');
     this.io.to(`user:${userId}`).emit('session:revoked');
     this.io.in(`user:${userId}`).disconnectSockets(true);
   }
@@ -372,6 +426,7 @@ export class SocketGateway implements Realtime {
    */
   async close(): Promise<void> {
     clearInterval(this.sweeper);
+    this.voice.close();
     this.presence.clear();
     this.io.disconnectSockets(true);
     this.io.engine.close();

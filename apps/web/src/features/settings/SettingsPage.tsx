@@ -1,4 +1,5 @@
 import {
+  AudioLines,
   Bell,
   ChevronLeft,
   ChevronRight,
@@ -20,12 +21,14 @@ import { useSignOut } from '../shell/useSignOut';
 import { AccountSection, SessionsSection } from './AccountSection';
 import { AppearanceSection, NotificationsSection, PrivacySection } from './PreferenceSections';
 import { ProfileSection } from './ProfileSection';
+import { VoiceSection } from '../voice/VoiceSettings';
 
 const SECTIONS = [
   { key: 'profile', icon: UserRound },
   { key: 'account', icon: UserRoundCog },
   { key: 'sessions', icon: MonitorSmartphone },
   { key: 'notifications', icon: Bell },
+  { key: 'voice', icon: AudioLines },
   { key: 'appearance', icon: Palette },
   { key: 'privacy', icon: ShieldHalf },
 ] as const;
@@ -114,6 +117,7 @@ export default function SettingsPage() {
             {active === 'account' && <AccountSection user={user} />}
             {active === 'sessions' && <SessionsSection />}
             {active === 'notifications' && <NotificationsSection user={user} />}
+            {active === 'voice' && <VoiceSection />}
             {active === 'appearance' && <AppearanceSection />}
             {active === 'privacy' && <PrivacySection user={user} />}
           </div>

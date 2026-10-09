@@ -6,6 +6,7 @@ import { onboarding } from './en/onboarding';
 import { dm, explore, home, notifications, profile, report, search } from './en/pages';
 import { admin, settings } from './en/settings';
 import { shell } from './en/shell';
+import { voice } from './en/voice';
 
 export const en = {
   common,
@@ -23,4 +24,5 @@ export const en = {
   report,
   settings,
   admin,
+  voice,
 };

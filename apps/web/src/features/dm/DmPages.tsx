@@ -7,6 +7,7 @@ import { useSession } from '../../stores/session';
 import { Button } from '../../components/ui/button';
 import { EmptyState } from '../../components/ui/empty-state';
 import { Orb } from '../../components/ui/orb';
+import { VoiceJoinButton } from '../voice/VoiceRoom';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { ChannelView } from '../chat/ChannelView';
 import { ChannelHeader } from '../community/ChannelHeader';
@@ -58,6 +59,7 @@ export function DmPage() {
           )
         }
         backTo="/dm"
+        extra={blocked ? undefined : <VoiceJoinButton channelId={dm.id} name={name} />}
         panelButtons={['pins']}
         activePanel={panel}
         onTogglePanel={() => setPanel(panel ? null : 'pins')}

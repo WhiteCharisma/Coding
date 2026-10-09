@@ -89,7 +89,8 @@ export async function buildApp(config: AppConfig): Promise<BuiltApp> {
     strictTransportSecurity: config.secureCookies ? { maxAge: 15552000, includeSubDomains: false } : false,
   });
   app.addHook('onSend', async (_request, reply) => {
-    reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+    // The microphone is allowed for this origin only (voice rooms); embedded frames get nothing.
+    reply.header('Permissions-Policy', 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()');
   });
 
   registerAuthHooks(app, ctx);

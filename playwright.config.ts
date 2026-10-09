@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { stereoToneFile } from './e2e/env.mjs';
 
 const port = Number(process.env.E2E_PORT ?? 4173);
 const baseURL = `http://127.0.0.1:${port}`;
@@ -22,7 +23,25 @@ export default defineConfig({
     {
       name: 'desktop',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
-      testIgnore: /mobile\.spec\.ts/,
+      testIgnore: /(mobile|voice)\.spec\.ts/,
+    },
+    {
+      // Real WebRTC between two browser contexts; the fake microphone plays a stereo test tone.
+      name: 'voice',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+        permissions: ['microphone'],
+        launchOptions: {
+          args: [
+            '--use-fake-ui-for-media-stream',
+            '--use-fake-device-for-media-stream',
+            `--use-file-for-fake-audio-capture=${stereoToneFile()}`,
+            '--autoplay-policy=no-user-gesture-required',
+          ],
+        },
+      },
+      testMatch: /voice\.spec\.ts/,
     },
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: /mobile\.spec\.ts/ },
   ],

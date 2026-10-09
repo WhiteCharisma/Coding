@@ -31,6 +31,7 @@ import { ChannelEditorDialog } from './ChannelEditorDialog';
 import { CommunitySettingsDialog } from './CommunitySettingsDialog';
 import { hasCommunityPerm } from './hooks';
 import { InviteDialog } from './InviteDialog';
+import { VoiceSidebarPeers } from '../voice/VoiceRoom';
 import { CategoryDialog } from './CategoryDialog';
 
 function readOnly(ch: ChannelDTO): boolean {
@@ -220,6 +221,7 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
             {uncategorized.map((ch) => (
               <li key={ch.id}>
                 <ChannelLink community={community} channel={ch} active={ch.id === channelId} muted={muted} />
+                <VoiceSidebarPeers channelId={ch.id} />
               </li>
             ))}
           </ul>
@@ -259,6 +261,7 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
                   {channels.map((ch) => (
                     <li key={ch.id}>
                       <ChannelLink community={community} channel={ch} active={ch.id === channelId} muted={muted} />
+                      <VoiceSidebarPeers channelId={ch.id} />
                     </li>
                   ))}
                 </ul>

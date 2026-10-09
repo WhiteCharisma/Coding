@@ -6,6 +6,7 @@ import { MessageSkeleton } from '../../components/ui/skeleton';
 import { MobileNav } from './MobileNav';
 import { NavRail } from './NavRail';
 import { VerifyBanner } from './VerifyBanner';
+import { VoiceDock, VoiceErrors } from '../voice/VoiceDock';
 
 /** Conversations use the whole screen on mobile; everything else shows the bottom tab bar. */
 function isConversation(path: string): boolean {
@@ -32,6 +33,8 @@ export function AppShell() {
         )}
       >
         <VerifyBanner />
+        <VoiceDock />
+        <VoiceErrors />
         <div className="flex min-h-0 flex-1 md:gap-[var(--pane-gap)]">
           <Suspense
             fallback={

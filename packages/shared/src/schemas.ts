@@ -418,3 +418,30 @@ export const platformInviteSchema = z.object({
     .default(24 * 7),
   note: singleLine(120).default(''),
 });
+
+/* ------------------------------------------------------------------ Voice */
+
+export const voiceJoinSchema = z.object({ channelId: idSchema, resumePeerId: idSchema.optional() });
+export const voiceLeaveSchema = z.object({ channelId: idSchema });
+export const voiceStateSchema = z.object({ channelId: idSchema, muted: z.boolean(), deafened: z.boolean() });
+
+const sdpDescription = z.object({
+  type: z.enum(['offer', 'answer']),
+  sdp: z.string().min(1).max(LIMITS.voiceSdpMax),
+});
+const iceCandidate = z.object({
+  candidate: z.string().max(LIMITS.voiceCandidateMax),
+  sdpMid: z.string().max(64).nullable().optional(),
+  sdpMLineIndex: z.number().int().min(0).max(64).nullable().optional(),
+  usernameFragment: z.string().max(256).nullable().optional(),
+});
+
+/** A WebRTC signal: exactly one SDP description or one ICE candidate (null = end of candidates). */
+export const voiceSignalSchema = z.object({
+  channelId: idSchema,
+  to: idSchema,
+  signal: z.union([
+    z.strictObject({ description: sdpDescription }),
+    z.strictObject({ candidate: iceCandidate.nullable() }),
+  ]),
+});

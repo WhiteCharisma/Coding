@@ -29,8 +29,18 @@ an automated test · 🔜 not implemented (residual risk, see [Before production
 
 Other HTTP hardening (set by `@fastify/helmet` in `apps/server/src/app.ts`): HSTS (180 days) and
 `upgrade-insecure-requests` when served over HTTPS, `Referrer-Policy: same-origin`,
-`Cross-Origin-Resource-Policy: same-origin`, `Permissions-Policy` disabling camera, microphone,
-geolocation, payment and USB, and CSP `frame-ancestors 'none'` against framing (clickjacking).
+`Cross-Origin-Resource-Policy: same-origin`, `Permissions-Policy` disabling camera, geolocation,
+payment and USB and allowing the microphone for this origin only (`microphone=(self)`, for voice
+rooms; never for embedded frames), and CSP `frame-ancestors 'none'` against framing (clickjacking).
+
+**Voice rooms** ([VOICE.md](VOICE.md)): joining requires the right to write in the conversation
+(checked on the server for every join and resume; 404 when the channel is invisible); a WebRTC
+signal is relayed only between members of the same room, validated (Zod, size limits) and
+rate-limited; one session per account; sessions end as soon as access is lost (kick, ban,
+permission change, suspension). Audio never passes through the server (DTLS-SRTP peer to peer;
+a TURN relay only forwards encrypted packets). TURN credentials are short-lived HMACs of
+`<expiry>:<userId>`; the shared secret stays in `.env`. Tested in `apps/server/test/voice.test.ts`
+and `e2e/voice.spec.ts`.
 
 ## Logging and privacy
 
@@ -75,6 +85,9 @@ responsibility.
 - No CAPTCHA, IP bans or automatic spam detection (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
 - Uploaded files are not virus-scanned; ZIP archives are allowed.
 - Waveform data is supplied by the uploader's browser (display-only, validated in shape).
+- **Voice is peer to peer:** people in the same voice room can learn each other's IP addresses
+  (WebRTC candidates). Forcing every call through TURN would hide them, at the cost of relaying
+  all audio through the VPS; not done in this release.
 - Community owners can name and colour roles freely (for example a role called "Staff"). Platform
   administrators and moderators are marked only on their profile page, not next to their
   messages, so members cannot always tell instance staff from community roles.

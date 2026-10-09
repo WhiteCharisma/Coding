@@ -57,6 +57,14 @@ read states, typing, search and notifications work identically for all three. Ac
 rules differ and are centralised in `apps/server/src/communities/access.ts` (`getChannelAccess`,
 `requireChannelPermission`, `computeUserChannelPermissions`).
 
+### Voice rooms (WebRTC, peer to peer)
+
+Every conversation has a voice room; the server only authorises and relays signalling over the
+existing Socket.IO connection (rooms live in memory) and never carries audio. Browsers connect in
+a mesh (one `RTCPeerConnection` per person, ≤ 8 per room by default), negotiate Opus per quality
+mode in the SDP and verify what they achieve with `getStats()`. STUN/TURN are optional and
+configured by the operator (an opt-in coturn is in `deploy/turn/`). Details: [VOICE.md](VOICE.md).
+
 ### Permissions
 
 Discord-style bitfields (`packages/shared/src/permissions.ts`): the owner has everything;

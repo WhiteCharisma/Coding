@@ -17,6 +17,7 @@ import { useChat } from '../stores/chat';
 import { useMessages } from '../stores/messages';
 import { useSession } from '../stores/session';
 import { useUi } from '../stores/ui';
+import { useVoice } from '../stores/voice';
 import { toast } from '../components/ui/toast';
 import { api, ApiError } from './api';
 import { playSound } from './sounds';
@@ -36,6 +37,11 @@ function self(): SelfUser | null {
 }
 
 /** True when the user is looking at the newest messages of this channel. */
+/** The live connection (voice signalling uses it). */
+export function getSocket(): ClientSocket | null {
+  return socket;
+}
+
 export function isViewing(channelId: string): boolean {
   return (
     useChat.getState().activeChannelId === channelId &&
@@ -198,9 +204,12 @@ export function startRealtime(): void {
     }
     connectedBefore = true;
     useMessages.getState().flush();
+    // Voice: list the rooms in use and resume a call that was interrupted.
+    useVoice.getState().onReconnect();
   });
   s.on('disconnect', (reason) => {
     useChat.getState().setConnection(navigator.onLine ? 'reconnecting' : 'offline');
+    useVoice.getState().onDisconnect();
     if (reason === 'io server disconnect') void checkSession().then(() => s.connect());
   });
   s.on('connect_error', (err) => {
@@ -267,6 +276,9 @@ export function startRealtime(): void {
     void queryClient.invalidateQueries({ queryKey: ['profile'] });
   });
   s.on('session:revoked', () => useSession.getState().signedOut('expired'));
+  s.on('voice:room', (room) => useVoice.getState().onRoom(room));
+  s.on('voice:signal', (payload) => useVoice.getState().onSignal(payload));
+  s.on('voice:ended', (payload) => useVoice.getState().onEnded(payload));
 
   window.addEventListener('online', () => {
     if (!s.connected) s.connect();

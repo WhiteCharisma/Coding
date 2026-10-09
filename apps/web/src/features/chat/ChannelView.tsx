@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { useNavigate, useSearchParams } from 'react-router';
 import { api } from '../../lib/api';
 import { playSound } from '../../lib/sounds';
+import { VoiceRoomStrip } from '../voice/VoiceRoom';
 import { markRead } from '../../lib/realtime';
 import { stripFormatting } from '../../lib/markdown';
 import { useChat } from '../../stores/chat';
@@ -161,6 +162,7 @@ export function ChannelView({
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <VoiceRoomStrip channelId={channelId} />
       <MessageList channelId={channelId} ctx={ctx} beginning={beginning} />
       <TypingIndicator channelId={channelId} />
       <Composer

@@ -34,6 +34,12 @@ risks are in [SECURITY.md](SECURITY.md#before-production).
 - **Files live on the server's disk** (`data/uploads`), not in object storage. Disk size is the
   practical limit; the admin can lower the per-file limit (default 25 MB, hard limit 100 MB).
 - **Up to 20 simultaneous connections per account** (tabs and devices); a 21st is refused.
+- **Voice rooms are a mesh** (each person sends to each other person): 8 people per room by
+  default; Studio quality needs ≈ 0.3 Mbit/s upload per other person. Bigger rooms would need an
+  SFU (media server), which is not part of this release. Voice state is in memory: a server
+  restart ends calls (browsers can rejoin). Without STUN/TURN configured, calls connect only
+  between directly reachable browsers ([VOICE.md](VOICE.md#stun-and-turn)). Verified in Chromium
+  only (Firefox and Safari not tested yet).
 
 ## Features not in this release
 

@@ -55,6 +55,10 @@ Ports **80** and **443** (TCP, plus 443/UDP for HTTP/3) must be reachable; SSH (
   ```
   Note: Docker publishes ports through its own iptables rules, which bypass ufw. The stack
   only publishes 80 and 443; the application port (3000) is never published.
+- **Voice rooms** work without extra ports (audio goes directly between browsers). To make calls
+  connect across strict NATs you may run the optional TURN relay in `deploy/turn/`; it needs
+  3478/udp, 3478/tcp and 49160–49200/udp opened — see [VOICE.md](VOICE.md#stun-and-turn). Do not
+  open these ports unless you deploy it.
 
 ## 5. Install
 

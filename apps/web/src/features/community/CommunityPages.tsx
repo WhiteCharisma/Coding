@@ -9,6 +9,7 @@ import { buttonVariants } from '../../components/ui/button';
 import { EmptyState } from '../../components/ui/empty-state';
 import { Orb } from '../../components/ui/orb';
 import { ChannelView } from '../chat/ChannelView';
+import { VoiceJoinButton } from '../voice/VoiceRoom';
 import { SidebarLayout } from '../shell/SidebarLayout';
 import { useIsDesktop, useIsWide } from '../shell/hooks';
 import { ChannelHeader } from './ChannelHeader';
@@ -112,6 +113,7 @@ export function ChannelPage() {
         activePanel={panel}
         onTogglePanel={toggle}
         searchTo={`/search?communityId=${communityId}`}
+        extra={canSend ? <VoiceJoinButton channelId={channel.id} name={`#${channel.name}`} /> : undefined}
       />
       <div className="flex min-h-0 flex-1">
         <ChannelView
