@@ -13,7 +13,7 @@ import { randomBytes } from 'node:crypto';
 const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 let lastTime = -1;
-let lastRandom = new Uint8Array(10);
+let lastRandom: Uint8Array = new Uint8Array(10);
 
 function encodeTime(time: number): string {
   let out = '';
@@ -76,4 +76,13 @@ export function timeFromId(id: string): number {
   let t = 0;
   for (const ch of id.slice(0, 10)) t = t * 32 + ALPHABET.indexOf(ch);
   return t;
+}
+
+/**
+ * Non-monotonic ULID for an explicit (past) timestamp. Only for seeding/backfills,
+ * where rows must be created in increasing time order by the caller.
+ */
+export function newIdAt(time: number): string {
+  const random = new Uint8Array(randomBytes(10));
+  return encodeTime(time) + encodeRandom(random);
 }

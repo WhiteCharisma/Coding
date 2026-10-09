@@ -1,6 +1,6 @@
 import type { NotificationPrefs, SelfUser, UserSummary } from '@creator-network/shared';
 import { NOTIFICATION_PREF_KEYS } from '@creator-network/shared';
-import type { users } from '../db/schema';
+import { users } from '../db/schema';
 
 export type UserRow = typeof users.$inferSelect;
 
@@ -54,11 +54,11 @@ export function toSelfUser(u: UserRow): SelfUser {
 
 /** Columns needed for UserSummary — select only these when listing many users. */
 export const summaryColumns = {
-  id: true,
-  username: true,
-  displayName: true,
-  avatarId: true,
-  headline: true,
-  isDemo: true,
-  status: true,
-} as const;
+  id: users.id,
+  username: users.username,
+  displayName: users.displayName,
+  avatarId: users.avatarId,
+  headline: users.headline,
+  isDemo: users.isDemo,
+  status: users.status,
+};

@@ -19,6 +19,8 @@ export interface Realtime {
   disconnectUser(userId: string, reason?: string): void;
   disconnectSession(sessionId: string): void;
   presenceOf(userId: string): PresenceStatus;
+  /** Re-read a user's presence preference (e.g. switched to invisible) and broadcast changes. */
+  refreshPresence(userId: string): void;
   connectedSocketCount(): number;
 }
 
@@ -33,6 +35,7 @@ export class NoopRealtime implements Realtime {
   presenceOf(): PresenceStatus {
     return 'offline';
   }
+  refreshPresence(): void {}
   connectedSocketCount(): number {
     return 0;
   }

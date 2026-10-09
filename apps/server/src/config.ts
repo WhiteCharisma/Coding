@@ -26,7 +26,7 @@ const csv = z
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   HOST: z.string().default('127.0.0.1'),
-  PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+  PORT: z.coerce.number().int().min(0).max(65535).default(3000),
   APP_NAME: z.string().min(1).max(40).default('Creator Network'),
   /** Public URL users open in their browser, e.g. https://community.example.com */
   APP_ORIGIN: z.url().default('http://localhost:5173'),
