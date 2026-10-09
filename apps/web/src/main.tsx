@@ -5,14 +5,16 @@ import './app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
-import { hasSignedInHint, preloadSignedInApp } from './app/preload';
+import { hasSignedInHint, preloadLandingPage, preloadSignedInApp } from './app/preload';
 import { installAudioUnlock } from './lib/sounds';
 
 // Interface sounds may only start after the person interacts with the page.
 installAudioUnlock();
 
 // Returning users: start fetching the signed-in app while the session is being checked.
+// Everyone else: the public page they opened.
 if (hasSignedInHint()) preloadSignedInApp();
+else preloadLandingPage(window.location.pathname);
 
 const root = document.getElementById('root');
 if (root) {

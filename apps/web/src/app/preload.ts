@@ -21,6 +21,21 @@ export function preloadSignedInApp(): void {
   });
 }
 
+/**
+ * Pages a signed-out visitor lands on. Without a sign-in hint their chunk is fetched while the
+ * session is checked, instead of after it (the page's largest text appears sooner on slow links).
+ */
+const landingPages: Record<string, () => Promise<unknown>> = {
+  '/': () => import('../features/auth/WelcomePage'),
+  '/welcome': () => import('../features/auth/WelcomePage'),
+  '/login': () => import('../features/auth/LoginPage'),
+  '/register': () => import('../features/auth/RegisterPage'),
+};
+
+export function preloadLandingPage(path: string): void {
+  void landingPages[path]?.().catch(() => undefined); // on failure, the lazy route reports it
+}
+
 export function setSignedInHint(signedIn: boolean): void {
   try {
     if (signedIn) localStorage.setItem(HINT_KEY, '1');
