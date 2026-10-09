@@ -198,13 +198,16 @@ describe('typing and presence', () => {
   });
 
   it('reports presence for connected users', async () => {
+    // Someone who never connected (a user who just left stays online for a short grace period).
+    const stranger = srv.client();
+    await stranger.register('stranger');
     const a = await alice.socket();
     const b = await bob.socket();
     const statuses = await new Promise<any>((resolve) =>
-      b.emit('presence:query', { userIds: [alice.user.id, outsider.user.id] }, resolve),
+      b.emit('presence:query', { userIds: [alice.user.id, stranger.user.id] }, resolve),
     );
     expect(statuses[alice.user.id]).toBe('online');
-    expect(statuses[outsider.user.id]).toBe('offline');
+    expect(statuses[stranger.user.id]).toBe('offline');
     a.disconnect();
     b.disconnect();
   });

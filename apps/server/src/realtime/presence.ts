@@ -20,10 +20,13 @@ export class PresenceTracker {
     private readonly graceMs = 5000,
   ) {}
 
+  /**
+   * What everyone has been told. During the grace period after a user's last connection closed
+   * (a page reload), that is still their last status: answering "offline" there would show the
+   * reloading user as offline, and nothing would correct it once their new connection arrives.
+   */
   status(userId: string): PresenceStatus {
-    const e = this.entries.get(userId);
-    if (!e || e.sockets.size === 0) return 'offline';
-    return this.compute(e);
+    return this.entries.get(userId)?.published ?? 'offline';
   }
 
   private compute(e: Entry): PresenceStatus {
