@@ -118,9 +118,30 @@ for (const name of files) {
   await page.locator('input[type="file"]').first().setInputFiles(file);
   await reqStarted;
   const tStart = Date.now();
+  // Send as soon as the button allows it (current app: immediately; older versions: after upload).
+  const send = page.getByTestId('composer-send');
+  await send.waitFor();
+  await page.waitForFunction(
+    () => !document.querySelector('[data-testid="composer-send"]')?.hasAttribute('disabled'),
+    null,
+    {
+      timeout: 300_000,
+    },
+  );
+  await send.click();
+  const lastRow = page.locator('[data-message-id], [data-pending-nonce]').last();
+  await lastRow
+    .locator('img, [role="slider"], a[href*="download=1"], [role="status"]')
+    .first()
+    .waitFor({ timeout: 300_000 });
+  const tFirstVisible = Date.now();
   const resp = await reqDone;
   const tDone = Date.now();
-  await page.getByTestId('composer-send').click();
+  await page
+    .locator('[data-pending-nonce]')
+    .first()
+    .waitFor({ state: 'detached', timeout: 300_000 })
+    .catch(() => {});
   await page
     .locator('[data-message-id]')
     .last()
@@ -136,7 +157,8 @@ for (const name of files) {
     status: resp.status(),
     prepareMs: tStart - t0,
     uploadMs: tDone - tStart,
-    toMessageVisibleMs: tVisible - t0,
+    firstVisibleToSenderMs: tFirstVisible - t0,
+    confirmedMs: tVisible - t0,
     longTaskMs: round(longTasks.reduce((s, x) => s + x.duration, 0)),
     heapGrowthMb: round(heapPeak - heapBefore),
   };

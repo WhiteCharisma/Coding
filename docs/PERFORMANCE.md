@@ -115,6 +115,49 @@ p50 176 ms → 66 ms, heap growth ≈5 MB per page → stable. Changes: the rend
 in both directions with the reader's place anchored to the first visible message, and each
 row's hover toolbar, touch action sheet and delete dialog are mounted only when first used.
 
+## File transfers (release 0.2)
+
+Measured on 2026-10-09 with `scripts/bench/transfer-bench.mjs` (curl, which streams files like a
+browser) and `scripts/bench/media-bench.mjs` (Chromium, throttled), on the same 4-core VM. Test
+files: a 20 KB JPEG, a 3.5 MB 4000×3000 photo-like JPEG, a 10.7 MB 2400×2400 PNG, a 20 MB ZIP and a
+55 MB five-minute stereo WAV.
+
+### Server and proxy: not the bottleneck
+
+| File (median of 3) | Upload, direct | …via Caddy (Docker) | Server time¹ | Download, direct | Time to first byte |
+| ------------------ | -------------- | ------------------- | ------------ | ---------------- | ------------------ |
+| 3.5 MB photo       | 23–30 ms       | 36–45 ms            | 23 ms        | 16 ms            | 4–8 ms             |
+| 10.7 MB PNG        | 73–80 ms       | 79–83 ms            | 74 ms        | 32–39 ms         | 5–8 ms             |
+| 20 MB ZIP          | 85–107 ms      | 124 ms              | 77 ms        | 48–63 ms         | 4–9 ms             |
+| 55 MB WAV          | 187–611 ms     | 672 ms              | 180 ms       | 181–196 ms       | 5–9 ms             |
+
+¹ From the new `Server-Timing` header (receive + inspect + store), after the change.
+
+Uploads run at 80–290 MB/s and downloads at 150–410 MB/s on loopback; server memory stays flat
+during transfers (files are streamed to and from disk, never buffered whole). On a real VPS the
+limit is the network — the users' upload bandwidth above all — not this code. Faster transfers
+therefore come from sending and downloading less, and from not making people wait:
+
+### What people experience (Chromium, 50 Mbit/s down, 10 Mbit/s up, 30 ms RTT)
+
+| Measurement                                       | Before                         | After                   |
+| ------------------------------------------------- | ------------------------------ | ----------------------- |
+| Viewer: last of three images visible (cold cache) | 2.99 s                         | 1.18 s                  |
+| Viewer: image bytes downloaded for those three    | 11.9 MB                        | 43 KB (WebP previews)   |
+| Sender: message with a file visible               | 0.3 s / 1.2 s / 9.6 s / 51 s²  | 0.21–0.28 s (all files) |
+| Sender: 55 MB WAV — time before the upload starts | 3.2 s (decoded first)          | 0.06–0.15 s             |
+| Sender: chat usable while a file uploads          | No (send disabled)             | Yes                     |
+| Sender: 3.5 MB photo — upload time                | 0.8 s (recompressed to 0.9 MB) | 3.1 s (original kept)³  |
+
+² Small JPEG / photo / PNG / WAV: before, a message appeared only after its upload finished.
+³ Deliberate: originals are no longer silently downscaled and recompressed. The sender does not
+wait for it (the message shows at once with the local copy), and viewers get the small preview.
+
+Changes: WebP previews (≤ 960 px) made by the server in a background queue; the browser starts
+uploads immediately and computes audio waveforms in parallel; messages can be sent while their
+files upload; retried uploads reuse the stored file (`X-Upload-Key`). Previews requested before
+the background job finished wait for it (≈100–160 ms the first time).
+
 ## Interpretation for a Hostinger VPS
 
 - A KVM 1 (1 vCPU, 4 GB RAM) has ample headroom for a community of a few hundred people: the

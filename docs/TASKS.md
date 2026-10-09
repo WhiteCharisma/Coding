@@ -76,14 +76,15 @@ Update this file in the same commit as the work it describes.
   - hover timestamp in grouped rows wrapped ("03:24 PM" in a 40px gutter) → +25px per row
   - newline after a code block rendered as an empty line (pre-wrap); blank-line runs uncapped
   - unsent messages used a different layout and un-normalised text → jump on confirmation
-- [~] Transfer performance: baseline measured (scripts/bench/transfer-bench.mjs, media-bench.mjs)
+- [x] Transfer performance: baseline measured (scripts/bench/transfer-bench.mjs, media-bench.mjs)
   - server + Caddy are not the bottleneck (80–230 MB/s locally, memory flat: streaming)
   - fixed: full-size images in chat → server WebP previews (sharp, background queue)
   - fixed: audio decoded before upload started → upload starts at once, waveform in parallel
   - fixed: silent recompression of photos → originals kept (downscaled only beyond limits)
   - fixed: sending blocked while uploading → message waits for its files, chat goes on
   - added: retry-safe uploads (X-Upload-Key), Server-Timing, GPS/XMP/IPTC removal (lossless)
-  - todo: Docker image check with sharp, after-measurements, PERFORMANCE.md
+  - verified: Docker image builds with sharp; previews work through Caddy; after-measurements
+    in docs/PERFORMANCE.md (viewer 2.99 s → 1.18 s, 11.9 MB → 43 KB; sender sees files in ~0.25 s)
 - [ ] Aero design system and full-screen redesign
 - [ ] Motion system and reaction animations
 - [ ] Interface sounds with independent volume settings
