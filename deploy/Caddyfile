@@ -1,0 +1,22 @@
+# Caddy terminates HTTPS (automatic Let's Encrypt certificates) and proxies to the app.
+# DOMAIN and ACME_EMAIL come from .env via docker-compose.yml.
+{
+	email {$ACME_EMAIL}
+	# Never expose Caddy's admin API.
+	admin off
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# The app enforces its own (admin-configurable) upload limit; this is a hard ceiling.
+	request_body {
+		max_size 120MB
+	}
+
+	# WebSocket upgrades (Socket.IO) are proxied automatically.
+	reverse_proxy app:3000
+
+	# No Caddy access log on purpose: password-reset and email-verification links carry
+	# one-time tokens in the URL. The app writes its own request log with those redacted.
+}
