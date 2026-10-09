@@ -21,8 +21,10 @@ restores, logs, troubleshooting) are in [OPERATIONS.md](OPERATIONS.md).
 | Hostinger "Node.js" web app hosting (managed)                                        | ⚠️ Not supported as-is  | Provider-managed runtime; no Docker, no guaranteed persistent disk for SQLite/uploads, no control over the reverse proxy or long-lived WebSockets. Would need a different architecture (external database + object storage) |
 
 **Size:** minimum 1 vCPU / 2 GB RAM / 20 GB disk (KVM 1). Recommended for a few hundred active
-users: 2 vCPU / 4–8 GB RAM (KVM 2). The app itself idles at roughly 100–150 MB RAM; uploaded
-files are what grows the disk. Measurements: [PERFORMANCE.md](PERFORMANCE.md).
+users: 2 vCPU / 4–8 GB RAM (KVM 2). Measured idle footprint of the production container:
+≈130 MB RSS for the app plus ≈10 MB for Caddy; the app container is capped at 1 GB
+(`APP_MEMORY_LIMIT`). Uploaded files are what grows the disk. Load measurements:
+[PERFORMANCE.md](PERFORMANCE.md).
 
 ## 2. What you need
 
@@ -103,14 +105,14 @@ no paid API is required.
 
 ## 6. Where your data lives
 
-| Path (in `/opt/creator-network`)       | Contents                                                                            | Back up?                     |
-| -------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------- |
-| `data/creator-network.sqlite` (+ -wal) | The database: accounts, communities, messages, settings, audit log                  | **Yes** (via backup archive) |
-| `data/uploads/`                        | Uploaded files (random names, served only after an authorization check)            | **Yes** (via backup archive) |
-| `data/pre-restore-*/`                  | Previous data kept by a restore (delete when you no longer need it)                 | Optional                     |
-| `backups/*.tar.gz`                     | Backup archives (database snapshot + uploads + manifest), mode 600                  | **Copy off the server**      |
-| `.env`                                 | Configuration incl. SMTP password (mode 600, never committed)                       | Keep a private copy          |
-| Docker volumes `caddy_data/config`     | TLS certificates and Caddy state (re-issued automatically if lost)                  | No                           |
+| Path (in `/opt/creator-network`)       | Contents                                                                | Back up?                     |
+| -------------------------------------- | ----------------------------------------------------------------------- | ---------------------------- |
+| `data/creator-network.sqlite` (+ -wal) | The database: accounts, communities, messages, settings, audit log      | **Yes** (via backup archive) |
+| `data/uploads/`                        | Uploaded files (random names, served only after an authorization check) | **Yes** (via backup archive) |
+| `data/pre-restore-*/`                  | Previous data kept by a restore (delete when you no longer need it)     | Optional                     |
+| `backups/*.tar.gz`                     | Backup archives (database snapshot + uploads + manifest), mode 600      | **Copy off the server**      |
+| `.env`                                 | Configuration incl. SMTP password (mode 600, never committed)           | Keep a private copy          |
+| Docker volumes `caddy_data/config`     | TLS certificates and Caddy state (re-issued automatically if lost)      | No                           |
 
 Nothing under `data/` or `backups/` is ever served by the web server; files are only
 reachable through `/api/files/:id` after permission checks.
