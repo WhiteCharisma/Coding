@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEv
 import { useShallow } from 'zustand/react/shallow';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
+import { playSound } from '../../lib/sounds';
 import { formatBytes } from '../../lib/format';
 import { emitTyping } from '../../lib/realtime';
 import { stripFormatting } from '../../lib/markdown';
@@ -199,6 +200,7 @@ export function Composer({
   const submit = () => {
     if (!canSubmit) return;
     setSent((n) => n + 1);
+    playSound('send');
     useMessages.getState().send(channelId, {
       content: value.trim(),
       replyTo,

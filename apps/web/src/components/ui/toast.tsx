@@ -2,6 +2,7 @@ import { CircleAlert, CircleCheck, Info, X } from 'lucide-react';
 import { create } from 'zustand';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
+import { playSound } from '../../lib/sounds';
 
 type ToastTone = 'success' | 'error' | 'info';
 interface ToastItem {
@@ -33,8 +34,10 @@ const useToasts = create<ToastState>((set, get) => ({
 }));
 
 export const toast = {
-  success: (message: string, action?: ToastItem['action']) =>
-    useToasts.getState().push({ tone: 'success', message, action }),
+  success: (message: string, action?: ToastItem['action']) => {
+    playSound('success');
+    return useToasts.getState().push({ tone: 'success', message, action });
+  },
   error: (message: string, action?: ToastItem['action']) =>
     useToasts.getState().push({ tone: 'error', message, action }, 6500),
   info: (message: string, action?: ToastItem['action']) => useToasts.getState().push({ tone: 'info', message, action }),

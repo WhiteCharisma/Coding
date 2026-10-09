@@ -41,6 +41,7 @@ E2E_SKIP_BUILD=1 npx playwright test -g "pattern"   # reuse the last build, run 
 npm run build               # production build: apps/web/dist + apps/server/dist
 node scripts/bench/server-bench.mjs                  # server load benchmark (needs a build)
 PAGE_URL=http://localhost:8080 node scripts/bench/client-bench.mjs   # browser benchmark
+node scripts/sound-levels.mjs                        # loudness of the interface sounds (Chromium)
 npm run db:generate         # after editing apps/server/src/db/schema.ts → new SQL migration
 npm run check               # typecheck + lint + test + build
 ```

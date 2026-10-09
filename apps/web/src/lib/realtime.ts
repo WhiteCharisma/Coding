@@ -19,6 +19,7 @@ import { useSession } from '../stores/session';
 import { useUi } from '../stores/ui';
 import { toast } from '../components/ui/toast';
 import { api, ApiError } from './api';
+import { playSound } from './sounds';
 import { navigateTo } from './navigator';
 import { queryClient } from './queryClient';
 
@@ -144,6 +145,7 @@ function notificationToast(n: NotificationDTO): void {
   else if (n.type === 'invite') text = t('notifications.types.invite', { actor, community: n.communityName ?? '' });
   else if (n.type === 'dm' && n.count === 1) text = t('notifications.types.dm', { actor, count: 1 });
   if (!text) return;
+  playSound('notification');
   const target = n.channelId
     ? n.communityId
       ? `/c/${n.communityId}/${n.channelId}`
@@ -211,6 +213,8 @@ export function startRealtime(): void {
     if (!me) return;
     useMessages.getState().receive(m);
     const viewing = isViewing(m.channelId);
+    // A soft chime for someone else's message in the conversation you are reading (not in DND).
+    if (viewing && m.author?.id !== me.id && me.presence !== 'dnd') playSound('receive');
     useChat.getState().onMessage(m, me.id, me.username, viewing);
     if (viewing) markRead(m.channelId, m.id);
   });

@@ -1,6 +1,7 @@
 import { Switch as S } from 'radix-ui';
 import { useId, type ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { playSound } from '../../lib/sounds';
 
 interface SwitchProps {
   checked: boolean;
@@ -22,7 +23,10 @@ export function Switch({ checked, onCheckedChange, label, description, disabled,
       <S.Root
         id={id}
         checked={checked}
-        onCheckedChange={onCheckedChange}
+        onCheckedChange={(v) => {
+          playSound('click');
+          onCheckedChange(v);
+        }}
         disabled={disabled}
         className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-line-strong bg-inset shadow-[inset_0_1px_3px_var(--border)] transition-[background-color,border-color] duration-[var(--dur-fast)] data-[state=checked]:border-accent-border data-[state=checked]:bg-linear-to-b data-[state=checked]:from-accent-lo data-[state=checked]:to-accent-hi disabled:opacity-50"
       >

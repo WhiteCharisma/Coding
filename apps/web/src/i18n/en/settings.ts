@@ -79,6 +79,16 @@ export const settings = {
     mutedHint: 'Muted communities do not create mention, reply or activity notifications.',
     noneMuted: 'No muted communities.',
     unmute: 'Unmute',
+    sounds: 'Sounds',
+    soundsHint:
+      'Original sounds made for Creator Network. They start after your first click or key press, and are saved on this device.',
+    uiSounds: 'Interface sounds',
+    uiSoundsHint: 'Sending and receiving in the open conversation, reactions, opening chats, voice, uploads.',
+    notifySounds: 'Notification sounds',
+    notifySoundsHint: 'Mentions, replies and direct messages while you are elsewhere. Silent in Do not disturb.',
+    volume: 'Volume',
+    volumeOf: '{name} volume',
+    test: 'Play a sample',
   },
   appearance: {
     title: 'Appearance',

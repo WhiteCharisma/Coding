@@ -8,9 +8,11 @@ import {
   type UserSummary,
 } from '@creator-network/shared';
 import { useQuery } from '@tanstack/react-query';
+import { Play, Volume2 } from 'lucide-react';
 import { t } from '../../i18n';
 import { api, errorMessage } from '../../lib/api';
 import { cn } from '../../lib/cn';
+import { playSound, setSoundPref, useSoundPrefs, type SoundChannel, type SoundName } from '../../lib/sounds';
 import { useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
 import { useUi, type Density, type MotionPref, type Theme } from '../../stores/ui';
@@ -19,6 +21,7 @@ import { Button } from '../../components/ui/button';
 import { Select } from '../../components/ui/input';
 import { Segmented } from '../../components/ui/segmented';
 import { Skeleton } from '../../components/ui/skeleton';
+import { Slider } from '../../components/ui/slider';
 import { Switch } from '../../components/ui/switch';
 import { toast } from '../../components/ui/toast';
 import { PresenceIcon } from '../../components/user/Presence';
@@ -33,6 +36,74 @@ async function savePreferences(patch: Record<string, unknown>) {
   } catch (err) {
     toast.error(errorMessage(err));
   }
+}
+
+function SoundChannelControls({
+  channel,
+  title,
+  hint,
+  sample,
+}: {
+  channel: SoundChannel;
+  title: string;
+  hint: string;
+  sample: SoundName;
+}) {
+  const pref = useSoundPrefs()[channel];
+  return (
+    <div className="py-3 first:pt-0 last:pb-0">
+      <Switch
+        className="py-0"
+        label={title}
+        description={hint}
+        checked={pref.enabled}
+        onCheckedChange={(enabled) => setSoundPref(channel, { enabled })}
+      />
+      <div className="mt-3 flex items-center gap-3">
+        <Volume2 aria-hidden className="size-4 shrink-0 text-fg-muted" />
+        <Slider
+          label={t('settings.notifications.volumeOf', { name: title })}
+          valueText={`${pref.volume} %`}
+          value={pref.volume}
+          disabled={!pref.enabled}
+          onValueChange={(volume) => setSoundPref(channel, { volume })}
+          onValueCommit={() => playSound(sample)}
+          className="max-w-xs"
+        />
+        <span className="w-10 shrink-0 text-right font-mono text-xs text-fg-muted tabular-nums">{pref.volume}%</span>
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={!pref.enabled}
+          onClick={() => playSound(sample)}
+          aria-label={`${t('settings.notifications.test')}: ${title}`}
+        >
+          <Play /> {t('settings.notifications.test')}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SoundsCard() {
+  return (
+    <SettingsCard title={t('settings.notifications.sounds')} description={t('settings.notifications.soundsHint')}>
+      <div className="flex flex-col divide-y divide-line-subtle">
+        <SoundChannelControls
+          channel="ui"
+          title={t('settings.notifications.uiSounds')}
+          hint={t('settings.notifications.uiSoundsHint')}
+          sample="receive"
+        />
+        <SoundChannelControls
+          channel="notify"
+          title={t('settings.notifications.notifySounds')}
+          hint={t('settings.notifications.notifySoundsHint')}
+          sample="notification"
+        />
+      </div>
+    </SettingsCard>
+  );
 }
 
 export function NotificationsSection({ user }: { user: SelfUser }) {
@@ -54,6 +125,7 @@ export function NotificationsSection({ user }: { user: SelfUser }) {
           ))}
         </div>
       </SettingsCard>
+      <SoundsCard />
       <SettingsCard title={t('settings.notifications.muted')} description={t('settings.notifications.mutedHint')}>
         {muted.length === 0 ? (
           <p className="text-sm text-fg-muted">{t('settings.notifications.noneMuted')}</p>

@@ -110,7 +110,12 @@ Update this file in the same commit as the work it describes.
     badge pop, send flight, menus from their trigger, photo zoom into the viewer
   - fixed on the way: the list did not stay at the bottom when the last message grew
     (reactions, edits) or the composer grew; stray square focus glow inside the composer
-- [ ] Interface sounds with independent volume settings
+- [x] Interface sounds with independent volume settings (docs/DESIGN.md → Sound)
+  - original Web Audio synthesis (no files); 10 sounds; loudness equalised by measurement
+    (scripts/sound-levels.mjs); interface vs notification channels with switch + volume
+  - unlock after the first gesture; per-sound de-duplication; silent in Do not disturb
+  - tests: engine unit tests (fake AudioContext) + e2e (no sound before interaction, one send
+    sound despite the server confirmation, receive chime, switching sounds off)
 - [ ] WebRTC voice with verified audio quality
 - [ ] Responsive/a11y polish, docs, deployment and rollback notes
 

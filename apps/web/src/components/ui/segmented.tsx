@@ -1,4 +1,5 @@
 import { cn } from '../../lib/cn';
+import { playSound } from '../../lib/sounds';
 
 interface Option<T extends string> {
   value: T;
@@ -34,7 +35,10 @@ export function Segmented<T extends string>({
           type="button"
           role="radio"
           aria-checked={value === o.value}
-          onClick={() => onChange(o.value)}
+          onClick={() => {
+            if (o.value !== value) playSound('click');
+            onChange(o.value);
+          }}
           className={cn(
             'rounded-lg px-3 py-1.5 text-sm font-semibold transition-[background-color,color,box-shadow] duration-[var(--dur-fast)]',
             value === o.value

@@ -1,6 +1,7 @@
 import type { MessageDTO, ReactionEvent } from '@creator-network/shared';
 import { t } from '../../i18n';
 import { api, errorMessage } from '../../lib/api';
+import { playSound } from '../../lib/sounds';
 import { useMessages } from '../../stores/messages';
 import { useSession } from '../../stores/session';
 import { toast } from '../../components/ui/toast';
@@ -20,6 +21,7 @@ export async function toggleReaction(message: MessageDTO, emoji: string): Promis
     count: (existing?.count ?? 0) + (add ? 1 : -1),
   };
   useMessages.getState().reaction(optimistic, me.id);
+  if (add) playSound('reaction');
   try {
     const ev = add
       ? await api.put<ReactionEvent>(`/api/messages/${message.id}/reactions`, { emoji })

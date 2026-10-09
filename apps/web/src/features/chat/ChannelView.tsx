@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { api } from '../../lib/api';
+import { playSound } from '../../lib/sounds';
 import { markRead } from '../../lib/realtime';
 import { stripFormatting } from '../../lib/markdown';
 import { useChat } from '../../stores/chat';
@@ -66,6 +67,7 @@ export function ChannelView({
   useEffect(() => {
     useChat.getState().setActiveChannel(channelId);
     useUi.getState().setAtBottom(true);
+    playSound('open');
     const jump = params.get('m');
     if (jump) {
       void useMessages.getState().jumpTo(channelId, jump);

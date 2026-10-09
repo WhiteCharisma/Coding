@@ -151,6 +151,39 @@ Content never depends on an animation to become visible (the welcome headline, f
 slides in but is never transparent). The message list stays pinned to the newest message when a
 reaction, an edit, the growing composer or the phone keyboard changes the size of what is shown.
 
+## Sound
+
+Interface sounds are **original**: synthesised at run time with the Web Audio API
+(`apps/web/src/lib/sound-recipes.ts`) from sine/triangle oscillators, inharmonic "glass"
+partials and filtered noise. There are no audio files, samples or third-party assets, so nothing
+needs a licence and nothing is downloaded.
+
+| Sound                      | When                                                                    | Character                        |
+| -------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
+| `send`                     | You send a message (once — not again when the server confirms it)       | light upward whoosh + soft blip  |
+| `receive`                  | Someone else writes in the conversation you are reading (not in DND)    | two glassy notes                 |
+| `notification`             | A mention, reply, DM or invitation while you are elsewhere (not in DND) | bright three-note rise           |
+| `click`                    | Rail navigation, switches, segmented controls                           | tiny glass tick (6 dB quieter)   |
+| `open`                     | Opening a conversation                                                  | soft bubble with a faint sparkle |
+| `reaction`                 | You add a reaction                                                      | two rising bubble "plips"        |
+| `voiceJoin` / `voiceLeave` | Joining / leaving a voice channel                                       | warm rising / falling pair       |
+| `uploadDone`               | A file finished uploading                                               | one clear glass ding             |
+| `success`                  | A success message (saved, created, sent, copied)                        | bright major third               |
+
+- **Two channels**, each with its own switch and volume in Settings → Notifications → Sounds
+  (stored per device): interface sounds (default on, 50 %) and notification sounds (on, 70 %).
+  The slider maps to gain as (volume/100)², close to how loudness is perceived.
+- **Consistent loudness**: `node scripts/sound-levels.mjs` renders every recipe offline in
+  Chromium and reports its peak and loudest 50 ms RMS; the `LEVEL` trims bring all sounds to
+  −24 dBFS short-term RMS at 100 % (the click deliberately to −30). Measured peaks: −12.7 to
+  −16.6 dBFS (no clipping).
+- **No duplicates**: the same sound never plays twice within a short gap (150 ms by default,
+  1.2 s for `receive`, 1.5 s for `notification`), so an optimistic message and its confirmation,
+  or a burst of messages, give one sound.
+- **Autoplay rules**: audio starts only after the first pointer or key press on the page; before
+  that every sound is skipped silently. A context created by that very gesture plays as soon as
+  it has started.
+
 ## Components
 
 Primitives in `apps/web/src/components/ui/` follow the shadcn/ui pattern (Radix primitives +

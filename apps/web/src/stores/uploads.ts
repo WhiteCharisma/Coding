@@ -13,6 +13,7 @@ import { create } from 'zustand';
 import { api, ApiError, errorMessage, uploadWithProgress, type UploadHandle } from '../lib/api';
 import { computePeaks } from '../lib/audio';
 import { prepareImage } from '../lib/image';
+import { playSound } from '../lib/sounds';
 
 export type UploadStatus = 'uploading' | 'done' | 'error';
 
@@ -113,6 +114,7 @@ export const useUploads = create<UploadsState>((set, get) => {
       const localUrl = get().jobs[key]?.localUrl;
       if (localUrl) localByAttachment.set(attachment.id, localUrl);
       patch(key, { status: 'done', progress: 1, attachment });
+      playSound('uploadDone');
     } catch (err) {
       if (err instanceof ApiError && err.code === 'aborted') return;
       const permanent = err instanceof ApiError && [400, 413, 415].includes(err.status);

@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
+import { playSound } from '../../lib/sounds';
 import { communityUnread, useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
 import { LogoMark } from '../../components/brand/Logo';
@@ -63,6 +64,7 @@ function RailItem({ to, onClick, label, active, unread = false, badge = 0, child
           aria-current={active ? 'page' : undefined}
           className={cls}
           data-testid={testId}
+          onClick={() => !active && playSound('click')}
         >
           {inner}
         </Link>
