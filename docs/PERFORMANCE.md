@@ -190,14 +190,14 @@ devices; low-end phones without GPU rasterisation behave similarly.
 
 **Found and fixed while measuring** (each change measured before/after; details in the commits):
 
-| Problem                                                                                            | Fix                                                                            | Effect                                                |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| The large glass panes used a live `backdrop-filter`, redrawn whenever anything inside them changed | Panes show a pre-rendered frosted sky (fixed to the viewport) under their tint | Older page p50 209 → 105 ms                           |
-| That frosted sky was 12 CSS gradients, re-rasterised under every change                            | A 320×200 picture of it (1.4 KB, `scripts/sky-frost.mjs`), stretched           | Channel open 934 → 787 ms (median of 3, 600 messages) |
-| Every message created a new `Intl.DateTimeFormat`                                                  | Formatters reused per locale                                                   | Older page p50 99 → 86 ms; channel open 787 → 749 ms  |
-| The sky layer pulled the web font before any text existed, competing with the app's JavaScript     | The (text-less) sky layer uses a local font                                    | Mobile DOMContentLoaded 1 599 → 1 501 ms              |
-| The welcome page's code was requested only after the session check returned                        | Fetched in parallel with the check for signed-out visitors                     | Mobile LCP 2 524 → 2 348 ms                           |
-| Loading skeletons animated `background-position` (a repaint every frame)                           | Shimmer moves with `transform` only                                            | No repaint per frame                                  |
+| Problem                                                                                            | Fix                                                                                           | Effect                                                |
+| -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| The large glass panes used a live `backdrop-filter`, redrawn whenever anything inside them changed | Panes show a pre-rendered frosted sky (fixed to the viewport) under their tint                | Older page p50 209 → 105 ms                           |
+| That frosted sky was 12 CSS gradients, re-rasterised under every change                            | A 320×200 picture of it (1.4 KB), stretched (panes and picture since replaced: Vista desktop) | Channel open 934 → 787 ms (median of 3, 600 messages) |
+| Every message created a new `Intl.DateTimeFormat`                                                  | Formatters reused per locale                                                                  | Older page p50 99 → 86 ms; channel open 787 → 749 ms  |
+| The sky layer pulled the web font before any text existed, competing with the app's JavaScript     | The (text-less) sky layer uses a local font                                                   | Mobile DOMContentLoaded 1 599 → 1 501 ms              |
+| The welcome page's code was requested only after the session check returned                        | Fetched in parallel with the check for signed-out visitors                                    | Mobile LCP 2 524 → 2 348 ms                           |
+| Loading skeletons animated `background-position` (a repaint every frame)                           | Shimmer moves with `transform` only                                                           | No repaint per frame                                  |
 
 **Still slower than 0.1:** opening a channel with long history (+≈0.25 s here, software
 rendering: a larger component tree and more layers to paint per message), the optimistic send
@@ -208,6 +208,65 @@ equal or faster.
 while something is pending (spinner, skeletons, typing dots). "Reduce motion" or the system
 setting stops them all.
 **Sounds** are synthesised on demand (no audio files to download).
+
+## Vista desktop (release 0.2, Aero Glass redesign)
+
+The Vista redesign (docs/DESIGN.md → Aero Glass) adds a glass window frame, a taskbar, gadgets and
+an **animated wallpaper**. Measured against the 0.2 build just before it (`bfc7a72`) on the
+same machine on the same day, headless Chromium with **software rendering** (no GPU: every
+animated frame is composited by the processor, so animation costs look much larger than on a
+computer with graphics acceleration). Medians of 3 runs.
+
+### What the moving wallpaper costs (`idle` = nobody touches anything, channel open)
+
+| State (1440 × 900)                                   | CPU used by the browser |
+| ---------------------------------------------------- | ----------------------- |
+| 0.2 (still sky)                                      | 0.4 % of one core       |
+| Vista, wallpaper moving                              | 103 % of one core       |
+| Vista, transparency off (no blur), wallpaper moving  | 105 % of one core       |
+| Vista after a minute without input (wallpaper rests) | 2.1 % of one core       |
+| Vista, window maximised (wallpaper covered, rests)   | 1.0 % of one core       |
+| Vista, Calm motion (still wallpaper, clock ticks)    | 2.2 % of one core       |
+
+Without graphics acceleration any animation means redrawing the whole screen for every frame,
+whatever moves and however small (stopping all but one layer changed nothing; blur is not the
+cost either). So the wallpaper only moves while someone can enjoy it: it rests while you scroll
+or type, behind dialogs and a maximised window, while the browser is in the background and
+after a minute without input; Calm and Reduce motion keep it still.
+
+### Long channel (`scripts/bench/client-bench.mjs`, 3 000 messages, full motion)
+
+| Measurement                                 | 0.2 before Vista | Vista             |
+| ------------------------------------------- | ---------------- | ----------------- |
+| Older page while scrolling back, p50 / p95  | 84 ms / 115 ms   | 91 ms / 141 ms    |
+| Scroll back to the first message (59 pages) | 10.2 s           | 10.9 s            |
+| Open the channel → first messages on screen | 711 ms           | 882 ms            |
+| Jump back to the newest messages            | 131 ms           | 214 ms            |
+| Send: Enter → message visible, p50 / p95    | 7.8 ms / 15.8 ms | 10.4 ms / 20.8 ms |
+| Send: Enter → confirmed by the server, p50  | 30 ms            | 34 ms             |
+| Main-thread long tasks during the whole run | 178 ms           | 392 ms            |
+| DOM nodes (maximum) / JS heap at the end    | 4 507 / 63 MB    | 4 828 / 73 MB     |
+
+**Found and fixed while measuring** (each measured before/after):
+
+| Problem                                                                                                               | Fix                                                                                            | Effect                                                                               |
+| --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| A `:root:has(.modal-scrim)` rule (to pause the wallpaper behind dialogs) made every DOM change restyle the whole page | Open dialogs are counted in a store instead (`stores/desktop.ts`)                              | Elements restyled per sent message ≈ 1 170 → 57; style time for 15 sends 312 → 67 ms |
+| The wallpaper's sky (12 CSS gradients) was repainted when the message list scrolled                                   | Three gradients (the wallpaper draws its own clouds) on a layer of their own                   | Opening a channel (600 messages, warm) 597 → ≈ 390 ms                                |
+| The moving wallpaper made every frame of scrolling cost a full redraw                                                 | It holds still while you scroll (at once) or type (after 120 ms, not in the keystroke's frame) | Older page p50 202 → 91 ms                                                           |
+| The taskbar re-rendered its notification area on every message, and its clock created two date formatters each time   | Notification area and community buttons memoised; cached formatters                            | The clock left the send profile (44 ms per 20 sends before)                          |
+| The clock gadget's second hand swept with a transition, redrawing for 300 ms of every second                          | The hands jump once a second, like a quartz clock                                              | Calm, idle: 20 % → 2.2 % of a core                                                   |
+| The wallpaper moved while nobody was looking                                                                          | Rests after a minute without input and under a maximised window                                | Idle 103 % → 2.1 % / 1.0 % of a core                                                 |
+
+**Still slower than before Vista** (here, in software rendering): opening a long channel
+(+0.17 s: more interface to build and more layers for the compositor to take over), jumping
+back to the newest messages (+0.08 s), the optimistic send (+2.6 ms, well under one frame) and
+more main-thread long tasks over a whole run (+0.2 s). The welcome page's LCP is 736 → 860 ms on
+a desktop-sized window (local server, the animated desktop is painted with the page); the CSS
+grew by 8.5 KB compressed (27.0 → 35.5 KB) and all JavaScript by 10.7 KB compressed.
+**Not measured:** a computer with graphics acceleration and real phones (the wallpaper is not
+shown on phones). If a computer without graphics acceleration feels busy, Settings →
+Appearance → Motion → _Calm_ keeps the windows' effects and stills the wallpaper.
 
 ## Interpretation for a Hostinger VPS
 

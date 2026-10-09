@@ -9,6 +9,8 @@
 // Part B — a channel with BENCH_HISTORY messages on a throw-away server started by this
 //          script: time to first messages, scrolling back through history (rendered rows,
 //          DOM size, JS heap, scroll stability) and optimistic send latency.
+//          BENCH_MOTION=calm|reduced runs it with that motion setting (default: full motion,
+//          i.e. with the animated wallpaper).
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -39,6 +41,7 @@ function stats(values) {
 
 const browser = await chromium.launch();
 results.conditions.chromium = browser.version();
+results.conditions.motion = process.env.BENCH_MOTION ?? 'full';
 
 /* ------------------------------------------------------------- A. page load */
 
@@ -183,6 +186,9 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 900 
 const [name, value] = cookie.split('=');
 await context.addCookies([{ name, value, url: BASE, httpOnly: true, sameSite: 'Lax' }]);
 const page = await context.newPage();
+if (process.env.BENCH_MOTION) {
+  await page.addInitScript((motion) => localStorage.setItem('cn.motion', motion), process.env.BENCH_MOTION);
+}
 await page.addInitScript(() => {
   window.__longTasks = 0;
   new PerformanceObserver((list) => {

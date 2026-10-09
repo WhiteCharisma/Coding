@@ -7,13 +7,21 @@ the owner's decision (see [What needs your approval](#what-needs-your-approval))
 
 ## What changes for people
 
-- **New look**: a Frutiger Aero design — sky and water scenes, glass panes, glossy controls,
-  _Daylight_ and _Twilight_ themes ([DESIGN.md](DESIGN.md)). Every screen was redesigned.
+- **New look**: a Windows Vista–style desktop with real Aero Glass ([DESIGN.md](DESIGN.md#aero-glass-windows-vista)).
+  On computers and tablets the app is a glass window (title, Minimise / Maximise / Close,
+  address bar with Back/Forward and a breadcrumb) on an animated Frutiger Aero wallpaper, with a
+  black-glass taskbar (Start menu, communities, notification area, clock, Show desktop) and
+  gadgets on wide screens. Settings → Appearance → **Window colour**: twelve glass colours, the
+  colour intensity and _Enable transparency_. Phones keep a full-screen layout. _Daylight_ and
+  _Twilight_ themes; every screen was redesigned.
 - **Chat spacing fixed**: no more large gaps between messages (root causes and tests in
   [TASKS.md](TASKS.md#release-02--frutiger-aero-upgrade-branch-featurefrutiger-aero-premium-upgrade)).
-- **Animations**: new messages, reactions (pop + glints), sending, editing, deleting, menus and
-  photo zoom. Settings → Appearance → Motion: _Full motion_, _Calm_ (no decorative effects) or
-  _Reduce motion_; the operating system's "reduce motion" always wins.
+- **Animations**: windows open, minimise and maximise; the Start menu rises; taskbar buttons glow
+  and flash orange on a mention; toasts pop up as balloons; the wallpaper moves while you are
+  there (it holds still while you scroll or type, behind dialogs and after a minute without
+  input). New messages, reactions (pop + glints), sending, editing, deleting, menus and photo
+  zoom. Settings → Appearance → Motion: _Full motion_, _Calm_ (still wallpaper, no decorative
+  effects) or _Reduce motion_; the operating system's "reduce motion" always wins.
 - **Sounds**: ten original interface sounds (synthesised in the browser, no audio files).
   Interface and notification sounds have separate switches and volumes (Settings →
   Notifications); silent until the first click or key press, and in Do not disturb.
@@ -60,7 +68,11 @@ real `deploy/update.sh`:
 
 Speed compared with 0.1 on the same machine: [PERFORMANCE.md](PERFORMANCE.md#interface-release-02)
 (smaller first download, faster scrolling through history; opening a long channel ≈0.25 s
-slower in headless software rendering).
+slower in headless software rendering). The Vista desktop came after this rehearsal; its costs
+are measured in [PERFORMANCE.md](PERFORMANCE.md#vista-desktop-release-02-aero-glass-redesign)
+(scrolling and sending close to the earlier 0.2; opening a long channel +0.17 s; the moving
+wallpaper uses about one processor core on computers **without** graphics acceleration while
+someone is there, and rests otherwise).
 
 ## Deploying to the OVH VPS
 

@@ -5,6 +5,33 @@ Results of the final verification run for **release 0.2** on **2026-10-09**, aga
 it). Every number below comes from an actual run; nothing is estimated. Raw output is not
 committed; re-run the commands at the end to reproduce.
 
+## Re-run after the Vista Aero Glass redesign (2026-10-09)
+
+Same environment, branch `feature/frutiger-aero-premium-upgrade`, working tree of the Vista
+commits (web interface, the presence fix, tests and docs; no dependency, schema or deployment
+change).
+
+| Check                           | Result                                                  |
+| ------------------------------- | ------------------------------------------------------- |
+| TypeScript, ESLint, Prettier    | ✅ 0 errors, 0 problems, all files formatted            |
+| Unit + integration (`npm test`) | ✅ **263 / 263 passed**, 28 files, 0 skipped            |
+| End-to-end (`npm run test:e2e`) | ✅ **47 passed**, 1 skipped (opt-in TURN test), 0 flaky |
+| Production build, `npm audit`   | ✅ / 0 known vulnerabilities                            |
+
+New tests: `e2e/desktop-shell.spec.ts` (Start menu ready to search; minimise, maximise
+remembered after a reload, Show desktop, close; Back/Forward, breadcrumb menu, scoped search;
+window colour and transparency applied and remembered, blur really off; a mention flashes the
+community's taskbar button and its thumbnail says so), `apps/server/test/presence.test.ts`
+(reload grace period, other tabs, idle/DND/invisible), `apps/web/src/stores/desktop.test.ts`,
+`stores/glass.test.ts` (including the pre-paint script), `features/shell/Wallpaper.test.tsx`
+(when the wallpaper moves), new contrast tests for Vista glass in `tokens.test.ts` (58 tests)
+and animation merging in `lib/cn.test.ts`. Changed tests, with the reason:
+
+- `e2e/message-layout.spec.ts` measures row heights after the window's opening zoom has ended
+  (`windowSettled`): measuring during the zoom read every box 2–4 % small.
+- `apps/server/test/realtime.test.ts` queries the presence of a user who never connected: a user
+  whose connection just closed now stays online for the reconnect grace period, on purpose.
+
 ## Summary
 
 | Check                               | Result                                                                  | Time             |
