@@ -5,6 +5,7 @@ import { setNavigator } from '../lib/navigator';
 import { useSession } from '../stores/session';
 import { applyTheme, useUi } from '../stores/ui';
 import { FullscreenSpinner } from './misc';
+import { preloadSignedInApp, setSignedInHint } from './preload';
 
 /** Loads the session once, keeps the theme in sync and tears everything down on sign-out. */
 export function SessionBoot() {
@@ -33,8 +34,12 @@ export function SessionBoot() {
   // After signing out (or the session ending), drop everything the signed-in app loaded.
   const previous = useRef(status);
   useEffect(() => {
-    if (status === 'anonymous' && previous.current === 'authenticated') {
-      void import('./teardown').then((m) => m.teardownSession());
+    if (status === 'authenticated') {
+      setSignedInHint(true);
+      preloadSignedInApp();
+    } else if (status === 'anonymous') {
+      setSignedInHint(false);
+      if (previous.current === 'authenticated') void import('./teardown').then((m) => m.teardownSession());
     }
     previous.current = status;
   }, [status]);

@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router';
 import { Toaster } from '../components/ui/toast';
 import { TooltipProvider } from '../components/ui/tooltip';
 import { queryClient } from '../lib/queryClient';
@@ -8,20 +8,28 @@ import { useSession } from '../stores/session';
 import { ErrorBoundary } from './ErrorBoundary';
 import { PublicOnly, SessionBoot } from './guards';
 import { FullscreenSpinner, NotFoundPage } from './misc';
+import {
+  AdminPage,
+  AppShell,
+  ChannelPage,
+  CommunitiesPage,
+  CommunityIndexPage,
+  DmIndexPage,
+  DmPage,
+  ExplorePage,
+  HomePage,
+  loadCorePages,
+  corePagesLoaded,
+  NotificationsPage,
+  OnboardingPage,
+  ProfilePage,
+  RequireAuth,
+  SearchPage,
+  SettingsPage,
+} from './pages';
 
 // Route-level code splitting. Public pages (welcome, sign-in, invites) load without the
-// signed-in app; the app shell, chat and real-time client load once the user is signed in.
-const RequireAuth = lazy(() => import('./RequireAuth'));
-const AppShell = lazy(() => import('../features/shell/AppShell').then((m) => ({ default: m.AppShell })));
-const HomePage = lazy(() => import('../features/home/HomePage').then((m) => ({ default: m.HomePage })));
-const ChannelPage = lazy(() =>
-  import('../features/community/CommunityPages').then((m) => ({ default: m.ChannelPage })),
-);
-const CommunityIndexPage = lazy(() =>
-  import('../features/community/CommunityPages').then((m) => ({ default: m.CommunityIndexPage })),
-);
-const DmIndexPage = lazy(() => import('../features/dm/DmPages').then((m) => ({ default: m.DmIndexPage })));
-const DmPage = lazy(() => import('../features/dm/DmPages').then((m) => ({ default: m.DmPage })));
+// signed-in app; the signed-in pages are defined (and preloaded) in ./pages.
 const WelcomePage = lazy(() => import('../features/auth/WelcomePage'));
 const LoginPage = lazy(() => import('../features/auth/LoginPage'));
 const RegisterPage = lazy(() => import('../features/auth/RegisterPage'));
@@ -29,14 +37,33 @@ const ForgotPasswordPage = lazy(() => import('../features/auth/ForgotPasswordPag
 const ResetPasswordPage = lazy(() => import('../features/auth/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('../features/auth/VerifyEmailPage'));
 const InvitePage = lazy(() => import('../features/auth/InvitePage'));
-const OnboardingPage = lazy(() => import('../features/onboarding/OnboardingPage'));
-const ExplorePage = lazy(() => import('../features/explore/ExplorePage'));
-const CommunitiesPage = lazy(() => import('../features/explore/CommunitiesPage'));
-const NotificationsPage = lazy(() => import('../features/notifications/NotificationsPage'));
-const SearchPage = lazy(() => import('../features/search/SearchPage'));
-const ProfilePage = lazy(() => import('../features/profile/ProfilePage'));
-const SettingsPage = lazy(() => import('../features/settings/SettingsPage'));
-const AdminPage = lazy(() => import('../features/admin/AdminPage'));
+
+/**
+ * Entry to the signed-in area. Renders a plain spinner (instead of suspending) until the
+ * session is known and the preloaded core chunks are ready, so React never shows a Suspense
+ * fallback here and the app appears as soon as its data arrives.
+ */
+function SignedInGate() {
+  const status = useSession((s) => s.status);
+  const location = useLocation();
+  const [ready, setReady] = useState(corePagesLoaded);
+  useEffect(() => {
+    if (status !== 'authenticated' || ready) return;
+    const done = () => setReady(true);
+    void loadCorePages().then(done, done); // on failure, the lazy route reports the error
+  }, [status, ready]);
+  if (status === 'anonymous') {
+    const next = location.pathname + location.search;
+    return (
+      <Navigate
+        to={next === '/home' || next === '/' ? '/welcome' : `/login?next=${encodeURIComponent(next)}`}
+        replace
+      />
+    );
+  }
+  if (status === 'loading' || !ready) return <FullscreenSpinner />;
+  return <RequireAuth />;
+}
 
 function RootRedirect() {
   const status = useSession((s) => s.status);
@@ -63,7 +90,7 @@ export function App() {
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/invite/:code" element={<InvitePage />} />
-                <Route element={<RequireAuth />}>
+                <Route element={<SignedInGate />}>
                   <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route element={<AppShell />}>
                     <Route path="/home" element={<HomePage />} />
