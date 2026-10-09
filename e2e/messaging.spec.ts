@@ -103,6 +103,16 @@ test.describe('real-time community chat', () => {
     );
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
+
+    // A long message quoted in a reply must not widen the layout (side panel stays on screen).
+    await sendMessage(page, 'A long note about the arrangement '.repeat(12));
+    const long = messageRow(page, 'A long note about the arrangement');
+    await long.hover();
+    await long.getByRole('button', { name: 'Reply' }).click();
+    await sendMessage(page, 'agreed');
+    await expect(messageRow(page, 'agreed')).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 
   test('a member who leaves stops receiving the channel', async ({ page, context, browser, consoleErrors }) => {

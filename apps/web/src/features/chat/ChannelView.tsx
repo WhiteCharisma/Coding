@@ -158,7 +158,7 @@ export function ChannelView({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <MessageList channelId={channelId} ctx={ctx} beginning={beginning} />
       <TypingIndicator channelId={channelId} />
       <Composer
