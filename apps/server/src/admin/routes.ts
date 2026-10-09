@@ -14,7 +14,7 @@ import { publicConfig } from '../auth/routes';
 import { requireStaff } from '../auth/plugin';
 import type { AppContext } from '../context';
 import { parse } from '../lib/validation';
-import { createBackup, listBackups } from '../ops/backup';
+import { createBackup, listBackups, publicBackupInfo } from '../ops/backup';
 import { listReports, resolveReport } from '../reports/service';
 import * as svc from './service';
 
@@ -136,7 +136,7 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: AppContext): void
 
   app.get('/api/admin/backups', async (request) => {
     requireStaff(request, 'admin');
-    return { backups: listBackups(ctx.config.backupDir) };
+    return { backups: listBackups(ctx.config.backupDir).map(publicBackupInfo) };
   });
 
   app.post('/api/admin/backups', async (request, reply) => {
@@ -144,6 +144,6 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: AppContext): void
     const backup = await createBackup(ctx, { reason: 'manual' });
     audit(ctx.db, { scope: 'platform', actorId: user.id, action: 'backup.created', metadata: { file: backup.file, bytes: backup.bytes } });
     reply.status(201);
-    return { backup };
+    return { backup: publicBackupInfo(backup) };
   });
 }

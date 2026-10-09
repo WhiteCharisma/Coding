@@ -207,8 +207,8 @@ export function getHistory(
     ctx.db.select().from(messages).where(and(base, gt(messages.id, cursor))).orderBy(asc(messages.id)).limit(n + 1).all();
 
   let rows: MessageRow[];
-  let hasMoreBefore = false;
-  let hasMoreAfter = false;
+  let hasMoreBefore: boolean;
+  let hasMoreAfter: boolean;
   if (q.around) {
     const half = Math.max(1, Math.floor(limit / 2));
     const older = fetchBefore(q.around, half, true);

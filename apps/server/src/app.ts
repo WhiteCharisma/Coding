@@ -10,7 +10,7 @@ import { registerAuthRoutes } from './auth/routes';
 import type { AppConfig } from './config';
 import type { AppContext } from './context';
 import { createContext } from './create-context';
-import { rateLimitErrorBuilder, registerErrorHandler } from './lib/http';
+import { rateLimitErrorBuilder, registerErrorHandler, registerNotFoundHandler } from './lib/http';
 import { registerHealthRoutes } from './ops/health';
 import { registerUserRoutes } from './users/routes';
 import { registerCommunityRoutes } from './communities/routes';
@@ -118,8 +118,8 @@ export async function buildApp(config: AppConfig): Promise<BuiltApp> {
   registerAdminRoutes(app, ctx);
 
   // Serve the built single-page app (production). In development Vite serves it.
-  const indexHtml = path.join(config.webDistDir, 'index.html');
-  if (fs.existsSync(indexHtml)) {
+  const serveWeb = fs.existsSync(path.join(config.webDistDir, 'index.html'));
+  if (serveWeb) {
     await app.register(fastifyStatic, {
       root: config.webDistDir,
       prefix: '/',
@@ -134,15 +134,8 @@ export async function buildApp(config: AppConfig): Promise<BuiltApp> {
         }
       },
     });
-    app.setNotFoundHandler((request, reply) => {
-      const accept = String(request.headers.accept ?? '');
-      if (request.method === 'GET' && !request.url.startsWith('/api/') && accept.includes('text/html')) {
-        void reply.header('Cache-Control', 'no-cache').type('text/html').sendFile('index.html');
-        return;
-      }
-      void reply.status(404).send({ error: { code: 'not_found', message: 'Not found.' } });
-    });
   }
+  registerNotFoundHandler(app, { spaFallback: serveWeb });
 
   return { app, ctx };
 }

@@ -39,6 +39,11 @@ async function sha256File(file: string): Promise<string> {
   return hash.digest('hex');
 }
 
+/** Backup metadata safe to show in the admin UI (no server filesystem paths). */
+export function publicBackupInfo(b: BackupInfo): Omit<BackupInfo, 'path'> {
+  return { file: b.file, bytes: b.bytes, createdAt: b.createdAt };
+}
+
 export function listBackups(dir: string): BackupInfo[] {
   if (!fs.existsSync(dir)) return [];
   return fs

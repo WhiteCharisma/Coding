@@ -100,7 +100,7 @@ export function bauhaus(size: number, palette: string[], seed: string): Buffer {
   return render(size, (u, v, px) => {
     let c = mix(bg, [255, 255, 255], (1 - v) * 0.06);
     for (const s of shapes) {
-      let cover = 0;
+      let cover: number;
       if (s.kind === 'circle') {
         const d = Math.hypot(u - s.x, v - s.y);
         cover = 1 - smooth(s.r - px, s.r + px, d);

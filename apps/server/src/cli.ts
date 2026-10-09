@@ -56,7 +56,28 @@ function parseArgs(argv: string[]): { command: string; positional: string[]; fla
   return { command, positional, flags };
 }
 
+// Piped (non-TTY) input must be read through ONE line reader: a readline interface per
+// question would buffer and drop the remaining lines when it is closed.
+let pipedInput: { rl: readline.Interface; lines: AsyncIterator<string> } | null = null;
+
+async function readPipedLine(): Promise<string> {
+  if (!pipedInput) {
+    const rl = readline.createInterface({ input: process.stdin, terminal: false });
+    pipedInput = { rl, lines: rl[Symbol.asyncIterator]() };
+  }
+  const next = await pipedInput.lines.next();
+  if (next.done) throw new Error('Input ended before all answers were given.');
+  return next.value;
+}
+
 function ask(question: string): Promise<string> {
+  if (!process.stdin.isTTY) {
+    process.stdout.write(question);
+    return readPipedLine().then((line) => {
+      process.stdout.write('\n');
+      return line.trim();
+    });
+  }
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) =>
     rl.question(question, (answer) => {
@@ -69,7 +90,14 @@ function ask(question: string): Promise<string> {
 /** Reads a line without echoing it (falls back to a plain line read when stdin is not a TTY). */
 function askHidden(question: string): Promise<string> {
   const stdin = process.stdin;
-  if (!stdin.isTTY) return ask(question);
+  if (!stdin.isTTY) {
+    process.stdout.write(question);
+    // Do not trim: leading/trailing spaces are part of a password.
+    return readPipedLine().then((line) => {
+      process.stdout.write('\n');
+      return line;
+    });
+  }
   return new Promise((resolve, reject) => {
     process.stdout.write(question);
     stdin.setRawMode(true);
@@ -121,7 +149,7 @@ function zodParse<T>(schema: { parse: (v: unknown) => T }) {
       return schema.parse(v);
     } catch (err) {
       const issues = (err as { issues?: { message: string }[] }).issues;
-      throw new Error(issues?.[0]?.message ?? 'Invalid value');
+      throw new Error(issues?.[0]?.message ?? 'Invalid value', { cause: err });
     }
   };
 }
@@ -247,6 +275,7 @@ async function main(): Promise<void> {
         throw new Error(`Unknown command "${command}". Run with --help.`);
     }
   } finally {
+    pipedInput?.rl.close();
     close();
   }
 }

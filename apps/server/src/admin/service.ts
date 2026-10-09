@@ -12,7 +12,7 @@ import { randomCode } from '../lib/crypto';
 import { AppError, badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { notify } from '../notifications/service';
 import { readiness } from '../ops/health';
-import { listBackups } from '../ops/backup';
+import { listBackups, publicBackupInfo } from '../ops/backup';
 import { summaryColumns, toUserSummary, type UserRow } from '../users/dto';
 
 export interface AdminUserDTO {
@@ -74,6 +74,7 @@ export function overview(ctx: AppContext) {
     }
   }
   const mem = process.memoryUsage();
+  const latestBackup = listBackups(ctx.config.backupDir)[0];
   return {
     health: readiness(ctx),
     counts: {
@@ -94,7 +95,7 @@ export function overview(ctx: AppContext) {
       databaseBytes: dbBytes,
     },
     email: { transport: ctx.mailer.transport, enabled: ctx.mailer.enabled },
-    backups: { latest: listBackups(ctx.config.backupDir)[0] ?? null, intervalHours: ctx.config.backupIntervalHours },
+    backups: { latest: latestBackup ? publicBackupInfo(latestBackup) : null, intervalHours: ctx.config.backupIntervalHours },
   };
 }
 

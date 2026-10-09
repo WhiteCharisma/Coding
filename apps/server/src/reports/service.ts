@@ -39,7 +39,7 @@ function toReportDTOs(db: DbOrTx, rows: ReportRow[]): ReportDTO[] {
  * the content is stored so moderators can review it even if it is later edited.
  */
 export function createReport(ctx: AppContext, user: UserRow, input: z.output<typeof createReportSchema>): { id: string } {
-  let snapshot: Record<string, unknown> | null = null;
+  let snapshot: Record<string, unknown> | null;
   let communityId: string | null = null;
   let targetUserId: string | null = null;
   if (input.targetType === 'message') {

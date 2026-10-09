@@ -42,7 +42,19 @@ export function registerErrorHandler(app: FastifyInstance): void {
     void reply.status(500).send({ error: { code: 'internal', message: 'Something went wrong on our side. Please try again.' } });
   });
 
+}
+
+/**
+ * 404 handler. When the built web app is served, browser navigations to unknown
+ * non-API paths get index.html so client-side routes work on reload.
+ */
+export function registerNotFoundHandler(app: FastifyInstance, opts: { spaFallback: boolean }): void {
   app.setNotFoundHandler((request, reply) => {
+    const accept = String(request.headers.accept ?? '');
+    if (opts.spaFallback && request.method === 'GET' && !request.url.startsWith('/api/') && accept.includes('text/html')) {
+      void reply.header('Cache-Control', 'no-cache').type('text/html').sendFile('index.html');
+      return;
+    }
     void reply.status(404).send({ error: { code: 'not_found', message: `No route for ${request.method} ${request.url.split('?')[0]}` } });
   });
 }
