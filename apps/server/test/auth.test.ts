@@ -156,7 +156,7 @@ describe('CSRF and origin protection', () => {
       body: JSON.stringify({ login: 'x', password: 'y' }),
     });
     expect(res.status).toBe(403);
-    expect((await res.json()).error.code).toBe('csrf_rejected');
+    expect(((await res.json()) as any).error.code).toBe('csrf_rejected');
   });
 
   it('rejects requests from a foreign origin even with the header', async () => {

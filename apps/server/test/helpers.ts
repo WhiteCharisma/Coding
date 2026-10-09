@@ -60,7 +60,7 @@ export class TestClient {
 
   constructor(readonly baseUrl: string) {}
 
-  async req<T = any>(method: string, url: string, body?: unknown, opts: { headers?: Record<string, string>; raw?: BodyInit } = {}): Promise<Res<T>> {
+  async req<T = any>(method: string, url: string, body?: unknown, opts: { headers?: Record<string, string>; raw?: RequestInit['body'] } = {}): Promise<Res<T>> {
     const headers: Record<string, string> = {
       origin: ORIGIN,
       'x-requested-with': 'CreatorNetwork',

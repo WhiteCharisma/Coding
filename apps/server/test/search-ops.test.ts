@@ -70,7 +70,7 @@ describe('operations', () => {
   it('reports readiness', async () => {
     const res = await fetch(`${srv.url}/api/health/ready`);
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as any;
     expect(body.checks.database.ok).toBe(true);
   });
 

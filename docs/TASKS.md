@@ -17,33 +17,38 @@ Update this file in the same commit as the work it describes.
 - [ ] Loading / empty / error states, motion conventions, i18n dictionary
 
 ## Phase 2 — Database and authentication
-- [ ] Registration, login, logout, sessions (hashed tokens, sliding expiry, revocation)
-- [ ] Email verification + password reset (single-use, short-lived tokens)
-- [ ] Profiles, preferences, account deletion
-- [ ] CLI: create-admin / promote / reset-link
-- [ ] Tests
+- [x] Registration, login, logout, sessions (hashed tokens, sliding expiry, revocation) — server + tests
+- [x] Email verification + password reset (single-use, short-lived tokens) — server + tests
+- [x] Profiles, preferences, blocks, account deletion (anonymisation) — server + tests
+- [x] CLI: create-admin / promote / reset-link / backup / restore / seed-demo / purge-demo
+- [x] Tests: apps/server/test/auth.test.ts (22 tests)
+- [ ] UI for all of the above (frontend)
 
 ## Phase 3 — Communities and permissions
-- [ ] Communities, categories, channels, roles, overwrites, invites, bans, ownership transfer
-- [ ] Negative authorization tests
+- [x] Communities, categories, channels, roles, overwrites, invites, bans, ownership transfer — server
+- [x] Negative authorization tests: apps/server/test/communities.test.ts (19 tests)
+- [ ] UI (community settings, roles, members, invites)
 
 ## Phase 4 — Real-time messaging
-- [ ] Socket.IO auth + origin check, room authorization sync
-- [ ] Idempotent send with ack, history pagination, edit/delete, replies, reactions, pins
-- [ ] Mentions, read states, unread counts, typing, presence, notifications
-- [ ] DMs / group DMs, blocks
-- [ ] Reconnection catch-up + client outbox
-- [ ] Multi-user integration tests
+- [x] Socket.IO auth + origin check, room authorization sync
+- [x] Idempotent send with ack, history pagination, edit/delete, replies, reactions, pins
+- [x] Mentions, read states, unread counts, typing, presence, notifications
+- [x] DMs / group DMs, blocks, DM privacy policy
+- [~] Reconnection catch-up: server `after=` cursor done + tested; client outbox pending (frontend)
+- [x] Multi-user integration tests: messaging (16), realtime (14), dms (5)
 
 ## Phase 5 — Creative user experience
-- [ ] Uploads (signature validation, authz download), image/audio/video previews, waveform
-- [ ] Search (FTS5, authorization-filtered)
+- [x] Uploads (signature validation, authz download, ranges) — server + tests (uploads.test.ts, 9)
+- [ ] Image/audio/video previews, waveform rendering (frontend)
+- [x] Search (FTS5, authorization-filtered) — server + tests
+- [x] Demo seed: generated artwork (PNG) + synthesized audio (WAV) + conversations
 - [ ] Onboarding, home, explore, profiles, notifications UI, settings
 - [ ] Demo content (generated artwork + audio, clearly marked)
 
 ## Phase 6 — Administration and operations
-- [ ] Reports, moderation actions, suspensions, audit logs, admin dashboard
-- [ ] Health checks, logs, backups (SQLite online backup), restore
+- [x] Reports, moderation actions, suspensions, audit logs — server + tests (admin.test.ts, 11)
+- [ ] Admin dashboard UI
+- [x] Health checks, logs, backups (SQLite online backup), restore — server + tests (search-ops.test.ts)
 - [ ] Dockerfile, docker-compose.yml, Caddyfile, install/update/backup/restore scripts
 
 ## Phase 7 — Testing and optimization
