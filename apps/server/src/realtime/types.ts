@@ -22,6 +22,8 @@ export interface Realtime {
   /** Re-read a user's presence preference (e.g. switched to invisible) and broadcast changes. */
   refreshPresence(userId: string): void;
   connectedSocketCount(): number;
+  /** People in voice rooms right now (one session per account). */
+  voicePeerCount(): number;
 }
 
 export class NoopRealtime implements Realtime {
@@ -37,6 +39,9 @@ export class NoopRealtime implements Realtime {
   }
   refreshPresence(): void {}
   connectedSocketCount(): number {
+    return 0;
+  }
+  voicePeerCount(): number {
     return 0;
   }
 }

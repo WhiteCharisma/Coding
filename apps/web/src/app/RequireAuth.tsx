@@ -52,8 +52,9 @@ export default function RequireAuth() {
   }
   if (error && !ready) {
     return (
-      <div className="grid min-h-dvh place-items-center bg-main">
+      <div className="grid min-h-dvh place-items-center p-4">
         <EmptyState
+          className="glass rounded-3xl bg-overlay"
           icon={CloudOff}
           title={t('common.errors.offline')}
           body={error}

@@ -54,7 +54,9 @@ describe('admin access control', () => {
   });
 
   it('moderators can review but not change settings or roles', async () => {
-    expect((await mod.get('/api/admin/overview')).status).toBe(200);
+    const overview = await mod.get('/api/admin/overview');
+    expect(overview.status).toBe(200);
+    expect(overview.body.runtime.voicePeers).toBe(0); // people in voice rooms right now
     expect((await mod.get('/api/admin/settings')).status).toBe(403);
     expect((await mod.put(`/api/admin/users/${bob.user.id}/role`, { role: 'moderator' })).status).toBe(403);
     expect(

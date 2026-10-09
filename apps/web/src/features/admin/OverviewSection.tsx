@@ -25,7 +25,14 @@ export interface AdminOverview {
     openReports: number;
     uploadsBytes: number;
   };
-  runtime: { connectedSockets: number; rssMb: number; heapUsedMb: number; nodeVersion: string; databaseBytes: number };
+  runtime: {
+    connectedSockets: number;
+    voicePeers: number;
+    rssMb: number;
+    heapUsedMb: number;
+    nodeVersion: string;
+    databaseBytes: number;
+  };
   email: { transport: 'smtp' | 'outbox' | 'disabled'; enabled: boolean };
   backups: { latest: { file: string; bytes: number; createdAt: number } | null; intervalHours: number };
 }
@@ -138,7 +145,11 @@ export function OverviewSection({ query }: { query: UseQueryResult<AdminOverview
           tone={o.counts.openReports > 0 ? 'danger' : undefined}
         />
         <Stat label={t('admin.overview.sessions')} value={nf.format(o.counts.activeSessions)} />
-        <Stat label={t('admin.overview.sockets')} value={nf.format(o.runtime.connectedSockets)} />
+        <Stat
+          label={t('admin.overview.sockets')}
+          value={nf.format(o.runtime.connectedSockets)}
+          detail={t('admin.overview.inVoice', { count: o.runtime.voicePeers })}
+        />
         <Stat
           label={t('admin.overview.storage')}
           value={formatBytes(o.counts.uploadsBytes)}

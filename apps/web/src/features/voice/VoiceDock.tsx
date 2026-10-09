@@ -130,10 +130,10 @@ export function VoiceDock() {
         )}
       />
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-2 text-sm font-semibold text-fg" role="status">
+        <p className="flex items-center gap-2 text-sm font-semibold whitespace-nowrap text-fg" role="status">
           {status !== 'connected' && <Spinner className="size-3.5" />}
-          {label}
-          <span className="rounded-full border border-line px-1.5 text-[10px] font-semibold tracking-wide text-fg-muted uppercase">
+          <span className="truncate">{label}</span>
+          <span className="rounded-full border border-line px-1.5 text-[10px] font-semibold tracking-wide text-fg-muted uppercase max-sm:hidden">
             {mode === 'studio' ? t('voice.prefs.modeStudio') : t('voice.prefs.modeVoice')}
           </span>
         </p>
@@ -170,7 +170,7 @@ export function VoiceDock() {
         <Link
           to="/settings/voice"
           aria-label={t('voice.settings')}
-          className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'rounded-full' })}
+          className={buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'rounded-full max-sm:hidden' })}
         >
           <Settings2 />
         </Link>

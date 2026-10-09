@@ -20,7 +20,8 @@ export function VoiceJoinButton({ channelId, name }: { channelId: string; name: 
       <Button
         variant={here ? 'danger' : 'ghost'}
         size="icon"
-        className="relative rounded-full"
+        // On phones the call bar already has the hang-up button.
+        className={cn('relative rounded-full', here && 'max-md:hidden')}
         aria-label={here ? t('voice.leave') : t('voice.join')}
         onClick={() => (here ? useVoice.getState().leave() : void useVoice.getState().join(channelId))}
         data-testid="voice-join"

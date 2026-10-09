@@ -126,7 +126,12 @@ Update this file in the same commit as the work it describes.
   - measured in e2e (Chromium): 319.9 kbit/s Opus stereo, L/R separation ≥ 96 dB, voice 64.7k,
     mute = silence, resume without interrupting audio; via coturn 4.6.1: relayed at 319.9 kbit/s
   - not done: Firefox/Safari testing, SFU for large rooms, relay-only privacy mode
-- [ ] Responsive/a11y polish, docs, deployment and rollback notes
+- [ ] Responsive/a11y polish, docs, deployment and rollback notes (in progress)
+  - [x] call bar compacts on phones (label truncates; mode chip and settings link move to
+        Settings); the header voice button gives way to the room strip on phones; error and
+        offline screens as glass windows; Admin → Overview shows how many people are in voice
+  - [ ] upgrade test of a 0.1 deployment with `deploy/update.sh` (data kept), release notes with
+        OVH deployment, rollback and the approval list, final full checks
 
 ## Next steps (not done — require the owner's infrastructure or decisions)
 

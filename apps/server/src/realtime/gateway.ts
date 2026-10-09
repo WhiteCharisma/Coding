@@ -408,6 +408,10 @@ export class SocketGateway implements Realtime {
     return this.io.sockets.sockets.size;
   }
 
+  voicePeerCount(): number {
+    return this.voice.peerCount();
+  }
+
   /** Disconnects clients that cannot keep up; they reconnect and catch up from history. */
   private sweepSlowConsumers(): void {
     for (const socket of this.io.sockets.sockets.values()) {

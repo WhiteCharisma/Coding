@@ -15,8 +15,9 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
   override render() {
     if (!this.state.error) return this.props.children;
     return (
-      <div className="grid min-h-dvh place-items-center bg-main">
+      <div className="grid min-h-dvh place-items-center p-4">
         <EmptyState
+          className="glass rounded-3xl bg-overlay"
           icon={TriangleAlert}
           tone="danger"
           title={t('common.errors.crashedTitle')}

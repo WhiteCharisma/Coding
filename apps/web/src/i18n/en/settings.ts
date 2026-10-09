@@ -150,6 +150,7 @@ export const admin = {
     messages24h: 'Messages (24 h)',
     sessions: 'Active sessions (24 h)',
     sockets: 'Live connections',
+    inVoice: { one: '{count} person in voice', other: '{count} people in voice' },
     openReports: 'Open reports',
     storage: 'Uploaded files',
     database: 'Database size',

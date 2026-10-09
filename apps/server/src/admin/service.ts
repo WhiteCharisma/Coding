@@ -103,6 +103,7 @@ export function overview(ctx: AppContext) {
     },
     runtime: {
       connectedSockets: ctx.realtime.connectedSocketCount(),
+      voicePeers: ctx.realtime.voicePeerCount(),
       rssMb: Math.round(mem.rss / 1024 / 1024),
       heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
       nodeVersion: process.version,
