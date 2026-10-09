@@ -42,16 +42,16 @@ export function readiness(ctx: AppContext): ReadinessReport {
 
 export function registerHealthRoutes(app: FastifyInstance, ctx: AppContext): void {
   fs.mkdirSync(ctx.config.uploadsDir, { recursive: true });
+  // Public health endpoints only say whether the service is up; the detailed checks
+  // (disk space, migrations, uptime) are shown to staff in the admin overview.
+  // They are polled every 30 s by Docker, so they only log at warn level.
+  const opts = { config: { rateLimit: false }, logLevel: 'warn' as const };
   // Liveness: the process is up and serving requests.
-  app.get('/api/health', { config: { rateLimit: false } }, async () => ({
-    status: 'ok',
-    version: ctx.config.version,
-    uptimeSeconds: Math.round((Date.now() - ctx.startedAt) / 1000),
-  }));
-  // Readiness: dependencies (database, disk) are usable. Used by Docker's healthcheck.
-  app.get('/api/health/ready', { config: { rateLimit: false } }, async (_request, reply) => {
+  app.get('/api/health', opts, async () => ({ status: 'ok' }));
+  // Readiness: dependencies (database, uploads directory, disk space) are usable.
+  app.get('/api/health/ready', opts, async (_request, reply) => {
     const report = readiness(ctx);
     reply.status(report.status === 'ok' ? 200 : 503);
-    return report;
+    return { status: report.status };
   });
 }

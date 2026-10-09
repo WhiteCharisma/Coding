@@ -78,7 +78,7 @@ describe('operations', () => {
     const res = await fetch(`${srv.url}/api/health/ready`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as any;
-    expect(body.checks.database.ok).toBe(true);
+    expect(body).toEqual({ status: 'ok' }); // no internal details for anonymous callers
   });
 
   it('cleans up unattached uploads older than an hour', async () => {
