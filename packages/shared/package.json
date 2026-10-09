@@ -1,0 +1,16 @@
+{
+  "name": "@creator-network/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared validation schemas, permission constants and API types used by both the server and the web client. Must never import server-only code.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  }
+}

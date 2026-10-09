@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+apps/web/dist/
+apps/server/dist/
+*.tsbuildinfo
+
+# Runtime data — NEVER commit databases, uploads, backups or secrets
+data/
+backups/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+.env
+.env.*
+!.env.example
+
+# Test and tooling output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.vite/
+.cache/
+tmp/
+reports/raw/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
