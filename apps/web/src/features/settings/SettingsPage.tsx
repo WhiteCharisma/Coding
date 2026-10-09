@@ -1,16 +1,4 @@
-import {
-  AudioLines,
-  Bell,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  MonitorSmartphone,
-  Palette,
-  ShieldCheck,
-  ShieldHalf,
-  UserRound,
-  UserRoundCog,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, ShieldCheck } from 'lucide-react';
 import { Link, Navigate, useParams } from 'react-router';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
@@ -22,16 +10,9 @@ import { AccountSection, SessionsSection } from './AccountSection';
 import { AppearanceSection, NotificationsSection, PrivacySection } from './PreferenceSections';
 import { ProfileSection } from './ProfileSection';
 import { VoiceSection } from '../voice/VoiceSettings';
+import { SETTINGS_SECTIONS } from './sections';
 
-const SECTIONS = [
-  { key: 'profile', icon: UserRound },
-  { key: 'account', icon: UserRoundCog },
-  { key: 'sessions', icon: MonitorSmartphone },
-  { key: 'notifications', icon: Bell },
-  { key: 'voice', icon: AudioLines },
-  { key: 'appearance', icon: Palette },
-  { key: 'privacy', icon: ShieldHalf },
-] as const;
+const SECTIONS = SETTINGS_SECTIONS;
 type SectionKey = (typeof SECTIONS)[number]['key'];
 
 function isSection(v: string | undefined): v is SectionKey {

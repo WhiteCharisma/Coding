@@ -33,7 +33,15 @@ export async function setPresencePreference(presence: PresencePreference) {
   }
 }
 
-export function UserMenu({ side = 'right', className }: { side?: 'right' | 'top'; className?: string }) {
+export function UserMenu({
+  side = 'right',
+  size = 'lg',
+  className,
+}: {
+  side?: 'right' | 'top';
+  size?: 'sm' | 'lg';
+  className?: string;
+}) {
   const user = useSession((s) => s.user);
   const status = useChat((s) => (user ? (s.presence[user.id] ?? 'online') : 'offline'));
   const navigate = useNavigate();
@@ -49,7 +57,7 @@ export function UserMenu({ side = 'right', className }: { side?: 'right' | 'top'
             aria-label={t('shell.userMenu.label')}
             className={cn('rounded-full transition-transform active:scale-95', className)}
           >
-            <UserAvatar name={user.displayName} src={user.avatarUrl} size="lg" presence={shown} />
+            <UserAvatar name={user.displayName} src={user.avatarUrl} size={size} presence={shown} />
           </button>
         </MenuTrigger>
         <MenuContent side={side} align="end" className="w-64">

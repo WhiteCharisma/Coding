@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { errorMessage } from '../../lib/api';
 import { t } from '../../i18n';
+import { cn } from '../../lib/cn';
 import { Button } from './button';
 import { Dialog, DialogContent } from './dialog';
 
@@ -59,14 +60,17 @@ export function ConfirmDialog({
             <Button variant="ghost" onClick={() => onOpenChange(false)}>
               {t('common.actions.cancel')}
             </Button>
-            <Button
-              variant={danger ? 'danger' : 'primary'}
-              loading={busy}
-              disabled={confirmDisabled}
-              onClick={() => void run()}
-            >
-              {confirmLabel}
-            </Button>
+            {/* The default button breathes, as on Windows Vista (decorative; off with Calm motion). */}
+            <span className={cn('default-pulse decor inline-flex rounded-md', (busy || confirmDisabled) && 'paused')}>
+              <Button
+                variant={danger ? 'danger' : 'primary'}
+                loading={busy}
+                disabled={confirmDisabled}
+                onClick={() => void run()}
+              >
+                {confirmLabel}
+              </Button>
+            </span>
           </>
         }
       >

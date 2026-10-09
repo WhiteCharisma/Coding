@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { WINDOW_COLORS } from '../stores/ui';
 import tokensCss from './tokens.css?raw';
 
 /**
@@ -57,9 +58,16 @@ function parseTokens(block: string): Map<string, Oklch> {
   return tokens;
 }
 
+function parseNumbers(block: string): Map<string, number> {
+  const numbers = new Map<string, number>();
+  for (const m of block.matchAll(/--([\w-]+):\s*([\d.]+);/g)) numbers.set(m[1]!, Number(m[2]));
+  return numbers;
+}
+
 const [lightBlock = '', afterLight = ''] = tokensCss.split(":root[data-theme='dark']");
 const darkBlock = afterLight.split(':root {')[0] ?? '';
 const themes = { light: parseTokens(lightBlock), dark: parseTokens(darkBlock) };
+const themeNumbers = { light: parseNumbers(lightBlock), dark: parseNumbers(darkBlock) };
 
 const SKY = ['sky-1', 'sky-2', 'sky-3', 'sky-4'];
 /** Surfaces that carry text (the rail only carries icons and badges). */
@@ -153,4 +161,75 @@ describe.each(Object.entries(themes))('%s theme contrast', (_theme, tokens) => {
       }
     },
   );
+});
+
+/*
+ * Vista glass (styles/vista.css). Text on glass is checked over both extremes of the wallpaper
+ * behind it (--wallpaper-bright / --wallpaper-dark), with the reflection streaks on top.
+ */
+describe.each(Object.entries(themes))('%s theme: Vista glass', (theme, tokens) => {
+  const numbers = themeNumbers[theme as keyof typeof themeNumbers];
+  const color = (name: string): Oklch => {
+    const token = tokens.get(name);
+    if (!token) throw new Error(`token --${name} is not defined in this theme`);
+    return token;
+  };
+  const num = (name: string): number => {
+    const value = numbers.get(name);
+    if (value === undefined) throw new Error(`number --${name} is not defined in this theme`);
+    return value;
+  };
+  const solid = (name: string) => toLinearSrgb(color(name));
+  const WALLPAPER = ['wallpaper-bright', 'wallpaper-dark'];
+  /*
+   * The title's halo: three blurred copies of the text in --glass-title-glow (4, 8 and 14 px).
+   * Beside a single thin stroke they cover the glass by about 40 %; denser text gets more.
+   */
+  const HALO = 0.4;
+
+  it('window titles stay readable on the glass in every window colour, intensity and wallpaper', () => {
+    const glow = color('glass-title-glow');
+    const halo = { ...glow, alpha: glow.alpha * HALO };
+    const alphas = [num('frame-a-min'), num('frame-a-max'), 1 /* transparency off */];
+    for (const [name, { h, c }] of Object.entries(WINDOW_COLORS)) {
+      for (const alpha of alphas) {
+        for (const wallpaper of WALLPAPER) {
+          const glass = over(color('streak'), over({ l: num('frame-l'), c, h, alpha }, solid(wallpaper)));
+          const where = `${name} glass at ${alpha} over ${wallpaper}`;
+          expect(contrast(solid('glass-title'), over(halo, glass)), where).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+  });
+
+  it('taskbar, Start menu and gadget text stays readable on black glass', () => {
+    // The lightest part of each black glass, over the wallpaper or over a window (Start menu).
+    for (const tint of ['taskbar-hi', 'gadget-hi']) {
+      for (const behind of [...WALLPAPER, 'bg-main']) {
+        const glass = over(color('streak'), over(color(tint), solid(behind)));
+        for (const text of ['taskbar-text', 'taskbar-text-muted'])
+          expect(contrast(solid(text), glass), `${text} on ${tint} over ${behind}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it('text stays readable on the command bar and information bars of a window', () => {
+    for (const band of ['command-hi', 'command-mid', 'command-lo']) {
+      for (const text of ['text', 'text-2', 'text-muted', 'accent-text'])
+        expect(contrast(solid(text), solid(band)), `${text} on ${band}`).toBeGreaterThanOrEqual(4.5);
+      // The call bar mixes the success wash into the command bar (styles/vista.css).
+      const call = over({ ...color('success-soft'), alpha: color('success-soft').alpha * 0.8 }, solid(band));
+      for (const text of ['text', 'text-2', 'success'])
+        expect(contrast(solid(text), call), `${text} on the call bar (${band})`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it('taskbar icons stay visible while a button flashes for attention', () => {
+    for (const band of ['attention-hi', 'attention-mid', 'attention-lo']) {
+      for (const behind of WALLPAPER) {
+        const button = over(color(band), over(color('taskbar-hi'), solid(behind)));
+        expect(contrast(solid('taskbar-text'), button), `${band} over ${behind}`).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
 });

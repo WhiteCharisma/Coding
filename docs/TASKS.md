@@ -152,6 +152,42 @@ Update this file in the same commit as the work it describes.
     scrolling faster (p50 82 → 69 ms), fewer long tasks (585 → 281 ms)
   - still slower: opening a channel with long history (+≈0.25 s in software rendering)
 
+- [x] Windows Vista Aero Glass desktop (owner's request: "un vrai effet glass windows vista",
+      free to move the interface around, lots of animated effects) — docs/DESIGN.md → Aero Glass
+  - [x] real glass material: blur + saturation + window-colour tint + reflection streaks +
+        glowing titles; 12 window colours, intensity and "Enable transparency" (Settings →
+        Appearance, applied before the first paint); contrast tests for titles on glass (all
+        colours, both ends of the intensity, transparency off), black glass, command bars and
+        the attention flash
+  - [x] the app is one Vista window: glass title area, caption buttons (minimise to the taskbar,
+        maximise remembered per device, close = Home), address bar with Back/Forward orbs, a
+        breadcrumb whose arrows list the places below, and a search box scoped to where you are
+  - [x] desktop: animated Frutiger Aero wallpaper (sun rays, clouds, ribbons, hills, bubbles,
+        sparkles; aurora and stars at night), black-glass taskbar with the Start orb, places,
+        communities glowing in their colour, thumbnails with what is new, an orange flash for
+        mentions, notification area (voice, connection, sounds, you, clock, Show desktop); Start
+        menu with Start Search; gadgets (clock, voice, who is online) from 1360 px
+  - [x] dialogs as Vista windows (focus on the first field, not on Close), balloon toasts,
+        pulsing default button, pale tooltips; public pages and onboarding (an Aero wizard) as
+        glass windows on the same desktop; phones keep a full-screen layout with a glass tab bar
+  - [x] animations: window open/restore/minimise/maximise, title light sweep, Start menu rise,
+        taskbar hot-track glow, attention flash, balloon pop, default-button pulse; Calm/Reduce
+        respected
+  - [x] fixed on the way: presence showed a reloading user as offline (to themselves and to
+        anyone loading a member list during the reconnect grace period), tailwind-merge kept a
+        component's default animation next to a caller's (custom animations now registered), a
+        "Location" landmark collided with the profile's Location field
+  - [x] measured and fixed (docs/PERFORMANCE.md → Vista desktop): a `:root:has()` rule restyled
+        the whole document on every change (sending took twice as long); the wallpaper's sky
+        (12 gradients) was repainted under the message list (opening a long channel +0.2 s);
+        the moving wallpaper slowed scrolling 2.4× in software rendering → it now holds still
+        while you scroll or type, behind dialogs and a maximised window, in the background and
+        after a minute without input (idle cost 103 % → 2 % of a core); the taskbar re-rendered
+        its whole notification area (and created date formatters) on every message
+  - [x] tests: unit (desktop store, glass settings + pre-paint script, wallpaper pausing, cn
+        animations, presence tracker), e2e `desktop-shell.spec.ts` (Start menu, caption buttons,
+        address bar, window colour, mention flash + thumbnail)
+
 ## Next steps (not done — require the owner's infrastructure or decisions)
 
 1. Release 0.2 on the production server (OVH, `/opt/creator-network`): follow
@@ -167,6 +203,11 @@ Update this file in the same commit as the work it describes.
 7. Product decisions: license, privacy policy and terms, community guidelines, moderators.
 8. Next candidates (docs/ROADMAP.md): Web Push, data export, more languages; an SFU for voice
    rooms larger than 8; measure rendering on real phones (opening long channels).
+9. Measure the Vista desktop on real computers with graphics acceleration (here: headless
+   software rendering only, docs/PERFORMANCE.md → Vista desktop) and decide whether computers
+   without acceleration should get a still wallpaper by default.
+10. Privacy: the `presence:query` socket event answers for any user id; restrict it to people who
+    share a community or a conversation with the asker (found while fixing presence, not changed).
 
 ## Environment (recorded 2026-10-09)
 

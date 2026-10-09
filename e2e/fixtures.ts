@@ -133,6 +133,14 @@ export async function sendMessage(page: Page, text: string, via: 'enter' | 'butt
   else await page.getByTestId('composer-send').click();
 }
 
+/**
+ * Waits until the app window has finished its opening animation (it zooms in on every page
+ * load on desktops): measure geometry only after that, since a transform scales every box.
+ */
+export async function windowSettled(page: Page): Promise<void> {
+  await expect(page.getByTestId('app-window')).not.toHaveAttribute('data-anim', /./);
+}
+
 /** The newest message whose own text (not a quoted reply preview) contains `text`. */
 export function messageRow(page: Page, text: string | RegExp) {
   return page

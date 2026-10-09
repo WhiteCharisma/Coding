@@ -196,7 +196,7 @@ export function ContextPanel({
     return (
       <aside
         aria-label={title}
-        className="flex w-[var(--context-width)] shrink-0 flex-col border-l border-line-subtle bg-hover animate-fade-in"
+        className="aero-detailspane flex w-[var(--context-width)] shrink-0 flex-col animate-fade-in"
       >
         <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center justify-between px-4">
           <h2 className="font-display text-sm font-semibold text-fg">{title}</h2>

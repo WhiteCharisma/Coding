@@ -8,6 +8,7 @@ import {
   type UserSummary,
 } from '@creator-network/shared';
 import { useQuery } from '@tanstack/react-query';
+import type { CSSProperties } from 'react';
 import { Play, Volume2 } from 'lucide-react';
 import { t } from '../../i18n';
 import { api, errorMessage } from '../../lib/api';
@@ -15,7 +16,7 @@ import { cn } from '../../lib/cn';
 import { playSound, setSoundPref, useSoundPrefs, type SoundChannel, type SoundName } from '../../lib/sounds';
 import { useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
-import { useUi, type Density, type MotionPref, type Theme } from '../../stores/ui';
+import { useUi, WINDOW_COLORS, type Density, type MotionPref, type Theme, type WindowColor } from '../../stores/ui';
 import { CommunityIcon } from '../../components/community/CommunityIcon';
 import { Button } from '../../components/ui/button';
 import { Select } from '../../components/ui/input';
@@ -152,6 +153,72 @@ export function NotificationsSection({ user }: { user: SelfUser }) {
   );
 }
 
+/** Vista's "Window Color and Appearance": glass colour, its intensity and transparency, previewed live. */
+function WindowColorCard() {
+  const glass = useUi((s) => s.glass);
+  const setGlass = useUi((s) => s.setGlass);
+  const colors = Object.entries(WINDOW_COLORS) as [WindowColor, (typeof WINDOW_COLORS)[WindowColor]][];
+  return (
+    <SettingsCard title={t('settings.appearance.windowColor')} description={t('settings.appearance.windowColorHint')}>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <fieldset>
+            <legend className="sr-only">{t('settings.appearance.windowColor')}</legend>
+            <div className="flex flex-wrap gap-2">
+              {colors.map(([key, { h, c }]) => (
+                <label key={key} title={t(`settings.appearance.colorName.${key}`)} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="window-color"
+                    value={key}
+                    checked={glass.color === key}
+                    onChange={() => setGlass({ color: key })}
+                    className="peer sr-only"
+                  />
+                  <span
+                    aria-hidden
+                    className="swatch block peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--ring)]"
+                    style={{ '--swatch-h': h, '--swatch-c': c } as CSSProperties}
+                  />
+                  <span className="sr-only">{t(`settings.appearance.colorName.${key}`)}</span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-sm font-semibold text-fg-2" aria-live="polite">
+              {t(`settings.appearance.colorName.${glass.color}`)}
+            </p>
+          </fieldset>
+          <div className="flex items-center gap-3">
+            <span className="shrink-0 text-sm text-fg-2">{t('settings.appearance.intensity')}</span>
+            <Slider
+              label={t('settings.appearance.intensity')}
+              valueText={`${glass.strength} %`}
+              value={glass.strength}
+              min={0}
+              max={100}
+              onValueChange={(strength) => setGlass({ strength })}
+              className="max-w-xs"
+            />
+          </div>
+          <Switch
+            className="py-0"
+            label={t('settings.appearance.transparency')}
+            description={t('settings.appearance.transparencyHint')}
+            checked={glass.transparency}
+            onCheckedChange={(transparency) => setGlass({ transparency })}
+          />
+        </div>
+        <figure className="shrink-0" aria-label={t('settings.appearance.preview')}>
+          <div className="aero-preview aero-glass">
+            <p className="glass-text px-2 py-1.5 text-xs">{t('settings.appearance.previewTitle')}</p>
+            <div className="aero-preview-client">{t('settings.appearance.previewBody')}</div>
+          </div>
+        </figure>
+      </div>
+    </SettingsCard>
+  );
+}
+
 export function AppearanceSection() {
   const theme = useUi((s) => s.theme);
   const density = useUi((s) => s.density);
@@ -172,6 +239,7 @@ export function AppearanceSection() {
           ]}
         />
       </SettingsCard>
+      <WindowColorCard />
       <SettingsCard title={t('settings.appearance.density')}>
         <Segmented<Density>
           label={t('settings.appearance.density')}

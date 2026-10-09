@@ -2,9 +2,10 @@ import { Compass } from 'lucide-react';
 import { Link } from 'react-router';
 import { t } from '../i18n';
 import { LogoMark } from '../components/brand/Logo';
-import { SkyArt } from '../components/brand/SkyArt';
 import { buttonVariants } from '../components/ui/button';
 import { EmptyState } from '../components/ui/empty-state';
+import { GlassWindow } from '../components/ui/glass-window';
+import { PublicDesktop } from '../features/shell/Wallpaper';
 
 export function FullscreenSpinner() {
   return (
@@ -18,19 +19,20 @@ export function FullscreenSpinner() {
 
 export function NotFoundPage() {
   return (
-    <div className="relative grid min-h-dvh place-items-center p-4">
-      <SkyArt />
-      <EmptyState
-        className="glass relative rounded-3xl bg-overlay"
-        icon={Compass}
-        title={t('common.errors.notFoundTitle')}
-        body={t('common.errors.notFoundBody')}
-        actions={
-          <Link to="/" className={buttonVariants({ variant: 'primary' })}>
-            {t('common.errors.goHome')}
-          </Link>
-        }
-      />
-    </div>
+    <main id="main" className="relative grid min-h-dvh place-items-center p-4">
+      <PublicDesktop />
+      <GlassWindow title={t('common.appName')} icon={<LogoMark className="size-4" />} className="w-full max-w-md">
+        <EmptyState
+          icon={Compass}
+          title={t('common.errors.notFoundTitle')}
+          body={t('common.errors.notFoundBody')}
+          actions={
+            <Link to="/" className={buttonVariants({ variant: 'primary' })}>
+              {t('common.errors.goHome')}
+            </Link>
+          }
+        />
+      </GlassWindow>
+    </main>
   );
 }

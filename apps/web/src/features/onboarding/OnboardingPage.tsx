@@ -16,10 +16,10 @@ import { cn } from '../../lib/cn';
 import { useReduceMotion } from '../../lib/motion';
 import { useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
-import { Logo } from '../../components/brand/Logo';
-import { SkyArt } from '../../components/brand/SkyArt';
+import { LogoMark } from '../../components/brand/Logo';
 import { CommunityIcon } from '../../components/community/CommunityIcon';
 import { Button } from '../../components/ui/button';
+import { GlassWindow } from '../../components/ui/glass-window';
 import { Field, Input, Textarea } from '../../components/ui/input';
 import { Skeleton } from '../../components/ui/skeleton';
 import { toast } from '../../components/ui/toast';
@@ -27,6 +27,7 @@ import { AvatarUploader } from '../../components/user/AvatarUploader';
 import { DisciplinePicker } from '../../components/user/DisciplinePicker';
 import { CreateCommunityForm, JoinWithInvite } from '../community/CreateJoinDialog';
 import { CommunityCard, useExplore } from '../explore/ExplorePage';
+import { PublicDesktop } from '../shell/Wallpaper';
 
 const STEPS = ['profile', 'disciplines', 'community', 'tour'] as const;
 type Step = (typeof STEPS)[number];
@@ -236,17 +237,30 @@ export default function OnboardingPage() {
   return (
     <LazyMotion features={domAnimation} strict>
       <div className="relative flex min-h-dvh flex-col">
-        <SkyArt />
-        <header className="relative mx-auto w-full max-w-2xl px-4 pt-4 sm:px-6">
-          <div className="glass flex items-center justify-between gap-4 rounded-2xl bg-elevated py-2 pr-4 pl-3">
-            <Logo name={config?.instanceName ?? t('common.appName')} />
-            <span className="text-xs font-semibold text-fg-muted">
-              {t('onboarding.progress', { current: stepIndex + 1, total: STEPS.length })}
-            </span>
-          </div>
-        </header>
-        <main id="main" className="relative mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-32 sm:px-6">
-          <div className="glass overflow-hidden rounded-3xl bg-overlay">
+        <PublicDesktop />
+        <main id="main" className="relative mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-10 sm:px-6 sm:pt-8">
+          <GlassWindow
+            title={config?.instanceName ?? t('common.appName')}
+            icon={<LogoMark className="size-4" />}
+            bodyClassName="overflow-visible"
+            // A Vista wizard: the round Back button sits on the glass, Next at the bottom right.
+            leading={
+              <button
+                type="button"
+                className="nav-orb -ml-0.5"
+                aria-label={t('common.actions.back')}
+                onClick={() => go(-1)}
+                disabled={stepIndex === 0 || busy}
+              >
+                <ArrowLeft />
+              </button>
+            }
+            aside={
+              <span className="glass-text shrink-0 pr-1 text-xs font-semibold">
+                {t('onboarding.progress', { current: stepIndex + 1, total: STEPS.length })}
+              </span>
+            }
+          >
             <div className="flex gap-1.5 px-6 pt-6 sm:px-8" aria-hidden>
               {STEPS.map((s, i) => (
                 <span
@@ -333,19 +347,7 @@ export default function OnboardingPage() {
                 </m.div>
               </AnimatePresence>
             </div>
-          </div>
-        </main>
-        <footer className="glass fixed inset-x-0 bottom-0 rounded-none border-x-0 border-b-0 bg-elevated">
-          <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-5 py-4 sm:px-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <Button
-              variant="ghost"
-              onClick={() => go(-1)}
-              disabled={stepIndex === 0 || busy}
-              className={cn(stepIndex === 0 && 'invisible')}
-            >
-              <ArrowLeft /> {t('common.actions.back')}
-            </Button>
-            <div className="flex items-center gap-2">
+            <div className="sticky bottom-0 z-10 flex items-center justify-end gap-2 rounded-b-[2px] border-t border-line-subtle bg-sidebar px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-8">
               {step !== 'tour' && (
                 <Button variant="ghost" onClick={() => go(1)} disabled={busy}>
                   {t('common.actions.skip')}
@@ -362,8 +364,8 @@ export default function OnboardingPage() {
                 {step !== 'tour' && <ArrowRight />}
               </Button>
             </div>
-          </div>
-        </footer>
+          </GlassWindow>
+        </main>
       </div>
     </LazyMotion>
   );

@@ -117,7 +117,8 @@ export function VoiceDock() {
   return (
     <section
       aria-label={t('voice.connected')}
-      className="glass pane flex shrink-0 items-center gap-3 bg-elevated px-3 py-2 animate-rise-in max-md:rounded-none max-md:border-x-0"
+      className="aero-infobar flex shrink-0 items-center gap-3 px-3 py-2 animate-rise-in"
+      data-tone="call"
       data-testid="voice-dock"
       data-status={status}
     >

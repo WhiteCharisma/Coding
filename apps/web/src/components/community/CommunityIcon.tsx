@@ -4,6 +4,7 @@ import { hueFor, initials } from '../../lib/format';
 
 // Communities are glossy bubbles (people are framed squares, see UserAvatar).
 const sizes = {
+  xs: 'size-5 text-[9px]',
   sm: 'size-8 text-xs',
   md: 'size-12 text-base',
   lg: 'size-16 text-xl',

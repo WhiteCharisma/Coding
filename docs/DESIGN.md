@@ -7,48 +7,61 @@ spacing scales or one-off durations.
 
 ## Direction
 
-**"Aero" — glass windows floating in a bright sky.** The look of the Windows Vista / 7 era and
-classic desktop messengers, rebuilt with today's tools and in an original form: translucent
-pearl panels with polished edges, a sky behind everything (sun, clouds, a few glass bubbles),
-glossy controls with a highlight on their upper half, and luminous sky-blue and aqua accents.
-It should feel optimistic, clean and a little nostalgic, never like a generic dark SaaS tool.
+**"Aero" — a Windows Vista desktop of real glass over a living Frutiger Aero scene.** The look of
+the Vista / 7 era and classic desktop messengers, rebuilt with today's tools and in an original
+form: the app is a window with a true Aero Glass frame (blurred, tinted in the window colour you
+choose, with diagonal reflections and a glowing title), standing on an animated wallpaper (sun
+rays, clouds, ribbons of light, green hills, rising bubbles; an aurora at night), with a
+black-glass taskbar, a Start menu and gadgets. Controls are glossy with a highlight on their
+upper half, accents are luminous sky blue and aqua. It should feel optimistic, clean and a
+little nostalgic, never like a generic dark SaaS tool.
 
 - **Two moods, one structure.** _Daylight_ (default): azure sky fading to a pearl horizon,
   white glass, deep-navy text. _Twilight_: deep ocean night with an aurora ribbon and a cyan
   horizon glow, smoked glass, pearl text. Settings → Appearance (or the system setting) picks one.
-- **Glass carries hierarchy.** Instead of darker/lighter surface steps, panes differ in how much
-  sky shows through: the rail dock is the most transparent, the conversation pane the most
-  solid (so long reading stays calm). Panes are separated by a strip of sky, not by borders.
+- **Glass is the frame, never the page.** Real glass sits where Vista had it: window frames and
+  title areas, dialogs, the taskbar, the Start menu, gadgets, tooltips over the taskbar. What
+  you read (messages, settings, profiles) sits on opaque window content, so long reading stays
+  calm and nothing has to be re-blurred while it scrolls (see Aero Glass).
 - **Gloss is for things you can press.** Buttons, the rail's bubbles, badges, toggles and the
   logo get a specular highlight; content (messages, profiles) stays flat and readable.
 - **Colour:** sky blue and aqua for actions and selection, white/pearl and silver for chrome,
   deep ocean navy for text, lavender and an iridescent gradient only as rare highlights.
-- **Calm.** The sky is painted once and never animates; light sweeps play once on hover;
-  motion is short and purposeful (see Motion).
+- **Alive, but quiet.** The wallpaper moves gently (only `transform`/`opacity`) while someone
+  can enjoy it, and holds still otherwise: while you scroll or type, behind a dialog or a
+  maximised window, while the browser is in the background, after a minute without input, and
+  always with Calm or Reduce motion. Everything else plays once: windows zoom open, a light
+  sweeps across a new title bar, the Start menu rises (see Motion).
 - **Original artwork only**: the logo (a glossy sky orb with a sound-wave ribbon), the sky
-  scenes (pure CSS gradients), the auth/welcome art and the demo images/audio are made in this
-  repository. No Microsoft assets, fonts, sounds or screenshots are used.
+  scenes and the wallpaper (CSS gradients and inline SVG), the auth/welcome art and the demo
+  images/audio are made in this repository. No Microsoft assets, fonts, sounds, wallpapers or
+  screenshots are used; the Vista look is rebuilt from its ideas (glass, glow, gloss), not copied.
 
 ## Colour tokens
 
 Colours are defined in OKLCH so lightness steps are perceptually even. Light values sit in
 `:root` / `[data-theme='light']`, dark ones in `[data-theme='dark']`.
 
-| Group    | Tokens                                                                                      | Use                                                                                                |
-| -------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Sky      | `--sky-1` … `--sky-4`, `--sun`, `--cloud`, `--cloud-shade`                                  | The page background (`--sky-scene` in `app.css`), top to horizon                                   |
-| Glass    | `--bg-rail` → `--bg-sidebar` → `--bg-main` → `--bg-elevated` → `--bg-overlay`; `--bg-inset` | Translucent surfaces, least to most opaque. `--bg-app` is the solid fallback colour                |
-| Material | `--glass-blur`, `--glass-edge`, `--glass-edge-low`, `--glass-sheen`, `--glass-shadow`       | Polished rim, lower edge, specular highlight and drop shadow of a pane                             |
-| States   | `--bg-hover`, `--bg-active`, `--bg-selected`, `--scrim`                                     | Translucent washes so they work on any glass                                                       |
-| Borders  | `--border-subtle`, `--border`, `--border-strong`                                            | Hairlines inside panes                                                                             |
-| Text     | `--text`, `--text-2`, `--text-muted`, `--text-faint`                                        | Deep navy (Daylight) / pearl (Twilight). `--text-faint` is for icons and marks, never text         |
-| Accent   | `--accent`, `-hi`, `-lo`, `-hover`, `-press`, `-fg`, `-text`, `-soft`, `-border`, `-glow`   | Glossy fills run `-hi` → `-lo`; `--accent-fg` is the navy label on them; `--accent-text` for links |
-| Support  | `--aqua`, `--lavender`, `--iridescent`                                                      | Freshness (aqua) and the rare iridescent touch (brand, special highlights)                         |
-| Semantic | `--success`, `--warning`, `--danger`, `--info` (+ `-soft`; `--danger-fg`, `--success-fg`)   | Status only                                                                                        |
-| Presence | `--presence-online/idle/dnd/offline` and `-rim`                                             | Glossy orbs with a darker rim; always paired with a distinct shape (see Accessibility)             |
-| Messages | `--mention-bg`, `--mention-bar`, `--code-bg`                                                | Mentions of you get a soft sky wash and a left bar                                                 |
-| Focus    | `--ring`, `--ring-glow`                                                                     | 2 px outline plus a soft luminous halo on `:focus-visible`                                         |
-| Controls | `--knob`, `--knob-hi`                                                                       | Pearl knobs (switch thumb, avatar mounts, logo highlights)                                         |
+| Group      | Tokens                                                                                              | Use                                                                                                                                                              |
+| ---------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sky        | `--sky-1` … `--sky-4`, `--sun`, `--cloud`, `--cloud-shade`                                          | The page background (`--sky-scene` in `app.css`), top to horizon                                                                                                 |
+| Glass      | `--bg-rail` → `--bg-sidebar` → `--bg-main` → `--bg-elevated` → `--bg-overlay`; `--bg-inset`         | Translucent surfaces, least to most opaque. `--bg-app` is the solid fallback colour                                                                              |
+| Material   | `--glass-blur`, `--glass-edge`, `--glass-edge-low`, `--glass-sheen`, `--glass-shadow`               | Polished rim, lower edge, specular highlight and drop shadow of a pane                                                                                           |
+| States     | `--bg-hover`, `--bg-active`, `--bg-selected`, `--scrim`                                             | Translucent washes so they work on any glass                                                                                                                     |
+| Borders    | `--border-subtle`, `--border`, `--border-strong`                                                    | Hairlines inside panes                                                                                                                                           |
+| Text       | `--text`, `--text-2`, `--text-muted`, `--text-faint`                                                | Deep navy (Daylight) / pearl (Twilight). `--text-faint` is for icons and marks, never text                                                                       |
+| Accent     | `--accent`, `-hi`, `-lo`, `-hover`, `-press`, `-fg`, `-text`, `-soft`, `-border`, `-glow`           | Glossy fills run `-hi` → `-lo`; `--accent-fg` is the navy label on them; `--accent-text` for links                                                               |
+| Support    | `--aqua`, `--lavender`, `--iridescent`                                                              | Freshness (aqua) and the rare iridescent touch (brand, special highlights)                                                                                       |
+| Semantic   | `--success`, `--warning`, `--danger`, `--info` (+ `-soft`; `--danger-fg`, `--success-fg`)           | Status only                                                                                                                                                      |
+| Presence   | `--presence-online/idle/dnd/offline` and `-rim`                                                     | Glossy orbs with a darker rim; always paired with a distinct shape (see Accessibility)                                                                           |
+| Messages   | `--mention-bg`, `--mention-bar`, `--code-bg`                                                        | Mentions of you get a soft sky wash and a left bar                                                                                                               |
+| Focus      | `--ring`, `--ring-glow`                                                                             | 2 px outline plus a soft luminous halo on `:focus-visible`                                                                                                       |
+| Controls   | `--knob`, `--knob-hi`                                                                               | Pearl knobs (switch thumb, avatar mounts, logo highlights)                                                                                                       |
+| Frame      | `--frame-l`, `--frame-a-min/max`, `--frame-edge`, `--frame-highlight`, `--frame-shadow`, `--streak` | Aero Glass frames: lightness and opacity range of the tint (hue and chroma come from the window colour), dark outer edge, bright inner edge, shadow, reflections |
+| Glass text | `--glass-title`, `--glass-title-glow`                                                               | Text printed on glass and the halo behind it                                                                                                                     |
+| Window     | `--command-hi/mid/lo/edge`, `--caption-*`, `--orb-*`                                                | Command bar and information bars, caption buttons (red close), round glass buttons (Back, Start)                                                                 |
+| Taskbar    | `--taskbar-hi/lo/text/text-muted/edge`, `--gadget-hi/lo`, `--attention-*`                           | Black glass (taskbar, Start menu, gadgets, thumbnails) and the orange "needs you" flash                                                                          |
+| Wallpaper  | `--wp-grass-*`, `--wp-swoosh-*`, `--wp-aurora-*`, `--wallpaper-bright/dark`                         | The animated scene; `--wallpaper-bright/dark` are its extremes, used by the contrast tests                                                                       |
 
 Tailwind names map to tokens: `bg-main`, `bg-elevated`, `text-fg`, `text-fg-muted`,
 `border-line`, `bg-accent`, `from-accent-hi`, `text-accent-text`, `bg-danger-soft`, …
@@ -57,35 +70,90 @@ Tailwind names map to tokens: `bg-main`, `bg-elevated`, `text-fg`, `text-fg-mute
 
 Reusable classes in `app.css` (components layer):
 
-| Class                 | What it does                                                                                                                                                                                                                                                |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `body::before`        | Paints `--sky-scene` once behind everything (fixed, not animated). The sky is `--sky-frost` (sun, clouds, aurora, gradient) plus crisp details (bubbles, stars)                                                                                             |
-| `.glass`              | Backdrop blur + saturation, polished rim, inner top highlight and lower edge, drop shadow. Colour comes from the surface class next to it (`glass bg-sidebar`). The live blur is for overlays and small surfaces (menus, dialogs, toasts, the composer)     |
-| `.pane`               | A window: clips its content and rounds its corners (`--pane-radius`) from 768 px up. Frosted without a live blur: a picture of `--sky-frost` (`--sky-frost-image`) fixed to the viewport under the tint (`bg-main`, `bg-sidebar`, `bg-rail`, `bg-elevated`) |
-| `.titlebar`           | Brighter band with a glossy upper half, for pane headers and dialog titles                                                                                                                                                                                  |
-| `.gloss`              | Specular highlight over the upper ~40 % of a control (behind its label)                                                                                                                                                                                     |
-| `.sheen-hover`        | One light sweep across a glossy control on hover (pointer devices only, no loop)                                                                                                                                                                            |
-| `.iridescent-text`    | Iridescent gradient text for rare highlights                                                                                                                                                                                                                |
-| `.tile`, `.tile-link` | Glass card inside a pane (`--bg-tile`); `tile-link` lifts slightly and catches a sky-blue edge on hover                                                                                                                                                     |
-| `.aero-item`          | List rows (channels, conversations, settings, menus): soft edge on hover; when current/selected (`aria-current`, `aria-selected`, `data-selected`, `data-highlighted`) a pale glossy band with a crisp blue edge, in the spirit of Windows 7 selection      |
-| `.chip`               | Toggle pills (filters, tags, disciplines): pearl glass, glossy sky blue when `aria-pressed`/`aria-selected`                                                                                                                                                 |
-| `.photo-frame`        | Polished rim over photos in messages                                                                                                                                                                                                                        |
-| `.bubble`             | A soap-glass bubble (decoration only, never animated)                                                                                                                                                                                                       |
-| `.role-name`          | A name in its community role colour (`--role`): hue kept, lightness clamped per theme so any colour stays ≥ 4.5:1                                                                                                                                           |
-| `.avatar-frame`       | Display picture behind glass: inner rim and a soft reflection over the photo                                                                                                                                                                                |
-| `.avatar-mount`       | Pearl frame for large pictures, glowing in the person's presence colour (`data-presence`)                                                                                                                                                                   |
-| `.emboss`             | Soft shadow under white labels printed on coloured pictures and bubbles                                                                                                                                                                                     |
+| Class                 | What it does                                                                                                                                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `body::before`        | Paints `--sky-scene` once behind everything (fixed, not animated). The sky is `--sky-frost` (sun, clouds, aurora, gradient) plus crisp details (bubbles, stars); on computers the animated wallpaper covers it                                         |
+| `.glass`              | Backdrop blur + saturation, polished rim, inner top highlight and lower edge, drop shadow. Colour comes from the surface class next to it (`glass bg-overlay`). For small overlays (menus, popovers, toasts, the composer)                             |
+| `.titlebar`           | Brighter band with a glossy upper half, for pane headers and dialog titles                                                                                                                                                                             |
+| `.gloss`              | Specular highlight over the upper ~40 % of a control (behind its label)                                                                                                                                                                                |
+| `.sheen-hover`        | One light sweep across a glossy control on hover (pointer devices only, no loop)                                                                                                                                                                       |
+| `.iridescent-text`    | Iridescent gradient text for rare highlights                                                                                                                                                                                                           |
+| `.tile`, `.tile-link` | Glass card inside a pane (`--bg-tile`); `tile-link` lifts slightly and catches a sky-blue edge on hover                                                                                                                                                |
+| `.aero-item`          | List rows (channels, conversations, settings, menus): soft edge on hover; when current/selected (`aria-current`, `aria-selected`, `data-selected`, `data-highlighted`) a pale glossy band with a crisp blue edge, in the spirit of Windows 7 selection |
+| `.chip`               | Toggle pills (filters, tags, disciplines): pearl glass, glossy sky blue when `aria-pressed`/`aria-selected`                                                                                                                                            |
+| `.photo-frame`        | Polished rim over photos in messages                                                                                                                                                                                                                   |
+| `.bubble`             | A soap-glass bubble (decoration only, never animated)                                                                                                                                                                                                  |
+| `.role-name`          | A name in its community role colour (`--role`): hue kept, lightness clamped per theme so any colour stays ≥ 4.5:1                                                                                                                                      |
+| `.avatar-frame`       | Display picture behind glass: inner rim and a soft reflection over the photo                                                                                                                                                                           |
+| `.avatar-mount`       | Pearl frame for large pictures, glowing in the person's presence colour (`data-presence`)                                                                                                                                                              |
+| `.emboss`             | Soft shadow under white labels printed on coloured pictures and bubbles                                                                                                                                                                                |
 
-**Why panes have no live blur.** A `backdrop-filter` is redrawn whenever anything inside the
-element changes. On the large panes that made scrolling back through a long channel twice as slow
-(older page p50 209 ms vs 97 ms without blur, same machine). The sky never changes, so panes paint
-its soft part (`--sky-frost`, no bubbles or stars) with `background-attachment: fixed` under their
-tint: it lines up with the real sky and looks like frosted glass, at no cost while content moves.
-They use a 320×200 picture of `--sky-frost` rather than the gradients themselves (repainting 12
-gradient layers under every change was the next bottleneck); **after changing the sky, regenerate
-it** with `node scripts/sky-frost.mjs` (needs a web build) and rebuild. Browsers without
-`backdrop-filter` therefore lose nothing on panes; overlays stay ≥ 94 % opaque.
 All contrast numbers below are computed for the translucent case, which is the harder one.
+
+## Aero Glass (Windows Vista)
+
+`apps/web/src/styles/vista.css`, components in `features/shell/` (`Window`, `Taskbar`,
+`Gadgets`, `Wallpaper`, `Clock`, `place`) and `components/ui/glass-window.tsx`.
+
+**The material** (`.aero-glass`): backdrop blur (14 px) + saturation 1.8 + a slight brightening,
+tinted with `oklch(var(--frame-l) var(--frame-c) var(--frame-h) / var(--frame-a))`, with
+diagonal reflection streaks (`--glass-streaks`) fixed to the screen like one sheet of glass over
+the desktop, a dark outer edge and a bright inner edge. Text on glass (`.glass-text`) has a soft
+halo in `--glass-title-glow`, as Vista titles do. Black glass (`.taskbar-glass`,
+`.aero-dark-glass`) is a smoky gradient over the same blur.
+
+**Window colour** (Settings → Appearance → Window colour, stored per device in `cn.glass` and
+applied before the first paint by `public/theme-init.js`): twelve colours (hue and chroma of the
+tint, `WINDOW_COLORS` in `stores/ui.ts`), a colour intensity (0–100 → `--frame-a` between
+`--frame-a-min` and `--frame-a-max`) and **Enable transparency**: off gives solid frames without
+blur, like Vista Basic, for older computers.
+
+**Why only the frame is glass.** A `backdrop-filter` is redrawn whenever anything behind or
+inside the element changes; on large panes it made scrolling back through a long channel twice
+as slow (0.2, docs/PERFORMANCE.md). So, as in Vista, a window is glass only around its content:
+four strips (`.aero-frame-*`) around an opaque client area (`.aero-client`).
+
+**What the moving wallpaper costs, and the rules that keep it cheap** (measured in
+PERFORMANCE.md → Vista desktop). Any animation means the browser redraws the screen for every
+frame: with graphics acceleration that is small, without it (software rendering) about one
+processor core, whatever moves. So: the wallpaper holds still whenever nobody is looking at it
+(see Direction; `features/shell/Wallpaper.tsx`); its sky is three gradients (`--wallpaper-sky`)
+on a layer of its own, painted once and never again when the window's content changes;
+the clock gadget's hands jump once a second instead of sweeping; and no rule may use
+`:root:has(…)` or a similar selector on an ancestor of everything (one made every change on the
+page restyle the whole document). Transparency off removes the blur but not the redrawing.
+
+**Anatomy of the app window** (`AeroWindow`): glass title area with the place's icon and title,
+caption buttons (Minimise, Maximise/Restore down, Close = back to Home; red glow on Close),
+address bar with round Back/Forward buttons, a breadcrumb whose arrows list the places one
+level down (communities → channels, Settings → sections) and a search box scoped to where you
+are; inside, the command bar (channel header), navigation pane (channels), details pane (members,
+pins) and information bars (email reminder, voice call). Double-clicking the title maximises.
+
+**Desktop** (≥ 768 px): the wallpaper; the window (with a 12 px margin, or full screen when
+maximised); gadgets on the right from 1360 px (clock, voice, who is online); the taskbar along the
+bottom: Start orb, places (Home, Messages, Notifications, Search, Explore), your communities as
+buttons glowing in their own colour under the pointer, then the notification area (voice, connection,
+sounds, you, clock, Show desktop). Hovering a community shows a black-glass thumbnail with what is
+new there; a button with a mention flashes orange a few times and stays lit. **Start menu**: a
+white column of places and communities with Start Search, and a black-glass column with your
+picture, messages, settings, Personalise, voice, administration and Sign out (the orange button).
+
+**Outside the app** (welcome, sign in/up, recovery, onboarding, not found): `GlassWindow`, a
+small Vista window on the same animated desktop, without caption buttons (nothing to minimise
+there). Onboarding is an Aero wizard: round Back button on the glass, Continue at the bottom right.
+
+**Dialogs** are small Vista windows (glass frame, glowing title, red close button hanging from
+the top edge, opaque body, grey footer); confirmations pulse their default button gently.
+Tooltips are pale Vista tooltips; toasts are balloons pointing at the notification area.
+
+**Phones** (< 768 px) show only the window's content and a black-glass tab bar: no frames, no
+wallpaper (the still sky instead), no taskbar or gadgets.
+
+**Rule for animations on glass**: never animate `opacity`, `filter` or `mask` on an _ancestor_ of
+an element with a backdrop filter — it then blurs only its ancestor, not the desktop (the window
+animates `transform` on itself and `opacity` on its children; the Start menu's wrapper only
+moves, the glass fades itself).
 
 ## Typography
 
@@ -108,11 +176,12 @@ external font CDN) and split by script so browsers download only what a page nee
   communities are round glossy bubbles.
 - Depth: glass panes carry `--glass-shadow`; `--shadow-sm/md/lg` for elevation of popovers and
   dialogs, `--shadow-glow` (luminous accent halo) for the selected or featured element.
-- Desktop shell (≥ 768 px): floating glass panes with a 10 px strip of sky between them — the
-  rail dock (76 px), the sidebar (268 px), the main window; header 54 px. The context panel
-  (members or pins, 296 px) is docked from 1280 px and slides in as a sheet on narrower screens.
-- Phone shell (< 768 px): one full-bleed column (no pane gaps), a glass bottom navigation
-  (62 px), sidebars become drawers, message actions open in a bottom sheet after a long press.
+- Desktop shell (≥ 768 px): the Aero window (glass frame 66 px on top, 7 px around) with a
+  12 px margin on the desktop, or maximised; inside it the navigation pane (268 px), the
+  content and the details pane (members or pins, 296 px, docked from 1280 px, a sheet below);
+  gadgets (214 px) from 1360 px; the taskbar (42 px) along the bottom.
+- Phone shell (< 768 px): one full-bleed column, a black-glass tab bar (62 px), sidebars become
+  drawers, message actions open in a bottom sheet after a long press.
 - Density: "comfortable" (default) and "compact" (`data-density="compact"`) tighten message
   spacing; set in Settings → Appearance.
 
@@ -127,21 +196,29 @@ external font CDN) and split by script so browsers download only what a page nee
 
 Easing: `--ease-out` for entering, `--ease-in` for leaving, `--ease-in-out` for movement,
 `--ease-spring` for small physical feedback (the switch thumb). Only `transform` and `opacity`
-animate (plus one background flash for highlights); nothing loops except loading indicators
-(skeleton shimmer, spinners, the typing dots) while something is actually loading or typing.
+animate (plus one background flash for highlights). Nothing in the interface loops except
+loading indicators (skeleton shimmer, spinners, the typing dots) while something is actually
+loading or typing — and the wallpaper, which is decoration behind the windows.
 
-| Moment                       | Effect                                                                                              | Level |
-| ---------------------------- | --------------------------------------------------------------------------------------------------- | ----- |
-| Press, hover, focus          | Buttons sink slightly when pressed; glossy buttons get one light sweep on hover; focus glows        | all   |
-| Menus, popovers, dialogs     | Pop in from their trigger (`--radix-…-transform-origin`), fade out; sheets and drawers slide        | all   |
-| A message arrives or is sent | Slides up and fades in — only live arrivals and your own sends, never history or reloads            | decor |
-| Deleting your message        | The row fades out to the side, then the deletion is sent (restored with an error if it fails)       | all   |
-| Saving an edit               | The new text flashes softly                                                                         | all   |
-| Adding a reaction            | The emoji pops with a wobble and six glints fly out; a new reaction pill pops in                    | decor |
-| A reaction count changes     | The number rolls in from below                                                                      | all   |
-| An unread badge goes up      | The badge pops                                                                                      | decor |
-| Sending                      | The send icon flies off to the upper right and slides back                                          | decor |
-| Opening a photo              | The photo grows from its place in the chat into the viewer (View Transitions; plain fade elsewhere) | all   |
+| Moment                         | Effect                                                                                              | Level                                                                                                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Press, hover, focus            | Buttons sink slightly when pressed; glossy buttons get one light sweep on hover; focus glows        | all                                                                                                                                                                     |
+| Menus, popovers, dialogs       | Pop in from their trigger (`--radix-…-transform-origin`), fade out; sheets and drawers slide        | all                                                                                                                                                                     |
+| A message arrives or is sent   | Slides up and fades in — only live arrivals and your own sends, never history or reloads            | decor                                                                                                                                                                   |
+| Deleting your message          | The row fades out to the side, then the deletion is sent (restored with an error if it fails)       | all                                                                                                                                                                     |
+| Saving an edit                 | The new text flashes softly                                                                         | all                                                                                                                                                                     |
+| Adding a reaction              | The emoji pops with a wobble and six glints fly out; a new reaction pill pops in                    | decor                                                                                                                                                                   |
+| A reaction count changes       | The number rolls in from below                                                                      | all                                                                                                                                                                     |
+| An unread badge goes up        | The badge pops                                                                                      | decor                                                                                                                                                                   |
+| Sending                        | The send icon flies off to the upper right and slides back                                          | decor                                                                                                                                                                   |
+| Opening a photo                | The photo grows from its place in the chat into the viewer (View Transitions; plain fade elsewhere) | all                                                                                                                                                                     |
+| The window opens / is restored | Zooms in from the taskbar; its parts fade in; a light sweeps once across the title bar              | all                                                                                                                                                                     |
+| Minimise / Maximise            | The window shrinks into the taskbar (then hides) / settles into its new size                        | all                                                                                                                                                                     |
+| Start menu                     | Rises from the Start orb while its glass fades in                                                   | all                                                                                                                                                                     |
+| Taskbar                        | Buttons glow in their community's colour under the pointer; a mention flashes the button orange     | decor (glow stays)                                                                                                                                                      |
+| Toasts                         | Balloons pop up from the notification area                                                          | all                                                                                                                                                                     |
+| Confirmation dialogs           | The default button pulses gently, as in Vista                                                       | decor                                                                                                                                                                   |
+| Wallpaper                      | Sun rays turn, clouds and ribbons drift, bubbles rise, sparkles and stars twinkle, the aurora waves | decor; still with Calm/Reduce; rests while you scroll or type, behind dialogs and a maximised window, in the background and after a minute without input; not on phones |
 
 **Motion levels** (Settings → Appearance → Motion, stored per device as `data-motion`):
 
@@ -199,14 +276,15 @@ outline, danger, danger-ghost, link · sizes sm/md/lg/icon), `Input`, `Textarea`
 `Label`, `Field` (label + hint + error wiring), `Dialog`/`Sheet`, `Confirm`, `Menu`, `Popover`,
 `Tooltip`, `Tabs`, `Segmented`, `Switch`, `Badge`, `Toast`, `Skeleton`, `Spinner`, `EmptyState`, `Orb` (a glossy
 round bubble holding an icon: channel headers, intros, empty states, file cards, feature lists). Brand pieces:
-`LogoMark`/`Logo` and `SkyArt` (light ribbons and glass bubbles behind the public pages). Icons come from Lucide at
-a 1.75 stroke width.
+`LogoMark`/`Logo` and `SkyArt` (light ribbons and glass bubbles behind the public pages on phones). Vista pieces:
+`GlassWindow` (a window outside the app), `AeroWindow`, `Taskbar` (Start menu, thumbnails, notification area),
+`Gadgets`, `Wallpaper`/`PublicDesktop`, `AnalogClock`. Icons come from Lucide at a 1.75 stroke width.
 
-Screen patterns: pane headers are title bars (`.titlebar`) with an `Orb` for the place; section headings inside
-pages are sky-blue semibold text followed by a fading hairline (Control Panel style); public pages (welcome, sign
-in/up, recovery, onboarding, not found) are glass windows floating over the sky with `SkyArt` behind them; member
-lists fold by group like a contact list ("Online (3)"); people's pictures are rounded squares, communities round
-bubbles.
+Screen patterns: the channel header is the window's command bar (`.aero-commandbar`, `.command-btn`) with an
+`Orb` for the place; section headings inside pages are sky-blue semibold text followed by a fading hairline (Control
+Panel style); public pages (welcome, sign in/up, recovery, onboarding, not found) are `GlassWindow`s on the animated
+desktop; member lists fold by group like a contact list ("Online (3)"); people's pictures are rounded squares,
+communities round bubbles.
 
 Rules:
 
@@ -231,6 +309,12 @@ Rules:
   `--success-fg` on their fills ≥ 7.3:1. `--text-faint` (≥ 4.4 / 3.9:1) is still reserved for
   icons and decorative marks; it and the presence rims meet the 3:1 minimum for graphics on every
   surface, including the most transparent rail.
+- Vista glass is checked the same way, over both extremes of the wallpaper
+  (`--wallpaper-bright`/`-dark`) with the reflections on top: window titles on the frame for all
+  twelve window colours at the lowest and highest intensity and with transparency off (counting
+  the halo as 40 % cover, what it gives beside a single thin stroke); taskbar, Start menu and
+  gadget text on black glass (also over a white window, for the Start menu); text on the command
+  bar and information bars; taskbar icons (3:1) while a button flashes orange.
 - Presence uses shape as well as colour: glossy orb (online), crescent (idle), barred orb (do
   not disturb), hollow ring (offline), each with an accessible label and a darker rim so it
   stays visible on light glass.

@@ -1,7 +1,6 @@
 import { Bell, Home, LayoutGrid, MessageCircle, UserRound } from 'lucide-react';
 import { NavLink } from 'react-router';
 import { t } from '../../i18n';
-import { cn } from '../../lib/cn';
 import { communityUnread, useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
 import { CountBadge } from '../../components/ui/badge';
@@ -30,24 +29,23 @@ export function MobileNav() {
   return (
     <nav
       aria-label={t('shell.nav.primary')}
-      className="glass fixed inset-x-0 pb-[env(safe-area-inset-bottom)] bottom-0 z-[var(--z-rail)] border-x-0 border-b-0 bg-overlay md:hidden"
+      className="taskbar-glass fixed inset-x-0 bottom-0 z-[var(--z-rail)] pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="mx-auto flex h-[var(--mobile-nav-height)] max-w-lg items-stretch justify-around">
         {items.map(({ to, label, icon: Icon, badge }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
-              className={({ isActive }) =>
-                cn(
-                  'group relative flex h-full flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors',
-                  isActive ? 'text-accent-text' : 'text-fg-muted active:text-fg',
-                )
-              }
+              className="tab-item group relative flex h-full flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors"
             >
-              <span className="relative grid h-8 w-12 place-items-center rounded-full transition-colors group-aria-[current=page]:bg-accent-soft">
+              <span className="tab-icon relative grid h-8 w-12 place-items-center rounded-full transition-colors">
                 <Icon className="size-[22px]" />
                 {badge > 0 && (
-                  <CountBadge count={badge} tone="danger" className="absolute -top-1.5 -right-2.5 ring-2 ring-rail" />
+                  <CountBadge
+                    count={badge}
+                    tone="danger"
+                    className="absolute -top-1.5 -right-2.5 ring-2 ring-[var(--taskbar-lo)]"
+                  />
                 )}
               </span>
               {label}

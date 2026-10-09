@@ -12,7 +12,7 @@ export function VerifyBanner() {
   const [sent, setSent] = useState(false);
   if (!user || user.emailVerified || !config?.emailEnabled || user.isDemo) return null;
   return (
-    <div className="glass flex items-center gap-3 bg-elevated px-4 py-2 text-sm text-fg md:rounded-[var(--pane-radius)]">
+    <div className="aero-infobar flex shrink-0 items-center gap-3 px-4 py-2 text-sm text-fg">
       <MailWarning className="size-4 text-accent-text" />
       <span className="min-w-0 flex-1">{t('auth.verify.banner')}</span>
       <button

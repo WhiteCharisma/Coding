@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './styles/tokens.css';
+@import './styles/vista.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 @custom-variant compact (&:where([data-density='compact'], [data-density='compact'] *));
@@ -39,6 +40,8 @@
   --color-aqua: var(--aqua);
   --color-lavender: var(--lavender);
   --color-glass-edge: var(--glass-edge);
+  --color-taskbar: var(--taskbar-text);
+  --color-taskbar-muted: var(--taskbar-text-muted);
   --color-accent-hover: var(--accent-hover);
   --color-accent-press: var(--accent-press);
   --color-accent-fg: var(--accent-fg);
@@ -432,13 +435,22 @@
 
 /*
  * Daylight: azure overhead fading to a pearl horizon, a soft sun, drifting cumulus, a few glass
- * bubbles. The sky is split in two: --sky-frost is everything soft (what a frosted window shows),
- * --sky-scene adds the crisp details (bubbles) on top.
+ * bubbles. The sky is split in two: --sky-frost is everything soft, --sky-scene adds the crisp
+ * details (bubbles) on top.
  */
 :root,
 :root[data-theme='light'] {
+  /* The sun, the pearl horizon and the sky itself: also the wallpaper's sky (styles/vista.css). */
+  --sky-sun: radial-gradient(
+    42% 34% at 88% 4%,
+    oklch(0.99 0.05 95 / 0.95),
+    oklch(0.98 0.04 95 / 0.35) 45%,
+    transparent 72%
+  );
+  --sky-horizon: linear-gradient(to top, oklch(0.99 0.01 210 / 0.75), transparent 22%);
+  --sky-gradient: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 34%, var(--sky-3) 68%, var(--sky-4) 100%);
   --sky-frost:
-    radial-gradient(42% 34% at 88% 4%, oklch(0.99 0.05 95 / 0.95), oklch(0.98 0.04 95 / 0.35) 45%, transparent 72%),
+    var(--sky-sun),
     radial-gradient(14% 7% at 12% 62%, var(--cloud) 30%, transparent 70%),
     radial-gradient(11% 8% at 21% 58%, var(--cloud) 25%, transparent 70%),
     radial-gradient(16% 6% at 18% 67%, oklch(0.97 0.012 232) 30%, transparent 72%),
@@ -448,15 +460,15 @@
     radial-gradient(20% 6% at 74% 84%, var(--cloud-shade) 20%, transparent 72%),
     radial-gradient(26% 7% at 42% 16%, oklch(1 0 0 / 0.55) 10%, transparent 70%),
     radial-gradient(18% 5% at 55% 12%, oklch(1 0 0 / 0.4) 10%, transparent 70%),
-    linear-gradient(to top, oklch(0.99 0.01 210 / 0.75), transparent 22%),
-    linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 34%, var(--sky-3) 68%, var(--sky-4) 100%);
+    var(--sky-horizon),
+    var(--sky-gradient);
+  /* Three gradients only: the moving wallpaper draws its own clouds. */
+  --wallpaper-sky: var(--sky-sun), var(--sky-horizon), var(--sky-gradient);
   --sky-scene:
     radial-gradient(circle 20px at 14% 34%, transparent 68%, oklch(1 0 0 / 0.75) 74%, transparent 82%),
     radial-gradient(circle 12px at 19% 28%, transparent 64%, oklch(1 0 0 / 0.7) 72%, transparent 82%),
     radial-gradient(circle 28px at 82% 46%, transparent 70%, oklch(1 0 0 / 0.6) 76%, transparent 84%),
     radial-gradient(circle 15px at 76% 52%, transparent 66%, oklch(1 0 0 / 0.65) 74%, transparent 84%), var(--sky-frost);
-  /* The same soft sky as a small picture (scripts/sky-frost.mjs): what the glass panes show. */
-  --sky-frost-image: url('./assets/sky-frost-light.webp');
 }
 /* Twilight: deep ocean night, an aurora ribbon, a cyan glow on the horizon, faint stars. */
 :root[data-theme='dark'] {
@@ -479,7 +491,7 @@
     radial-gradient(circle 26px at 84% 44%, transparent 70%, oklch(0.85 0.1 210 / 0.35) 76%, transparent 84%),
     radial-gradient(circle 15px at 16% 40%, transparent 66%, oklch(0.85 0.1 210 / 0.35) 74%, transparent 84%),
     var(--sky-frost);
-  --sky-frost-image: url('./assets/sky-frost-dark.webp');
+  --wallpaper-sky: var(--sky-frost);
 }
 
 @layer components {
@@ -495,37 +507,6 @@
       inset 0 1px 0 var(--glass-sheen),
       inset 0 -1px 0 var(--glass-edge-low),
       var(--glass-shadow);
-  }
-  /*
-   * A window: glass with rounded corners, separated from its neighbours by a strip of sky.
-   * It shows the sky like frosted glass, but without a live backdrop blur: a live blur is
-   * redrawn whenever anything inside the window changes (scrolling a long channel took twice
-   * as long). The sky never changes, so its soft part is painted fixed to the viewport —
-   * exactly where the real sky is — under the window's tint. It is a small picture of
-   * --sky-frost stretched to the window: as soft as the gradients, far cheaper to repaint.
-   */
-  .pane {
-    --pane-tint: var(--bg-main);
-    overflow: hidden;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background-image: linear-gradient(var(--pane-tint), var(--pane-tint)), var(--sky-frost-image);
-    background-size: 100% 100%;
-    background-attachment: fixed;
-  }
-  .pane.bg-sidebar {
-    --pane-tint: var(--bg-sidebar);
-  }
-  .pane.bg-rail {
-    --pane-tint: var(--bg-rail);
-  }
-  .pane.bg-elevated {
-    --pane-tint: var(--bg-elevated);
-  }
-  @media (min-width: 768px) {
-    .pane {
-      border-radius: var(--pane-radius);
-    }
   }
   /* Aero title bar: a brighter band with a glossy upper half. */
   .titlebar {

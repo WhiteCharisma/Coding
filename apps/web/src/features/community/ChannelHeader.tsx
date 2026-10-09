@@ -2,7 +2,6 @@ import { ArrowLeft, Hash, Lock, Menu as MenuIcon, Megaphone, Pin, Search, Users 
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { t } from '../../i18n';
-import { cn } from '../../lib/cn';
 import { useUi } from '../../stores/ui';
 import { Button } from '../../components/ui/button';
 import { Orb } from '../../components/ui/orb';
@@ -34,7 +33,7 @@ export function ChannelHeader({
   const setDrawer = useUi((s) => s.setMobileSidebarOpen);
   const Icon = icon === 'hash' ? Hash : icon === 'lock' ? Lock : icon === 'megaphone' ? Megaphone : null;
   return (
-    <header className="titlebar flex h-[var(--header-height)] shrink-0 items-center gap-1 px-2 md:gap-2 md:px-3">
+    <header className="aero-commandbar flex h-[var(--header-height)] shrink-0 items-center gap-1 px-2 md:h-11 md:gap-2 md:px-3">
       <Link
         to={backTo}
         aria-label={t('common.actions.back')}
@@ -67,34 +66,30 @@ export function ChannelHeader({
         {extra}
         {panelButtons.includes('pins') && (
           <Tooltip content={t('chat.header.pins')}>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               aria-label={t('shell.togglePins')}
               aria-pressed={activePanel === 'pins'}
               onClick={() => onTogglePanel('pins')}
-              className={cn(
-                activePanel === 'pins' && 'bg-selected text-fg shadow-[inset_0_1px_2px_var(--glass-edge-low)]',
-              )}
+              className="command-btn inline-flex h-8 min-w-8 items-center justify-center gap-1.5 px-1.5 text-sm text-fg-2 hover:text-fg"
             >
               <Pin className="size-[18px]" />
-            </Button>
+              <span className="hidden 2xl:inline">{t('chat.header.pins')}</span>
+            </button>
           </Tooltip>
         )}
         {panelButtons.includes('members') && (
           <Tooltip content={t('chat.header.members')}>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               aria-label={t('shell.toggleMembers')}
               aria-pressed={activePanel === 'members'}
               onClick={() => onTogglePanel('members')}
-              className={cn(
-                activePanel === 'members' && 'bg-selected text-fg shadow-[inset_0_1px_2px_var(--glass-edge-low)]',
-              )}
+              className="command-btn inline-flex h-8 min-w-8 items-center justify-center gap-1.5 px-1.5 text-sm text-fg-2 hover:text-fg"
             >
               <Users className="size-[18px]" />
-            </Button>
+              <span className="hidden 2xl:inline">{t('chat.header.members')}</span>
+            </button>
           </Tooltip>
         )}
         {searchTo && (
@@ -102,7 +97,7 @@ export function ChannelHeader({
             <Link
               to={searchTo}
               aria-label={t('chat.header.search')}
-              className="grid size-9 place-items-center rounded-md text-fg-2 hover:bg-hover hover:text-fg"
+              className="command-btn inline-flex h-8 min-w-8 items-center justify-center px-1.5 text-fg-2 hover:text-fg"
             >
               <Search className="size-[18px]" />
             </Link>

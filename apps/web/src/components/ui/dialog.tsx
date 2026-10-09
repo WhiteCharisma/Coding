@@ -1,8 +1,9 @@
 import { X } from 'lucide-react';
 import { Dialog as D } from 'radix-ui';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
+import { useDesktop } from '../../stores/desktop';
 
 export const Dialog = D.Root;
 export const DialogTrigger = D.Trigger;
@@ -21,7 +22,23 @@ interface DialogContentProps {
 
 const sizes = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-xl', xl: 'max-w-3xl' };
 
-/** Centered modal on desktop; anchored to the bottom like a sheet on small screens. */
+/**
+ * Counts this modal as open while it is on screen: the wallpaper rests behind it, so its
+ * blurred backdrop is not redrawn for every frame of the animation.
+ */
+function ModalPresence() {
+  useEffect(() => {
+    useDesktop.getState().modalOpened();
+    return () => useDesktop.getState().modalClosed();
+  }, []);
+  return null;
+}
+
+/**
+ * A dialog is a small Vista window: Aero glass frame with its title glowing on the glass, the red
+ * close button hanging from the top edge, and an opaque content area. Centered on desktop;
+ * anchored to the bottom like a sheet on small screens (clear of the home indicator).
+ */
 export function DialogContent({
   title,
   description,
@@ -38,43 +55,34 @@ export function DialogContent({
       <D.Content
         onOpenAutoFocus={onOpenAutoFocus}
         className={cn(
-          'glass fixed z-[var(--z-modal)] flex max-h-[min(90dvh,860px)] w-full flex-col overflow-hidden bg-overlay text-fg shadow-lg focus:outline-none',
-          'inset-x-0 bottom-0 rounded-t-2xl data-[state=closed]:animate-sheet-out data-[state=open]:animate-sheet-in',
-          'sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:data-[state=closed]:animate-pop-out sm:data-[state=open]:animate-pop-in',
+          'aero-dialog aero-glass fixed z-[var(--z-modal)] flex max-h-[min(90dvh,860px)] w-full flex-col text-fg focus:outline-none',
+          'inset-x-0 bottom-0 rounded-b-none pb-[max(7px,env(safe-area-inset-bottom))] data-[state=closed]:animate-sheet-out data-[state=open]:animate-sheet-in',
+          'sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[9px] sm:pb-[7px] sm:data-[state=closed]:animate-pop-out sm:data-[state=open]:animate-pop-in',
           sizes[size],
           className,
         )}
       >
-        <div className={cn('titlebar flex items-start gap-4 px-5 pt-4 pb-3', hideTitle && 'sr-only')}>
-          <div className="min-w-0 flex-1">
-            <D.Title className="font-display text-xl font-semibold text-fg">{title}</D.Title>
-            {description ? (
-              <D.Description className="mt-1 text-sm text-fg-muted">{description}</D.Description>
-            ) : (
-              <D.Description className="sr-only">{title}</D.Description>
-            )}
-          </div>
-          <D.Close
-            className="-mt-1 -mr-1 rounded-md p-1.5 text-fg-muted transition-colors hover:bg-hover hover:text-fg"
-            aria-label={t('common.actions.close')}
-          >
-            <X className="size-4" />
-          </D.Close>
+        <ModalPresence />
+        <div className="flex h-8 shrink-0 items-center pr-14 pl-2">
+          <D.Title className={cn('glass-text truncate text-sm', hideTitle && 'sr-only')}>{title}</D.Title>
         </div>
-        <div
-          className={cn(
-            'scroll-area min-h-0 flex-1 px-5 pt-3',
-            // On phones the dialog is a bottom sheet: keep its end clear of the home indicator.
-            footer ? 'pb-5' : 'pb-[max(1.25rem,env(safe-area-inset-bottom))]',
+        <div className="aero-dialog-body">
+          {description ? (
+            <D.Description className="px-5 pt-4 text-sm text-fg-muted">{description}</D.Description>
+          ) : (
+            <D.Description className="sr-only">{title}</D.Description>
           )}
-        >
-          {children}
+          <div className="scroll-area min-h-0 flex-1 px-5 pt-4 pb-5">{children}</div>
+          {footer && (
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-inset px-5 py-3">
+              {footer}
+            </div>
+          )}
         </div>
-        {footer && (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-inset/60 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            {footer}
-          </div>
-        )}
+        {/* After the content so that opening the dialog focuses its first field, not "Close". */}
+        <D.Close className="caption-btn caption-close absolute top-0 right-2" aria-label={t('common.actions.close')}>
+          <X />
+        </D.Close>
       </D.Content>
     </D.Portal>
   );
@@ -109,6 +117,7 @@ export function Sheet({ open, onOpenChange, side = 'left', title, children, clas
             className,
           )}
         >
+          <ModalPresence />
           <D.Title className="sr-only">{title}</D.Title>
           <D.Description className="sr-only">{title}</D.Description>
           {children}

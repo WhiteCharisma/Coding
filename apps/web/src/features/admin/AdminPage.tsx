@@ -1,15 +1,4 @@
-import {
-  Activity,
-  Archive,
-  ChevronLeft,
-  ChevronRight,
-  Flag,
-  Landmark,
-  ScrollText,
-  Settings2,
-  Ticket,
-  Users,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, Navigate, useParams } from 'react-router';
 import { ShieldAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -31,17 +20,9 @@ import {
   InstanceSettingsSection,
   InvitesSection,
 } from './OtherSections';
+import { ADMIN_SECTIONS } from './sections';
 
-const SECTIONS = [
-  { key: 'overview', icon: Activity, adminOnly: false },
-  { key: 'reports', icon: Flag, adminOnly: false },
-  { key: 'users', icon: Users, adminOnly: false },
-  { key: 'communities', icon: Landmark, adminOnly: false },
-  { key: 'invites', icon: Ticket, adminOnly: true },
-  { key: 'settings', icon: Settings2, adminOnly: true },
-  { key: 'backups', icon: Archive, adminOnly: true },
-  { key: 'audit', icon: ScrollText, adminOnly: false },
-] as const;
+const SECTIONS = ADMIN_SECTIONS;
 type SectionKey = (typeof SECTIONS)[number]['key'];
 
 export function useAdminOverview() {

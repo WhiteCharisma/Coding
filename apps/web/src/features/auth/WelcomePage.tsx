@@ -4,10 +4,11 @@ import { Link } from 'react-router';
 import { t } from '../../i18n';
 import { useReduceMotion } from '../../lib/motion';
 import { useSession } from '../../stores/session';
-import { Logo } from '../../components/brand/Logo';
-import { SkyArt } from '../../components/brand/SkyArt';
+import { LogoMark } from '../../components/brand/Logo';
 import { buttonVariants } from '../../components/ui/button';
+import { GlassWindow } from '../../components/ui/glass-window';
 import { Orb } from '../../components/ui/orb';
+import { PublicDesktop } from '../shell/Wallpaper';
 import { MeterArt } from './AuthLayout';
 
 const FEATURES = [
@@ -28,14 +29,14 @@ function PreviewArt() {
       <span className="bubble absolute top-[70%] right-[8%] size-16" />
       <span className="bubble absolute top-[8%] right-[30%] size-6" />
       <div className="relative mx-auto mt-14 w-[82%] max-w-sm">
-        <div className="glass relative rotate-[-2deg] overflow-hidden rounded-2xl bg-overlay">
-          <div className="titlebar flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-fg-2">
-            <span className="gloss grid size-6 place-items-center rounded-full border border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-[11px] text-accent-fg">
+        <div className="aero-glass relative rotate-[-2deg] rounded-[9px] px-1.5 pb-1.5 shadow-[0_0_0_1px_var(--frame-edge),inset_0_1px_0_var(--frame-highlight),var(--shadow-lg)]">
+          <div className="glass-text flex items-center gap-2 px-1 py-1.5 text-xs">
+            <span className="gloss grid size-5 place-items-center rounded-full border border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-[10px] text-accent-fg">
               #
             </span>
             releases
           </div>
-          <div className="flex gap-3 p-4">
+          <div className="flex gap-3 rounded-[2px] bg-main p-4 shadow-[0_0_0_1px_var(--frame-edge)]">
             <span className="avatar-frame size-9 shrink-0 rounded-avatar bg-linear-to-br from-[oklch(0.72_0.12_40)] to-[oklch(0.45_0.11_320)]" />
             <div className="min-w-0 flex-1">
               <div className="h-3 w-24 rounded-full bg-fg/60" />
@@ -60,15 +61,15 @@ function PreviewArt() {
             </div>
           </div>
         </div>
-        <div className="glass relative -mt-4 ml-auto w-[78%] rotate-[3deg] rounded-2xl bg-elevated p-3">
+        <div className="aero-dark-glass relative -mt-4 ml-auto w-[78%] rotate-[3deg] rounded-[9px] p-3 shadow-[0_0_0_1px_var(--frame-edge),inset_0_1px_0_var(--taskbar-edge),var(--shadow-lg)]">
           <div className="flex items-center gap-2.5">
             <span className="relative">
               <span className="avatar-frame block size-8 rounded-avatar bg-linear-to-br from-[oklch(0.75_0.1_190)] to-[oklch(0.45_0.09_240)]" />
-              <span className="absolute -right-1 -bottom-1 size-3.5 rounded-full border-2 border-elevated bg-[var(--presence-online)]" />
+              <span className="absolute -right-1 -bottom-1 size-3.5 rounded-full border-2 border-[var(--gadget-lo)] bg-[var(--presence-online)]" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="h-2.5 w-20 rounded-full bg-fg/55" />
-              <div className="mt-1.5 h-2 w-28 rounded-full bg-fg-muted/35" />
+              <div className="h-2.5 w-20 rounded-full bg-[var(--taskbar-text)] opacity-80" />
+              <div className="mt-1.5 h-2 w-28 rounded-full bg-[var(--taskbar-text-muted)] opacity-60" />
             </div>
           </div>
         </div>
@@ -91,73 +92,68 @@ export default function WelcomePage() {
     show: { y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
   };
   const closed = config?.registrationMode === 'closed';
+  const name = config?.instanceName ?? t('common.appName');
   return (
     <LazyMotion features={domAnimation} strict>
       <div className="relative min-h-dvh">
-        <SkyArt />
-        <header className="relative mx-auto max-w-6xl px-4 pt-4 sm:px-6">
-          <div className="glass flex items-center justify-between rounded-2xl bg-elevated py-2 pr-2 pl-3">
-            <Logo name={config?.instanceName ?? t('common.appName')} />
-            <Link to="/login" className={buttonVariants({ variant: 'ghost' })}>
-              {t('auth.welcome.ctaSecondary')}
-            </Link>
-          </div>
-        </header>
-        <main id="main" className="relative mx-auto max-w-6xl px-4 pt-6 pb-16 sm:px-6 lg:pt-10">
-          <div className="glass grid overflow-hidden rounded-[28px] bg-overlay lg:grid-cols-[1.15fr_1fr]">
-            <m.div
-              initial="hidden"
-              animate="show"
-              variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.08 } } }}
-              className="titlebar border-b-0 p-6 sm:p-10 lg:p-12"
-            >
-              <m.p variants={item} className="text-xs font-semibold tracking-[0.16em] text-accent-text uppercase">
-                {t('auth.welcome.eyebrow')}
-              </m.p>
-              <m.h1
-                variants={headline}
-                className="mt-4 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-fg text-balance sm:text-5xl lg:text-[3.4rem]"
+        <PublicDesktop />
+        <main id="main" className="relative mx-auto max-w-6xl px-4 pt-4 pb-16 sm:px-6 lg:pt-8">
+          <GlassWindow instant title={name} icon={<LogoMark className="size-4" />}>
+            <div className="grid lg:grid-cols-[1.15fr_1fr]">
+              <m.div
+                initial="hidden"
+                animate="show"
+                variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.08 } } }}
+                className="p-6 sm:p-10 lg:p-12"
               >
-                {t('auth.welcome.title')}
-              </m.h1>
-              <m.p variants={item} className="mt-5 max-w-xl text-lg text-fg-2">
-                {config?.welcomeMessage || t('auth.welcome.body')}
-              </m.p>
-              <m.div variants={item} className="mt-8 flex flex-wrap gap-3">
-                {!closed && (
-                  <Link
-                    to="/register"
-                    className={buttonVariants({ variant: 'primary', size: 'lg' })}
-                    data-testid="cta-register"
-                  >
-                    {t('auth.welcome.ctaPrimary')}
+                <m.p variants={item} className="text-xs font-semibold tracking-[0.16em] text-accent-text uppercase">
+                  {t('auth.welcome.eyebrow')}
+                </m.p>
+                <m.h1
+                  variants={headline}
+                  className="mt-4 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-fg text-balance sm:text-5xl lg:text-[3.4rem]"
+                >
+                  {t('auth.welcome.title')}
+                </m.h1>
+                <m.p variants={item} className="mt-5 max-w-xl text-lg text-fg-2">
+                  {config?.welcomeMessage || t('auth.welcome.body')}
+                </m.p>
+                <m.div variants={item} className="mt-8 flex flex-wrap gap-3">
+                  {!closed && (
+                    <Link
+                      to="/register"
+                      className={buttonVariants({ variant: 'primary', size: 'lg' })}
+                      data-testid="cta-register"
+                    >
+                      {t('auth.welcome.ctaPrimary')}
+                    </Link>
+                  )}
+                  <Link to="/login" className={buttonVariants({ variant: 'secondary', size: 'lg' })}>
+                    {t('auth.welcome.ctaSecondary')}
                   </Link>
-                )}
-                <Link to="/login" className={buttonVariants({ variant: 'secondary', size: 'lg' })}>
-                  {t('auth.welcome.ctaSecondary')}
-                </Link>
+                </m.div>
+                <m.ul variants={item} className="mt-10 grid gap-3 sm:grid-cols-2">
+                  {FEATURES.map(({ icon, title, body }) => (
+                    <li key={title} className="tile flex gap-3 p-3.5">
+                      <Orb icon={icon} size="md" />
+                      <span>
+                        <span className="block font-semibold text-fg">{t(title)}</span>
+                        <span className="mt-0.5 block text-sm text-fg-muted">{t(body)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </m.ul>
               </m.div>
-              <m.ul variants={item} className="mt-10 grid gap-3 sm:grid-cols-2">
-                {FEATURES.map(({ icon, title, body }) => (
-                  <li key={title} className="tile flex gap-3 p-3.5">
-                    <Orb icon={icon} size="md" />
-                    <span>
-                      <span className="block font-semibold text-fg">{t(title)}</span>
-                      <span className="mt-0.5 block text-sm text-fg-muted">{t(body)}</span>
-                    </span>
-                  </li>
-                ))}
-              </m.ul>
-            </m.div>
-            <m.div
-              initial={{ opacity: 0, scale: reduce ? 1 : 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="hidden border-l border-glass-edge lg:block"
-            >
-              <PreviewArt />
-            </m.div>
-          </div>
+              <m.div
+                initial={{ opacity: 0, scale: reduce ? 1 : 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                className="hidden border-l border-line-subtle lg:block"
+              >
+                <PreviewArt />
+              </m.div>
+            </div>
+          </GlassWindow>
         </main>
       </div>
     </LazyMotion>
