@@ -41,6 +41,7 @@ fi
 chmod 750 data backups
 
 domain_now="$(grep -E '^DOMAIN=' .env | cut -d= -f2-)"
+origin_now="$(grep -E '^APP_ORIGIN=' .env | cut -d= -f2-)"
 info "Make sure the DNS A/AAAA record of ${domain_now} points to this server and ports 80/443 are open."
 
 info "Building the application image (first build takes a few minutes)…"
@@ -53,7 +54,7 @@ cat <<MSG
 
 Creator Network is running. Next steps:
   1. Create the first administrator:   ./deploy/create-admin.sh
-  2. Open https://${domain_now} and sign in.
+  2. Open ${origin_now} and sign in.
   3. Check backups:                    ./deploy/backup.sh  (archives in ./backups — copy them off the server)
 See docs/DEPLOYMENT.md for updates, restores and troubleshooting.
 MSG
