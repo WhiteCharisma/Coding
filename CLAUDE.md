@@ -15,8 +15,10 @@ external auth/analytics providers, one modest Linux VPS.
 - **Monorepo, npm workspaces**
   - `apps/web` — React 19 + TypeScript + Vite 8 + Tailwind CSS 4 single-page app.
   - `apps/server` — Fastify 5 REST API + Socket.IO 4 real-time gateway, one Node.js process.
-  - `packages/shared` — Zod schemas, permission bitfields, API/event types. Imported by both
-    sides as TypeScript source. **Must never import server-only code** (fs, db, secrets).
+  - `packages/shared` — Zod schemas, permission bitfields, API/event types, text helpers.
+    Imported by both sides as TypeScript source. **Must never import server-only code** (fs,
+    db, secrets). The web app must not import the Zod schemas (bundle size): use `LIMITS`,
+    constants, types and `text.ts` helpers there.
 - **Database**: SQLite (better-sqlite3, WAL) via Drizzle ORM. Migrations in
   `apps/server/drizzle/` run automatically at startup. Full-text search uses FTS5.
 - **Files**: uploads stored under `DATA_DIR/uploads` with random names, served only through
@@ -35,7 +37,10 @@ npm run typecheck           # tsc --noEmit for every workspace
 npm run lint                # ESLint (flat config)
 npm test                    # Vitest: shared + server integration + web unit tests
 npm run test:e2e            # Playwright end-to-end tests (builds + starts a server on :4173)
+E2E_SKIP_BUILD=1 npx playwright test -g "pattern"   # reuse the last build, run matching tests
 npm run build               # production build: apps/web/dist + apps/server/dist
+node scripts/bench/server-bench.mjs                  # server load benchmark (needs a build)
+PAGE_URL=http://localhost:8080 node scripts/bench/client-bench.mjs   # browser benchmark
 npm run db:generate         # after editing apps/server/src/db/schema.ts → new SQL migration
 npm run check               # typecheck + lint + test + build
 ```
@@ -48,9 +53,13 @@ npm run check               # typecheck + lint + test + build
 - Business logic lives in `*/service.ts`; route handlers only parse input, call a service and
   shape the response. React components stay presentational; data logic lives in `stores/` and
   `lib/`.
-- All UI strings go through the i18n dictionary (`apps/web/src/i18n/en.ts`) via `t()`.
+- All UI strings go through the i18n dictionary (`apps/web/src/i18n/en/*.ts`) via `t()`.
 - Styling uses design tokens (CSS variables in `apps/web/src/styles/tokens.css`, exposed to
-  Tailwind in `app.css`). Do not introduce raw hex colors or arbitrary spacing in components.
+  Tailwind in `app.css`; rules in `docs/DESIGN.md`). Do not introduce raw hex colors or
+  arbitrary spacing in components. `tokens.test.ts` enforces text contrast: never use
+  `text-fg-faint` for text, and run the tests after changing a token. When adding a custom
+  Tailwind theme value (font size, shadow, easing), register it in `lib/cn.ts` too, or
+  `tailwind-merge` may silently drop classes.
 - Prefer CSS transitions; use Motion (`motion/react`) only for enter/exit and layout animations.
   Always respect `prefers-reduced-motion`.
 - IDs are server-generated ULIDs (`newId()`), timestamps are epoch milliseconds.
@@ -75,7 +84,9 @@ npm run check               # typecheck + lint + test + build
   hosting is NOT supported (needs a persistent Node process and WebSockets).
 - `deploy/install.sh` → first install, `deploy/update.sh` → update, `deploy/backup.sh` /
   `deploy/restore.sh` → backups, `deploy/create-admin.sh` → first administrator.
-- Health: `GET /api/health` (liveness) and `GET /api/health/ready` (database check).
+- Health: `GET /api/health` (liveness) and `GET /api/health/ready` (database, uploads, disk).
+  Anonymous callers get only `{"status": …}`; details are in Admin → Overview.
+- Never deploy automatically; deployments are run by the operator (`deploy/update.sh`).
 
 ## Current limitations
 
