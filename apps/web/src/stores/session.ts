@@ -1,6 +1,6 @@
 import type { PublicConfig, SelfUser } from '@creator-network/shared';
 import { create } from 'zustand';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 
 type Status = 'loading' | 'anonymous' | 'authenticated';
 
@@ -41,9 +41,12 @@ export const useSession = create<SessionState>((set, get) => ({
   async logout() {
     try {
       await api.post('/api/auth/logout');
-    } finally {
-      set({ status: 'anonymous', user: null, endedReason: null });
+    } catch (err) {
+      // Unreachable server (offline) or server error: the session is still valid there, so
+      // pretending to be signed out would be wrong — a reload would sign the user back in.
+      if (err instanceof ApiError && (err.status === 0 || err.status >= 500)) throw err;
     }
+    set({ status: 'anonymous', user: null, endedReason: null });
   },
 }));
 

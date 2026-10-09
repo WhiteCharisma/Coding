@@ -49,7 +49,7 @@ function NewDivider() {
   return (
     <div role="separator" className="relative my-2 flex items-center pr-4 pl-4" aria-label={t('chat.list.newMessages')}>
       <div className="h-px flex-1 bg-danger/60" />
-      <span className="ml-2 rounded-sm bg-danger px-1.5 py-px text-[10px] font-bold tracking-wider text-white uppercase">
+      <span className="ml-2 rounded-sm bg-danger px-1.5 py-px text-[10px] font-bold tracking-wider text-danger-fg uppercase">
         {t('chat.list.newMessages')}
       </span>
     </div>

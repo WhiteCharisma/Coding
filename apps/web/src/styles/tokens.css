@@ -30,7 +30,7 @@
   --border: oklch(0.98 0.01 80 / 0.11);
   --border-strong: oklch(0.98 0.01 80 / 0.18);
 
-  /* Text (all ≥ 4.5:1 on --bg-main except --text-faint, used for large/decorative text only) */
+  /* Text (≥ 4.5:1 on every surface, enforced by tokens.test.ts; --text-faint is for icons only) */
   --text: oklch(0.945 0.008 80);
   --text-2: oklch(0.82 0.012 78);
   --text-muted: oklch(0.69 0.012 72);
@@ -50,11 +50,14 @@
   --success-soft: oklch(0.76 0.13 155 / 0.14);
   --warning: oklch(0.85 0.13 95);
   --warning-soft: oklch(0.85 0.13 95 / 0.14);
-  --danger: oklch(0.69 0.17 25);
-  --danger-hover: oklch(0.73 0.16 25);
+  --danger: oklch(0.72 0.165 25);
+  --danger-hover: oklch(0.76 0.15 25);
   --danger-soft: oklch(0.69 0.17 25 / 0.15);
   --info: oklch(0.77 0.08 235);
   --info-soft: oklch(0.77 0.08 235 / 0.14);
+  /* Text on solid success/danger fills (like --accent-fg on --accent). */
+  --success-fg: oklch(0.2 0.03 155);
+  --danger-fg: oklch(0.2 0.03 25);
 
   /* Presence (paired with distinct shapes, never colour alone) */
   --presence-online: var(--success);
@@ -99,27 +102,29 @@
   --text: oklch(0.22 0.012 60);
   --text-2: oklch(0.35 0.014 60);
   --text-muted: oklch(0.47 0.014 62);
-  --text-faint: oklch(0.6 0.01 65);
+  --text-faint: oklch(0.58 0.01 65);
 
   --accent: oklch(0.77 0.15 68);
   --accent-hover: oklch(0.73 0.15 64);
   --accent-press: oklch(0.69 0.15 60);
   --accent-fg: oklch(0.19 0.03 60);
-  --accent-text: oklch(0.5 0.13 56);
+  --accent-text: oklch(0.48 0.13 56);
   --accent-soft: oklch(0.77 0.15 68 / 0.16);
   --accent-border: oklch(0.6 0.14 60 / 0.45);
 
-  --success: oklch(0.55 0.13 155);
+  --success: oklch(0.44 0.12 155);
   --success-soft: oklch(0.55 0.13 155 / 0.12);
-  --warning: oklch(0.62 0.13 85);
+  --warning: oklch(0.47 0.11 70);
   --warning-soft: oklch(0.75 0.13 85 / 0.18);
-  --danger: oklch(0.55 0.19 27);
-  --danger-hover: oklch(0.5 0.19 27);
+  --danger: oklch(0.48 0.19 27);
+  --danger-hover: oklch(0.43 0.18 27);
   --danger-soft: oklch(0.55 0.19 27 / 0.1);
-  --info: oklch(0.5 0.1 240);
+  --info: oklch(0.46 0.1 240);
   --info-soft: oklch(0.5 0.1 240 / 0.1);
+  --success-fg: oklch(1 0 0);
+  --danger-fg: oklch(1 0 0);
 
-  --presence-offline: oklch(0.62 0.01 70);
+  --presence-offline: oklch(0.58 0.01 70);
   --mention-bg: oklch(0.77 0.15 68 / 0.12);
   --mention-bar: oklch(0.65 0.15 62);
   --code-bg: oklch(0.94 0.008 80);

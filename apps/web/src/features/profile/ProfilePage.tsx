@@ -203,7 +203,7 @@ export default function ProfilePage() {
                             className="inline-flex items-center gap-1.5 text-sm text-accent-text hover:underline"
                           >
                             <ExternalLink className="size-3.5" /> {l.label}
-                            <span className="text-fg-faint">{new URL(l.url).hostname}</span>
+                            <span className="text-fg-muted">{new URL(l.url).hostname}</span>
                           </a>
                         </li>
                       ))}

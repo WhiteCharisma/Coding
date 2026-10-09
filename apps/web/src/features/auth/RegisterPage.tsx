@@ -152,7 +152,7 @@ export default function RegisterPage() {
         <Field label={t('auth.register.username')} hint={t('auth.register.usernameHint')} error={usernameError}>
           {(p) => (
             <div className="relative">
-              <span aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-faint">
+              <span aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-muted">
                 @
               </span>
               <Input

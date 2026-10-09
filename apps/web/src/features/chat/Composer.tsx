@@ -325,7 +325,7 @@ export function Composer({
           <div className="flex items-center gap-2 border-b border-line-subtle px-3 py-2 text-xs text-fg-muted">
             <span className="min-w-0 flex-1 truncate">
               {t('chat.composer.replyingTo', { name: replyTo.author?.displayName ?? t('common.labels.deletedUser') })}
-              <span className="ml-2 text-fg-faint">{stripFormatting(replyTo.content).slice(0, 80)}</span>
+              <span className="ml-2 text-fg-muted">{stripFormatting(replyTo.content).slice(0, 80)}</span>
             </span>
             <button
               type="button"
@@ -443,7 +443,7 @@ export function Composer({
             aria-label={placeholder}
             rows={1}
             maxLength={LIMITS.messageMax + 500}
-            className="max-h-[40vh] min-h-9 flex-1 resize-none bg-transparent px-1.5 py-2 text-base text-fg placeholder:text-fg-faint focus:outline-none"
+            className="max-h-[40vh] min-h-9 flex-1 resize-none bg-transparent px-1.5 py-2 text-base text-fg placeholder:text-fg-muted focus:outline-none"
             data-testid="composer-input"
           />
           <div className="hidden md:block">
@@ -474,7 +474,7 @@ export function Composer({
           </Button>
         </div>
       </div>
-      <div className="mt-1 hidden h-4 items-center justify-between px-1 text-[11px] text-fg-faint md:flex">
+      <div className="mt-1 hidden h-4 items-center justify-between px-1 text-[11px] text-fg-muted md:flex">
         <span>{t('chat.composer.hintDesktop')}</span>
         {overLimit > -200 && (
           <span className={cn('font-mono', overLimit > 0 ? 'text-danger' : 'text-fg-muted')}>

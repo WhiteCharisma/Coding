@@ -40,7 +40,7 @@ function TriToggle({ value, onChange, label }: { value: Tri; onChange: (v: Tri) 
       v: 'deny',
       icon: X,
       text: t('community.settings.channels.deny'),
-      cls: 'data-[on=true]:bg-danger data-[on=true]:text-white',
+      cls: 'data-[on=true]:bg-danger data-[on=true]:text-danger-fg',
     },
     {
       v: 'inherit',
@@ -52,7 +52,7 @@ function TriToggle({ value, onChange, label }: { value: Tri; onChange: (v: Tri) 
       v: 'allow',
       icon: Check,
       text: t('community.settings.channels.allow'),
-      cls: 'data-[on=true]:bg-success data-[on=true]:text-white',
+      cls: 'data-[on=true]:bg-success data-[on=true]:text-success-fg',
     },
   ];
   return (

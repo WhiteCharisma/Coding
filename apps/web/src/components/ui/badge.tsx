@@ -69,7 +69,7 @@ export function CountBadge({
       aria-label={label}
       className={cn(
         'inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1.5 font-mono text-[10.5px] leading-none font-bold tabular-nums',
-        tone === 'danger' ? 'bg-danger text-white' : 'bg-accent text-accent-fg',
+        tone === 'danger' ? 'bg-danger text-danger-fg' : 'bg-accent text-accent-fg',
         className,
       )}
     >

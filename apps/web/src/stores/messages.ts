@@ -169,6 +169,8 @@ interface MessagesState {
   ) => PendingMessage;
   retry: (channelId: string, nonce: string) => void;
   discard: (channelId: string, nonce: string) => void;
+  /** Deletes every unsent message of the current user from this device (explicit sign-out). */
+  discardOutbox: () => void;
   flush: () => void;
   reset: () => void;
 }
@@ -511,6 +513,13 @@ export const useMessages = create<MessagesState>((set, get) => {
       );
     },
 
+    discardOutbox: () => {
+      for (const t of retryTimers.values()) window.clearTimeout(t);
+      retryTimers.clear();
+      set({ pending: {} });
+      saveOutbox({});
+    },
+
     flush: () => {
       for (const channelId of Object.keys(get().pending)) void sendNext(channelId);
     },
@@ -525,3 +534,7 @@ export const useMessages = create<MessagesState>((set, get) => {
 });
 
 export const EMPTY_CHANNEL: ChannelMessages = emptyChannel();
+
+/** Number of messages on this device that the server has not confirmed yet. */
+export const usePendingCount = () =>
+  useMessages((s) => Object.values(s.pending).reduce((n, list) => n + list.length, 0));

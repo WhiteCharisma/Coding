@@ -29,10 +29,12 @@ interface UserAvatarProps {
   presence?: PresenceStatus;
   className?: string;
   square?: boolean;
+  /** Fades the picture (e.g. offline members) without fading the presence mark. */
+  dimmed?: boolean;
 }
 
 /** Avatar with lazy-loaded image and a deterministic initials fallback. */
-export function UserAvatar({ name, src, size = 'md', presence, className, square }: UserAvatarProps) {
+export function UserAvatar({ name, src, size = 'md', presence, className, square, dimmed }: UserAvatarProps) {
   const [failed, setFailed] = useState(false);
   const hue = hueFor(name);
   return (
@@ -42,6 +44,7 @@ export function UserAvatar({ name, src, size = 'md', presence, className, square
           'grid place-items-center overflow-hidden font-semibold text-white/95 select-none',
           square ? 'rounded-xl' : 'rounded-full',
           sizes[size],
+          dimmed && 'opacity-55 transition-opacity group-hover:opacity-100',
         )}
         style={{ background: `linear-gradient(135deg, oklch(0.55 0.09 ${hue}), oklch(0.38 0.07 ${(hue + 40) % 360}))` }}
         aria-hidden

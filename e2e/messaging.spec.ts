@@ -132,4 +132,28 @@ test.describe('real-time community chat', () => {
     await sendMessage(page, unique('after-leave-'));
     await b.context.close();
   });
+
+  test('signing out with unsent messages asks first and removes them from this device', async ({ page, context }) => {
+    await signUp(context);
+    const community = await createCommunity(context);
+    const channel = community.channels[0];
+    if (!channel) throw new Error('no channel');
+    // The API keeps working, but the real-time connection never completes: sends stay queued.
+    await page.routeWebSocket(/\/socket\.io\//, () => undefined);
+    await page.goto(`/c/${community.id}/${channel.id}`);
+    const draft = unique('unsent-');
+    await sendMessage(page, draft);
+    await expect(page.getByText('Waiting for connection')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: 'Sign out' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Sign out with unsent messages?' });
+    await expect(dialog).toContainText('1 message on this device has not been sent yet');
+    await dialog.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page).toHaveURL(/\/welcome$/);
+
+    const stored = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('cn.outbox')));
+    expect(stored).toEqual([]);
+    expect((await (await context.request.get('/api/auth/state')).json()).user).toBeNull();
+  });
 });

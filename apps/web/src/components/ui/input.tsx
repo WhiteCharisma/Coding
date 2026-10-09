@@ -3,7 +3,7 @@ import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type Texta
 import { cn } from '../../lib/cn';
 
 const fieldBase =
-  'w-full rounded-md border border-line bg-inset px-3 text-ui text-fg placeholder:text-fg-faint transition-[border-color,box-shadow] duration-[var(--dur-fast)] hover:border-line-strong focus-visible:border-accent-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-soft disabled:opacity-60 aria-[invalid=true]:border-danger';
+  'w-full rounded-md border border-line bg-inset px-3 text-ui text-fg placeholder:text-fg-muted transition-[border-color,box-shadow] duration-[var(--dur-fast)] hover:border-line-strong focus-visible:border-accent-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-soft disabled:opacity-60 aria-[invalid=true]:border-danger';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
   { className, ...props },
@@ -44,7 +44,7 @@ export function Field({ label, hint, error, optional, className, children }: Fie
     <div className={cn('flex flex-col gap-1.5', className)}>
       <Label htmlFor={id}>
         {label}
-        {optional && <span className="ml-1.5 font-normal text-fg-faint">({optional})</span>}
+        {optional && <span className="ml-1.5 font-normal text-fg-muted">({optional})</span>}
       </Label>
       {children({ id, 'aria-describedby': describedBy, 'aria-invalid': error ? true : undefined })}
       {error ? (

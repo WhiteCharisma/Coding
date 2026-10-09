@@ -353,7 +353,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
                   {formatted}
                   {message.editedAt && (
                     <Tooltip content={formatDateTime(message.editedAt)}>
-                      <span className="ml-1.5 text-[11px] text-fg-faint select-none">{t('chat.message.edited')}</span>
+                      <span className="ml-1.5 text-[11px] text-fg-muted select-none">{t('chat.message.edited')}</span>
                     </Tooltip>
                   )}
                 </div>

@@ -37,11 +37,13 @@
 
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-success-fg: var(--success-fg);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-hover: var(--danger-hover);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-fg: var(--danger-fg);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
 

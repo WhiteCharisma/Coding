@@ -39,7 +39,10 @@ export function SessionBoot() {
       preloadSignedInApp();
     } else if (status === 'anonymous') {
       setSignedInHint(false);
-      if (previous.current === 'authenticated') void import('./teardown').then((m) => m.teardownSession());
+      if (previous.current === 'authenticated') {
+        const discardUnsent = useSession.getState().endedReason === null; // signed out on purpose
+        void import('./teardown').then((m) => m.teardownSession({ discardUnsent }));
+      }
     }
     previous.current = status;
   }, [status]);

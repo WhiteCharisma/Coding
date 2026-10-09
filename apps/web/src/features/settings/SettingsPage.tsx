@@ -10,11 +10,12 @@ import {
   UserRound,
   UserRoundCog,
 } from 'lucide-react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router';
+import { Link, Navigate, useParams } from 'react-router';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { useSession } from '../../stores/session';
 import { SidebarLayout } from '../shell/SidebarLayout';
+import { useSignOut } from '../shell/useSignOut';
 import { AccountSection, SessionsSection } from './AccountSection';
 import { AppearanceSection, NotificationsSection, PrivacySection } from './PreferenceSections';
 import { ProfileSection } from './ProfileSection';
@@ -35,8 +36,8 @@ function isSection(v: string | undefined): v is SectionKey {
 
 export default function SettingsPage() {
   const { section } = useParams();
-  const navigate = useNavigate();
   const user = useSession((s) => s.user);
+  const { signOut, dialog: signOutDialog } = useSignOut();
   if (!user) return null;
   if (section && !isSection(section)) return <Navigate to="/settings" replace />;
   const active: SectionKey = isSection(section) ? section : 'profile';
@@ -82,16 +83,12 @@ export default function SettingsPage() {
       <div className="border-t border-line-subtle p-2">
         <button
           type="button"
-          onClick={() =>
-            void useSession
-              .getState()
-              .logout()
-              .then(() => navigate('/welcome', { replace: true }))
-          }
+          onClick={signOut}
           className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-ui text-danger transition-colors hover:bg-danger-soft md:h-9"
         >
           <LogOut className="size-4" /> {t('shell.userMenu.signOut')}
         </button>
+        {signOutDialog}
       </div>
     </div>
   );

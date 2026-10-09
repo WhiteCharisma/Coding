@@ -15,7 +15,7 @@ export const buttonVariants = cva(
         secondary: 'border border-line bg-elevated text-fg hover:border-line-strong hover:bg-overlay',
         ghost: 'text-fg-2 hover:bg-hover hover:text-fg',
         outline: 'border border-line-strong text-fg hover:bg-hover',
-        danger: 'bg-danger text-white hover:bg-danger-hover',
+        danger: 'bg-danger text-danger-fg hover:bg-danger-hover',
         'danger-ghost': 'text-danger hover:bg-danger-soft',
         link: 'h-auto px-0 text-accent-text underline-offset-4 hover:underline active:scale-100',
       },

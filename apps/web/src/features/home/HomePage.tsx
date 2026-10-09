@@ -293,7 +293,7 @@ export function HomePage() {
                     to={s.to}
                     className={cn(
                       'flex items-start gap-3 rounded-xl border p-3 transition-colors',
-                      s.done ? 'border-line-subtle opacity-60' : 'border-line-subtle bg-sidebar/70 hover:border-line',
+                      s.done ? 'border-line-subtle' : 'border-line-subtle bg-sidebar/70 hover:border-line',
                     )}
                   >
                     <span

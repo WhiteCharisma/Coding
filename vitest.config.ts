@@ -24,6 +24,8 @@ export default defineConfig({
           name: 'web',
           include: ['apps/web/src/**/*.test.{ts,tsx}'],
           environment: 'happy-dom',
+          // The contrast test reads the design tokens (`tokens.css?raw`); other CSS stays stubbed.
+          css: { include: [/styles\/tokens\.css/] },
         },
       },
     ],

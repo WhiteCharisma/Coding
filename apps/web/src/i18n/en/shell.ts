@@ -23,6 +23,13 @@ export const shell = {
     admin: 'Administration',
     signOut: 'Sign out',
   },
+  signOutUnsent: {
+    title: 'Sign out with unsent messages?',
+    body: {
+      one: '{count} message on this device has not been sent yet. Signing out deletes it from this device.',
+      other: '{count} messages on this device have not been sent yet. Signing out deletes them from this device.',
+    },
+  },
   connection: {
     connecting: 'Connecting…',
     reconnecting: 'Reconnecting — messages you send will be delivered when the connection returns.',

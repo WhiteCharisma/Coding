@@ -24,15 +24,21 @@ function MemberRow({ user, color, isOwner }: { user: UserSummary; color: string 
       <ProfilePopover username={user.username} side="left" disabled={user.deleted}>
         <button
           type="button"
-          className={cn(
-            'flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-hover',
-            status === 'offline' && 'opacity-55 hover:opacity-100',
-          )}
+          className="group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-hover"
         >
-          <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" presence={status} />
+          <UserAvatar
+            name={user.displayName}
+            src={user.avatarUrl}
+            size="md"
+            presence={status}
+            dimmed={status === 'offline'}
+          />
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
-              <span className="truncate text-ui font-medium text-fg-2" style={color ? { color } : undefined}>
+              <span
+                className={cn('truncate text-ui font-medium', status === 'offline' ? 'text-fg-muted' : 'text-fg-2')}
+                style={color ? { color } : undefined}
+              >
                 {user.displayName}
               </span>
               {isOwner && <Crown className="size-3.5 shrink-0 text-warning" aria-label={t('common.labels.owner')} />}

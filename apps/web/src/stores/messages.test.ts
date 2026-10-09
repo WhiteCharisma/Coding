@@ -39,6 +39,7 @@ function serveHistory(total: number) {
 
 beforeEach(() => {
   store().reset();
+  localStorage.clear(); // outbox entries must not leak between tests
   store().setUser('u1');
   get.mockReset();
 });
@@ -153,5 +154,25 @@ describe('outbox', () => {
     expect(nonces.length).toBeGreaterThanOrEqual(2);
     expect(new Set(nonces)).toEqual(new Set([p.nonce]));
     expect(store().pending['chan'] ?? []).toHaveLength(0);
+  });
+
+  it('keeps unsent messages when the session ends on its own, for the next sign-in', () => {
+    store().setTransport({ isConnected: () => false, send: () => new Promise<SendAck>(() => undefined) });
+    store().send('chan', { content: 'typed while offline', replyTo: null, attachments: [] });
+    // Session expired: the app tears down without discarding.
+    store().reset();
+    store().setUser(null);
+    expect(store().pending).toEqual({});
+    store().setUser('u1');
+    expect(store().pending['chan']?.map((p) => [p.content, p.status])).toEqual([['typed while offline', 'queued']]);
+  });
+
+  it('deletes unsent messages from the device on an explicit sign-out', () => {
+    store().setTransport({ isConnected: () => false, send: () => new Promise<SendAck>(() => undefined) });
+    store().send('chan', { content: 'private draft', replyTo: null, attachments: [] });
+    expect(localStorage.getItem('cn.outbox.v1.u1')).toContain('private draft');
+    store().discardOutbox();
+    expect(localStorage.getItem('cn.outbox.v1.u1')).toBeNull();
+    expect(store().pending).toEqual({});
   });
 });

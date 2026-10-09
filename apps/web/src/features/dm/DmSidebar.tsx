@@ -92,7 +92,7 @@ export function DmSidebar() {
         {list.length === 0 ? (
           <div className="px-5 py-6 text-center">
             <p className="text-sm text-fg-muted">{t('dm.empty')}</p>
-            <p className="mt-1 text-xs text-fg-faint">{t('dm.emptyHint')}</p>
+            <p className="mt-1 text-xs text-fg-muted">{t('dm.emptyHint')}</p>
             <Button className="mt-4" size="sm" variant="primary" onClick={() => setOpen(true)}>
               <Plus /> {t('dm.new')}
             </Button>
