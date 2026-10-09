@@ -119,16 +119,37 @@ external font CDN) and split by script so browsers download only what a page nee
 | `--dur-slow`    | 360 ms | Drawers, sheets, page-level entrances |
 
 Easing: `--ease-out` for entering, `--ease-in` for leaving, `--ease-in-out` for movement,
-`--ease-spring` for small physical feedback (the switch thumb). CSS transitions and the keyframe
-animations in `app.css` (fade, pop, rise, drawer, sheet, shimmer) are the default; the Motion
-library is used only for the choreographed entrances of the welcome page and the onboarding
-steps.
+`--ease-spring` for small physical feedback (the switch thumb). Only `transform` and `opacity`
+animate (plus one background flash for highlights); nothing loops except loading indicators
+(skeleton shimmer, spinners, the typing dots) while something is actually loading or typing.
 
-**Reduced motion:** the OS setting (`prefers-reduced-motion`) and the in-app preference
-(Settings → Appearance → Motion, stored per device as `data-motion="reduced"`) both reduce every
-animation and transition to 1 ms and disable smooth scrolling; components that use Motion check
-`useReduceMotion()` and render the final state directly. Content never depends on an animation
-to become visible (the welcome headline, for example, slides in but is never transparent).
+| Moment                       | Effect                                                                                              | Level |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- | ----- |
+| Press, hover, focus          | Buttons sink slightly when pressed; glossy buttons get one light sweep on hover; focus glows        | all   |
+| Menus, popovers, dialogs     | Pop in from their trigger (`--radix-…-transform-origin`), fade out; sheets and drawers slide        | all   |
+| A message arrives or is sent | Slides up and fades in — only live arrivals and your own sends, never history or reloads            | decor |
+| Deleting your message        | The row fades out to the side, then the deletion is sent (restored with an error if it fails)       | all   |
+| Saving an edit               | The new text flashes softly                                                                         | all   |
+| Adding a reaction            | The emoji pops with a wobble and six glints fly out; a new reaction pill pops in                    | decor |
+| A reaction count changes     | The number rolls in from below                                                                      | all   |
+| An unread badge goes up      | The badge pops                                                                                      | decor |
+| Sending                      | The send icon flies off to the upper right and slides back                                          | decor |
+| Opening a photo              | The photo grows from its place in the chat into the viewer (View Transitions; plain fade elsewhere) | all   |
+
+**Motion levels** (Settings → Appearance → Motion, stored per device as `data-motion`):
+
+- **Full motion** (default): everything above.
+- **Calm** (`data-motion="calm"`): quick, useful transitions stay; everything marked `.decor`
+  (slide-ins, pops, glints, the send flight) and the hover light sweeps do not play, and spring
+  easing becomes a plain ease-out.
+- **Reduce motion** (`data-motion="reduced"`, also forced by the OS `prefers-reduced-motion`):
+  every animation and transition is reduced to 1 ms and smooth scrolling is off; the photo zoom
+  and the delete delay are skipped; components that use Motion render their final state directly
+  (`useMotionLevel()`, `useReduceMotion()`, `useDecorativeMotion()` in `lib/motion.ts`).
+
+Content never depends on an animation to become visible (the welcome headline, for example,
+slides in but is never transparent). The message list stays pinned to the newest message when a
+reaction, an edit, the growing composer or the phone keyboard changes the size of what is shown.
 
 ## Components
 

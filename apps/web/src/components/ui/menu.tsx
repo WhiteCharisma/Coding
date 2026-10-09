@@ -10,7 +10,7 @@ export const MenuSub = M.Sub;
 export const MenuRadioGroup = M.RadioGroup;
 
 const surface =
-  'glass z-[var(--z-popover)] min-w-[12rem] overflow-hidden rounded-xl bg-overlay p-1 text-fg data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in';
+  'glass z-[var(--z-popover)] min-w-[12rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-xl bg-overlay p-1 text-fg data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in';
 
 export function MenuContent({ className, sideOffset = 6, ...props }: ComponentProps<typeof M.Content>) {
   return (

@@ -104,7 +104,12 @@ Update this file in the same commit as the work it describes.
         local preview
   - [ ] remaining: dialogs' inner layouts, admin tables, search filters, image viewer chrome,
         mobile drawer polish
-- [ ] Motion system and reaction animations
+- [x] Motion system and reaction animations (docs/DESIGN.md → Motion)
+  - motion levels Full / Calm / Reduce motion (OS setting forces Reduce)
+  - live-only message entrance, delete fade, edit flash, reaction pop + glints, count roll,
+    badge pop, send flight, menus from their trigger, photo zoom into the viewer
+  - fixed on the way: the list did not stay at the bottom when the last message grew
+    (reactions, edits) or the composer grew; stray square focus glow inside the composer
 - [ ] Interface sounds with independent volume settings
 - [ ] WebRTC voice with verified audio quality
 - [ ] Responsive/a11y polish, docs, deployment and rollback notes

@@ -3,7 +3,7 @@ import { ArrowDown, RotateCcw } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { t } from '../../i18n';
 import { formatDayLabel, isSameDay } from '../../lib/format';
-import { EMPTY_CHANNEL, useMessages, type PendingMessage } from '../../stores/messages';
+import { EMPTY_CHANNEL, isFreshRow, useMessages, type PendingMessage } from '../../stores/messages';
 import { displayAttachment, useUploads, type UploadJob } from '../../stores/uploads';
 import { useSession } from '../../stores/session';
 import { useUi } from '../../stores/ui';
@@ -170,6 +170,24 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
     onScroll();
   }, [lastId, pending.length, state.status, state.hasMoreAfter, state.highlightId, onScroll]);
 
+  // Stay pinned to the newest message when what is on screen changes size without a new message:
+  // a reaction or an edit makes the last one taller, the composer grows, the phone keyboard opens.
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    const content = contentRef.current;
+    if (!el || !content) return;
+    const ro = new ResizeObserver(() => {
+      if (!initialScrollDone.current || !snapshot.current.atBottom) return;
+      if (useMessages.getState().byChannel[channelId]?.hasMoreAfter) return;
+      el.scrollTop = el.scrollHeight;
+      snapshot.current = { scrollHeight: el.scrollHeight, scrollTop: el.scrollTop, atBottom: true };
+    });
+    ro.observe(content);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [channelId]);
+
   // Scroll to a highlighted (jumped-to) message.
   useEffect(() => {
     if (!state.highlightId || state.status !== 'ready') return;
@@ -242,9 +260,11 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
         prev.author?.id === m.author?.id &&
         m.createdAt - prev.createdAt < GROUP_WINDOW_MS &&
         prev.kind === m.kind;
+      const key = rowKey(m, ctx.selfId);
       out.push(
         <Message
-          key={rowKey(m, ctx.selfId)}
+          key={key}
+          enterKey={isFreshRow(key) ? key : undefined}
           message={m}
           compact={compact}
           highlighted={state.highlightId === m.id}
@@ -295,7 +315,7 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
         data-testid="message-list"
         aria-busy={state.status === 'loading'}
       >
-        <div className="flex min-h-full flex-col justify-end pb-3">
+        <div ref={contentRef} className="flex min-h-full flex-col justify-end pb-3">
           <div ref={topSentinel} aria-hidden className="h-px" />
           {state.status === 'loading' && state.messages.length === 0 && <MessageSkeleton />}
           {state.status === 'error' && state.messages.length === 0 && (

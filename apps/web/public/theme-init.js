@@ -7,7 +7,7 @@
     if (theme === 'system') theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     root.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
     var motion = localStorage.getItem('cn.motion');
-    if (motion === 'reduced') root.setAttribute('data-motion', 'reduced');
+    if (motion === 'reduced' || motion === 'calm') root.setAttribute('data-motion', motion);
     var density = localStorage.getItem('cn.density');
     if (density === 'compact') root.setAttribute('data-density', 'compact');
   } catch {

@@ -14,12 +14,22 @@ import {
   SmilePlus,
   Trash2,
 } from 'lucide-react';
-import { memo, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import { t } from '../../i18n';
 import { errorMessage } from '../../lib/api';
 import { cn } from '../../lib/cn';
 import { formatDateTime, formatTime, roleColorStyle } from '../../lib/format';
 import { formatMessage, stripFormatting } from '../../lib/markdown';
+import { useDecorativeMotion, useMotionLevel } from '../../lib/motion';
 import { DemoBadge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { ConfirmDialog } from '../../components/ui/confirm';
@@ -30,7 +40,7 @@ import { Spinner } from '../../components/ui/spinner';
 import { toast } from '../../components/ui/toast';
 import { Tooltip } from '../../components/ui/tooltip';
 import { UserAvatar } from '../../components/user/UserAvatar';
-import { UPLOAD_INTERRUPTED, type PendingStatus } from '../../stores/messages';
+import { forgetFreshRow, UPLOAD_INTERRUPTED, type PendingStatus } from '../../stores/messages';
 import { ProfilePopover } from '../profile/ProfilePopover';
 import { ReportDialog } from '../report/ReportDialog';
 import { copyText, deleteMessage, editMessage, messageLink, setPinned, toggleReaction } from './actions';
@@ -67,6 +77,8 @@ interface MessageProps {
   highlighted: boolean;
   ctx: MessageContext;
   pending?: PendingState;
+  /** Set for a row that just arrived live or was just sent: it slides in once. */
+  enterKey?: string;
 }
 
 /**
@@ -142,28 +154,86 @@ function ReplyPreview({ message, onJump }: { message: MessageDTO; onJump: (id: s
   );
 }
 
-function ReactionBar({ message, canReact }: { message: MessageDTO; canReact: boolean }) {
+/** Six sparkles flying out of a reaction you just added (decoration: only at full motion). */
+function Sparkles() {
+  return (
+    <span aria-hidden className="pointer-events-none absolute inset-0">
+      {[0, 60, 120, 180, 240, 300].map((a, i) => (
+        <span
+          key={a}
+          className="sparkle"
+          style={{ '--a': `${a + 30}deg`, animationDelay: `${i * 18}ms` } as CSSProperties}
+        />
+      ))}
+    </span>
+  );
+}
+
+function ReactionPill({
+  message,
+  r,
+  canReact,
+  appear,
+}: {
+  message: MessageDTO;
+  r: MessageDTO['reactions'][number];
+  canReact: boolean;
+  /** Added while the message was on screen (not part of the history that was loaded). */
+  appear: boolean;
+}) {
+  const decorative = useDecorativeMotion();
+  // What this pill last showed: a new count rolls in, a reaction you add pops and sparkles.
+  const [seen, setSeen] = useState({ count: r.count, me: r.me, roll: 0, burst: appear && r.me ? 1 : 0 });
+  if (seen.count !== r.count || seen.me !== r.me) {
+    setSeen({
+      count: r.count,
+      me: r.me,
+      roll: r.count !== seen.count ? seen.roll + 1 : seen.roll,
+      burst: r.me && !seen.me ? seen.burst + 1 : seen.burst,
+    });
+  }
+  return (
+    <button
+      type="button"
+      disabled={!canReact && !r.me}
+      onClick={() => void toggleReaction(message, r.emoji)}
+      aria-pressed={r.me}
+      aria-label={t('chat.actions.reactionCount', { count: r.count, emoji: r.emoji })}
+      className={cn(
+        'gloss relative inline-flex h-7 items-center gap-1.5 rounded-full border px-2 text-sm shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--dur-fast)] active:scale-95',
+        r.me
+          ? 'border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg shadow-[0_2px_8px_-3px_var(--accent-glow)]'
+          : 'border-glass-edge bg-elevated text-fg-2 hover:border-accent-border',
+        appear && 'decor animate-badge-pop',
+      )}
+    >
+      <span
+        key={`e${seen.burst}`}
+        className={cn('text-base leading-none', seen.burst > 0 && 'decor animate-reaction-pop')}
+      >
+        {r.emoji}
+      </span>
+      <span className="overflow-hidden">
+        <span
+          key={`c${seen.roll}`}
+          className={cn('block font-mono text-xs font-semibold tabular-nums', seen.roll > 0 && 'animate-count-roll')}
+        >
+          {r.count}
+        </span>
+      </span>
+      {decorative && seen.burst > 0 && <Sparkles key={seen.burst} />}
+    </button>
+  );
+}
+
+export function ReactionBar({ message, canReact }: { message: MessageDTO; canReact: boolean }) {
+  // Reactions present when the message was first shown never animate; ones added later do.
+  const [initial] = useState(() => new Set(message.reactions.map((r) => r.emoji)));
   if (message.reactions.length === 0) return null;
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-1">
       {message.reactions.map((r) => (
-        <button
-          key={r.emoji}
-          type="button"
-          disabled={!canReact && !r.me}
-          onClick={() => void toggleReaction(message, r.emoji)}
-          aria-pressed={r.me}
-          aria-label={t('chat.actions.reactionCount', { count: r.count, emoji: r.emoji })}
-          className={cn(
-            'gloss inline-flex h-7 items-center gap-1.5 rounded-full border px-2 text-sm shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--dur-fast)] active:scale-95',
-            r.me
-              ? 'border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg shadow-[0_2px_8px_-3px_var(--accent-glow)]'
-              : 'border-glass-edge bg-elevated text-fg-2 hover:border-accent-border',
-          )}
-        >
-          <span className="text-base leading-none">{r.emoji}</span>
-          <span className="font-mono text-xs font-semibold tabular-nums">{r.count}</span>
-        </button>
+        <ReactionPill key={r.emoji} message={message} r={r} canReact={canReact} appear={!initial.has(r.emoji)} />
       ))}
       {canReact && (
         <EmojiPicker onPick={(e) => void toggleReaction(message, e)}>
@@ -180,7 +250,7 @@ function ReactionBar({ message, canReact }: { message: MessageDTO; canReact: boo
   );
 }
 
-function InlineEditor({ message, onDone }: { message: MessageDTO; onDone: () => void }) {
+function InlineEditor({ message, onDone }: { message: MessageDTO; onDone: (saved?: boolean) => void }) {
   const [value, setValue] = useState(message.content);
   const [busy, setBusy] = useState(false);
   const save = async () => {
@@ -192,7 +262,7 @@ function InlineEditor({ message, onDone }: { message: MessageDTO; onDone: () => 
     setBusy(true);
     try {
       await editMessage(message, content);
-      onDone();
+      onDone(true);
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -224,7 +294,16 @@ function InlineEditor({ message, onDone }: { message: MessageDTO; onDone: () => 
   );
 }
 
-export const Message = memo(function Message({ message, compact, highlighted, ctx, pending }: MessageProps) {
+export const Message = memo(function Message({ message, compact, highlighted, ctx, pending, enterKey }: MessageProps) {
+  const motion = useMotionLevel();
+  // Slides in once if it just arrived; the row key is forgotten so a remount never replays it.
+  const [enter] = useState(enterKey !== undefined);
+  useEffect(() => {
+    if (enterKey) forgetFreshRow(enterKey);
+  }, [enterKey]);
+  // Deleting fades the row out first; an edit you save flashes the text.
+  const [leaving, setLeaving] = useState(false);
+  const [edits, setEdits] = useState(0);
   const editing = !pending && ctx.editingId === message.id;
   const setEditing = (on: boolean) => ctx.setEditingId(on ? message.id : null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -343,6 +422,8 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
         mentionsMe &&
           'bg-mention before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-mention-bar hover:bg-mention',
         highlighted && 'animate-highlight',
+        enter && 'decor animate-message-in',
+        leaving && 'pointer-events-none animate-message-out',
       )}
       onPointerEnter={(e) => !pending && e.pointerType === 'mouse' && setToolsMounted(true)}
       onFocusCapture={() => !pending && setToolsMounted(true)}
@@ -423,14 +504,22 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
               </button>
             </p>
           ) : editing ? (
-            <InlineEditor message={message} onDone={() => setEditing(false)} />
+            <InlineEditor
+              message={message}
+              onDone={(saved) => {
+                setEditing(false);
+                if (saved) setEdits((n) => n + 1);
+              }}
+            />
           ) : (
             <>
               {message.content && (
                 <div
+                  key={`content-${edits}`}
                   className={cn(
                     'text-base break-words whitespace-pre-wrap [overflow-wrap:anywhere]',
                     pending && pending.status !== 'failed' ? 'text-fg-muted' : 'text-fg-2',
+                    edits > 0 && '-mx-1 rounded-md px-1 animate-highlight',
                   )}
                   data-testid="message-content"
                 >
@@ -540,7 +629,18 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
           body={t('chat.actions.deleteBody')}
           confirmLabel={t('common.actions.delete')}
           danger
-          onConfirm={() => deleteMessage(message)}
+          onConfirm={() => {
+            // The dialog closes at once; the row fades out, then the deletion is sent.
+            setLeaving(true);
+            window.setTimeout(
+              () =>
+                void deleteMessage(message).catch((err: unknown) => {
+                  setLeaving(false);
+                  toast.error(errorMessage(err));
+                }),
+              motion === 'reduced' ? 0 : 170,
+            );
+          }}
         />
       )}
       {reportOpen && (

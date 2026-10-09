@@ -2,7 +2,8 @@ import { create } from 'zustand';
 
 export type Theme = 'dark' | 'light' | 'system';
 export type Density = 'comfortable' | 'compact';
-export type MotionPref = 'full' | 'reduced';
+/** full: every effect · calm: quick transitions only, no decorative effects · reduced: (almost) none. */
+export type MotionPref = 'full' | 'calm' | 'reduced';
 export type ContextPanel = 'members' | 'pins' | null;
 
 function read<T extends string>(key: string, fallback: T, allowed: readonly T[]): T {
@@ -50,7 +51,7 @@ interface UiState {
 export const useUi = create<UiState>((set, get) => ({
   theme: read<Theme>('cn.theme', 'light', ['dark', 'light', 'system']),
   density: read<Density>('cn.density', 'comfortable', ['comfortable', 'compact']),
-  motion: read<MotionPref>('cn.motion', 'full', ['full', 'reduced']),
+  motion: read<MotionPref>('cn.motion', 'full', ['full', 'calm', 'reduced']),
   contextPanel:
     read<'members' | 'pins' | 'none'>('cn.panel', 'members', ['members', 'pins', 'none']) === 'none'
       ? null
@@ -70,8 +71,8 @@ export const useUi = create<UiState>((set, get) => ({
   },
   setMotion: (motion) => {
     write('cn.motion', motion);
-    if (motion === 'reduced') document.documentElement.setAttribute('data-motion', 'reduced');
-    else document.documentElement.removeAttribute('data-motion');
+    if (motion === 'full') document.documentElement.removeAttribute('data-motion');
+    else document.documentElement.setAttribute('data-motion', motion);
     set({ motion });
   },
   toggleContextPanel: (p) => {

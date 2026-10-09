@@ -116,6 +116,8 @@ export function Composer({
 }: ComposerProps) {
   const config = useSession((s) => s.config);
   const [value, setValue] = useState(() => loadDraft(channelId));
+  /** Messages sent from this composer: each one sends the icon on a little flight. */
+  const [sent, setSent] = useState(0);
   // Files attached here live in the uploads store: they keep uploading if you switch channels.
   const draftKeys = useUploads((s) => s.drafts[channelId] ?? NO_KEYS);
   const uploads = useUploads(useShallow((s) => draftKeys.flatMap((k) => (s.jobs[k] ? [s.jobs[k]] : []))));
@@ -196,6 +198,7 @@ export function Composer({
 
   const submit = () => {
     if (!canSubmit) return;
+    setSent((n) => n + 1);
     useMessages.getState().send(channelId, {
       content: value.trim(),
       replyTo,
@@ -381,7 +384,7 @@ export function Composer({
             aria-label={placeholder}
             rows={1}
             maxLength={LIMITS.messageMax + 500}
-            className="max-h-[40vh] min-h-9 flex-1 resize-none bg-transparent px-1.5 py-2 text-base text-fg placeholder:text-fg-muted focus:outline-none"
+            className="max-h-[40vh] min-h-9 flex-1 resize-none bg-transparent px-1.5 py-2 text-base text-fg placeholder:text-fg-muted focus:outline-none focus-visible:shadow-none"
             data-testid="composer-input"
           />
           <div className="hidden md:block">
@@ -409,7 +412,7 @@ export function Composer({
             disabled={!canSubmit}
             data-testid="composer-send"
           >
-            <SendHorizontal className="size-[18px]" />
+            <SendHorizontal key={sent} className={cn('size-[18px]', sent > 0 && 'decor animate-send-fly')} />
           </Button>
         </div>
       </div>

@@ -118,6 +118,7 @@ export function AppearanceSection() {
           onChange={ui.setMotion}
           options={[
             { value: 'full', label: t('settings.appearance.motionFull') },
+            { value: 'calm', label: t('settings.appearance.motionCalm') },
             { value: 'reduced', label: t('settings.appearance.motionReduced') },
           ]}
         />

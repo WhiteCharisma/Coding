@@ -8,7 +8,7 @@ vi.mock('../lib/api', () => ({
   errorMessage: (e: unknown) => String(e),
 }));
 
-const { useMessages, mergeMessages, UPLOAD_INTERRUPTED } = await import('./messages');
+const { useMessages, mergeMessages, UPLOAD_INTERRUPTED, isFreshRow, forgetFreshRow } = await import('./messages');
 const { useUploads } = await import('./uploads');
 const store = () => useMessages.getState();
 const channel = () => store().byChannel['chan']!;
@@ -91,6 +91,22 @@ describe('message window', () => {
     // Receiving the same message again (broadcast + ack) does not duplicate it.
     store().receive(message(101));
     expect(channel().messages.filter((m) => m.id === idFor(101))).toHaveLength(1);
+  });
+
+  it('marks only live arrivals and sends as fresh (they animate in); history never is', async () => {
+    serveHistory(120);
+    await store().loadLatest('chan');
+    expect(channel().messages.some((m) => isFreshRow(m.id))).toBe(false);
+    await store().loadOlder('chan');
+    expect(channel().messages.some((m) => isFreshRow(m.id))).toBe(false);
+
+    store().receive(message(121, { author: { ...message(1).author!, id: 'u2' } }));
+    expect(isFreshRow(idFor(121))).toBe(true);
+    forgetFreshRow(idFor(121)); // the row forgets it once it has played
+    expect(isFreshRow(idFor(121))).toBe(false);
+
+    const p = store().send('chan', { content: 'hello', replyTo: null, attachments: [] });
+    expect(isFreshRow(`n:${p.nonce}`)).toBe(true);
   });
 
   it('merges by id and keeps chronological order', () => {

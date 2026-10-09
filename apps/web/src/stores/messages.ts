@@ -201,6 +201,26 @@ interface MessagesState {
 
 let transport: Transport | null = null;
 const inflight = new Set<string>();
+
+/**
+ * Rows that just arrived live or were just sent from here, by row key (message id, or "n:" + nonce
+ * for one's own messages). Only these get an entrance animation: history, reloads and catch-up
+ * never animate. Entries expire quickly so a channel opened later does not replay them.
+ */
+const freshRows = new Map<string, number>();
+const FRESH_MS = 4000;
+function markFresh(...keys: string[]): void {
+  const now = Date.now();
+  for (const key of keys) freshRows.set(key, now);
+  if (freshRows.size > 100) for (const [k, at] of freshRows) if (now - at > FRESH_MS) freshRows.delete(k);
+}
+export function isFreshRow(key: string): boolean {
+  const at = freshRows.get(key);
+  return at !== undefined && Date.now() - at < FRESH_MS;
+}
+export function forgetFreshRow(key: string): void {
+  freshRows.delete(key);
+}
 const retryTimers = new Map<string, number>();
 
 export const useMessages = create<MessagesState>((set, get) => {
@@ -484,6 +504,7 @@ export const useMessages = create<MessagesState>((set, get) => {
         patch.pending = nextPending;
       }
       if (append) {
+        if (!confirmsPending) markFresh(m.id, ...(m.nonce ? [`n:${m.nonce}`] : []));
         let messages = mergeMessages(c.messages, [m], true);
         let hasMoreBefore = c.hasMoreBefore;
         if (messages.length > MAX_WINDOW) {
@@ -551,6 +572,7 @@ export const useMessages = create<MessagesState>((set, get) => {
         attempts: 0,
         uploadKeys: waiting.length ? waiting : undefined,
       };
+      markFresh(`n:${p.nonce}`);
       setPending(channelId, [...(get().pending[channelId] ?? []), p]);
       if (waiting.length) resolveUploads(channelId);
       void sendNext(channelId);
@@ -603,6 +625,7 @@ export const useMessages = create<MessagesState>((set, get) => {
     },
 
     reset: () => {
+      freshRows.clear();
       for (const t of retryTimers.values()) window.clearTimeout(t);
       retryTimers.clear();
       inflight.clear();

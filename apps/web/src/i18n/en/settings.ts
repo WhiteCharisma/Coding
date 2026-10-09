@@ -91,8 +91,10 @@ export const settings = {
     compact: 'Compact',
     motion: 'Motion',
     motionFull: 'Full motion',
+    motionCalm: 'Calm',
     motionReduced: 'Reduce motion',
-    motionHint: 'Reduces animations. Your system’s reduced-motion setting is always respected.',
+    motionHint:
+      'Calm keeps quick transitions but turns off decorative effects (light sweeps, sparkles, bounces, slide-ins). Reduce motion removes nearly all animation. Your system’s reduced-motion setting is always respected.',
     language: 'Language',
     languageHint: 'More languages are planned.',
   },

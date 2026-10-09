@@ -181,7 +181,7 @@ export function InviteDialog({
                     value={link}
                     aria-label={t('community.invite.linkLabel')}
                     onFocus={(e) => e.target.select()}
-                    className="min-w-0 flex-1 bg-transparent font-mono text-sm text-fg focus:outline-none"
+                    className="min-w-0 flex-1 bg-transparent font-mono text-sm text-fg focus:outline-none focus-visible:shadow-none"
                     data-testid="invite-link"
                   />
                   <Button

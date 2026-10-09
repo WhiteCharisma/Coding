@@ -1,10 +1,12 @@
 import type { AttachmentDTO } from '@creator-network/shared';
 import { Download, File, FileArchive, FileAudio, FileText, Film, Pause, Play } from 'lucide-react';
 import { memo, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { flushSync } from 'react-dom';
 import { t } from '../../i18n';
 import { seekTo, togglePlay, usePlayer } from '../../lib/audio';
 import { cn } from '../../lib/cn';
 import { formatBytes, formatDuration, hueFor } from '../../lib/format';
+import { useMotionLevel } from '../../lib/motion';
 import { localUrlFor, useUploads, type DisplayAttachment } from '../../stores/uploads';
 import { buttonVariants } from '../../components/ui/button';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
@@ -157,7 +159,15 @@ function UploadProgress({ uploadKey, overlay }: { uploadKey: string; overlay?: b
  * Shows the small server preview (or, for the sender, the local copy of the file), fades it in
  * once decoded, and keeps the space reserved from the known dimensions so nothing jumps.
  */
-function ImageTile({ a, onOpen, single }: { a: DisplayAttachment; onOpen: () => void; single: boolean }) {
+function ImageTile({
+  a,
+  onOpen,
+  single,
+}: {
+  a: DisplayAttachment;
+  onOpen: (from: HTMLElement) => void;
+  single: boolean;
+}) {
   const job = useUploads((s) => (a.uploadKey ? s.jobs[a.uploadKey] : undefined));
   const src = (a.uploadKey ? job?.localUrl : localUrlFor(a.id)) ?? a.previewUrl ?? a.url;
   const width = a.width ?? job?.width ?? null;
@@ -171,7 +181,7 @@ function ImageTile({ a, onOpen, single }: { a: DisplayAttachment; onOpen: () => 
   return (
     <button
       type="button"
-      onClick={onOpen}
+      onClick={(e) => onOpen(e.currentTarget)}
       disabled={!!a.uploadKey}
       aria-label={t('chat.attachments.open')}
       className={cn(
@@ -234,7 +244,7 @@ function ImageViewer({ a }: { a: AttachmentDTO }) {
   const quick = localUrlFor(a.id) ?? a.previewUrl;
   const [originalLoaded, setOriginalLoaded] = useState(false);
   return (
-    <div className="relative grid place-items-center">
+    <div className="relative grid place-items-center [view-transition-name:cn-photo]">
       {quick && !originalLoaded && (
         <img
           src={quick}
@@ -282,6 +292,20 @@ function FileCard({ a }: { a: AttachmentDTO }) {
 
 export const Attachments = memo(function Attachments({ items }: { items: DisplayAttachment[] }) {
   const [open, setOpen] = useState<AttachmentDTO | null>(null);
+  const motion = useMotionLevel();
+  // The photo grows from its place in the chat into the viewer (View Transitions, where supported).
+  const openViewer = (a: AttachmentDTO, from: HTMLElement) => {
+    const doc = document as Document & { startViewTransition?: (update: () => void) => unknown };
+    if (motion === 'reduced' || typeof doc.startViewTransition !== 'function') {
+      setOpen(a);
+      return;
+    }
+    from.style.viewTransitionName = 'cn-photo';
+    doc.startViewTransition(() => {
+      from.style.viewTransitionName = '';
+      flushSync(() => setOpen(a));
+    });
+  };
   const images = items.filter((a) => a.kind === 'image');
   const others = items.filter((a) => a.kind !== 'image');
   return (
@@ -289,7 +313,7 @@ export const Attachments = memo(function Attachments({ items }: { items: Display
       {images.length > 0 && (
         <div className={cn(images.length === 1 ? 'flex' : 'grid max-w-[420px] grid-cols-2 gap-1.5')}>
           {images.map((a) => (
-            <ImageTile key={a.id} a={a} single={images.length === 1} onOpen={() => setOpen(a)} />
+            <ImageTile key={a.id} a={a} single={images.length === 1} onOpen={(from) => openViewer(a, from)} />
           ))}
         </div>
       )}

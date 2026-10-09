@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { Tooltip } from './tooltip';
@@ -63,15 +63,20 @@ export function CountBadge({
   className?: string;
   label?: string;
 }) {
+  // Pops when the number goes up while it is on screen (never on first render).
+  const [seen, setSeen] = useState({ count, pops: 0 });
+  if (seen.count !== count) setSeen({ count, pops: count > seen.count ? seen.pops + 1 : seen.pops });
   if (count <= 0) return null;
   return (
     <span
+      key={seen.pops}
       aria-label={label}
       className={cn(
         'gloss inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full border px-1.5 text-[11px] leading-none font-bold tabular-nums shadow-sm',
         tone === 'danger'
           ? 'border-danger/40 bg-danger text-danger-fg'
           : 'border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg',
+        seen.pops > 0 && 'decor animate-badge-pop',
         className,
       )}
     >
