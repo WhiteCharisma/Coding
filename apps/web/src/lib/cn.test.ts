@@ -14,6 +14,17 @@ describe('cn()', () => {
     expect(cn('shadow-sm', 'shadow-glow')).toBe('shadow-glow');
   });
 
+  it("lets a caller replace a component's default animation", () => {
+    expect(cn('data-[state=open]:animate-pop-in', 'data-[state=open]:animate-[start-rise_220ms_both]')).toBe(
+      'data-[state=open]:animate-[start-rise_220ms_both]',
+    );
+    expect(cn('animate-fade-in', 'animate-rise-in')).toBe('animate-rise-in');
+    // Different states keep their own animation.
+    expect(cn('data-[state=open]:animate-pop-in', 'data-[state=closed]:animate-pop-out')).toBe(
+      'data-[state=open]:animate-pop-in data-[state=closed]:animate-pop-out',
+    );
+  });
+
   it('gives buttons on solid fills their readable text colour', () => {
     expect(cn(buttonVariants({ variant: 'primary', size: 'md' })).split(' ')).toContain('text-accent-fg');
     expect(cn(buttonVariants({ variant: 'danger', size: 'md' })).split(' ')).toContain('text-danger-fg');
