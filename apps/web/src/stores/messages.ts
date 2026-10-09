@@ -25,8 +25,13 @@ import { normalizeMessageContent } from '@creator-network/shared';
 import { create } from 'zustand';
 import { api, errorMessage } from '../lib/api';
 import { createNonce } from '../lib/format';
+import { useUploads } from './uploads';
 
-export type PendingStatus = 'sending' | 'queued' | 'failed';
+/** uploading: waiting for its files · queued: ready, waiting for the connection · sending · failed */
+export type PendingStatus = 'uploading' | 'sending' | 'queued' | 'failed';
+
+/** Shown for a message whose upload was cut off by a reload (files cannot be resumed). */
+export const UPLOAD_INTERRUPTED = 'upload_interrupted';
 
 export interface PendingMessage {
   nonce: string;
@@ -39,6 +44,8 @@ export interface PendingMessage {
   status: PendingStatus;
   attempts: number;
   error?: string;
+  /** Uploads this message waits for (in memory only; see the uploads store). */
+  uploadKeys?: string[];
 }
 
 export interface ChannelMessages {
@@ -132,7 +139,15 @@ function loadOutbox(): PendingMessage[] {
 function saveOutbox(pending: Record<string, PendingMessage[]>): void {
   if (!outboxKey) return;
   try {
-    const all = Object.values(pending).flat();
+    // Uploads cannot survive a reload: keep the text and finished files, and say so.
+    const jobs = useUploads.getState().jobs;
+    const all = Object.values(pending)
+      .flat()
+      .map((p): PendingMessage => {
+        if (p.status !== 'uploading') return p;
+        const done = (p.uploadKeys ?? []).flatMap((k) => (jobs[k]?.attachment ? [jobs[k].attachment] : []));
+        return { ...p, status: 'failed', error: UPLOAD_INTERRUPTED, attachments: done, uploadKeys: undefined };
+      });
     if (all.length === 0) localStorage.removeItem(outboxKey);
     else localStorage.setItem(outboxKey, JSON.stringify(all));
   } catch {
@@ -166,8 +181,16 @@ interface MessagesState {
 
   send: (
     channelId: string,
-    input: { content: string; replyTo: MessageReplyDTO | null; attachments: AttachmentDTO[] },
+    input: {
+      content: string;
+      replyTo: MessageReplyDTO | null;
+      attachments: AttachmentDTO[];
+      /** Files still uploading (or done) that this message carries, in order. */
+      uploadKeys?: string[];
+    },
   ) => PendingMessage;
+  /** Moves messages whose files finished uploading to the send queue. */
+  resolveUploads: () => void;
   retry: (channelId: string, nonce: string) => void;
   discard: (channelId: string, nonce: string) => void;
   /** Deletes every unsent message of the current user from this device (explicit sign-out). */
@@ -218,14 +241,40 @@ export const useMessages = create<MessagesState>((set, get) => {
     );
   };
 
+  /** Messages waiting for their files: send once all finished, fail if one of them failed. */
+  const resolveUploads = (channelId: string) => {
+    const list = get().pending[channelId];
+    if (!list?.some((p) => p.status === 'uploading')) return;
+    const jobs = useUploads.getState().jobs;
+    let changed = false;
+    const next = list.map((p): PendingMessage => {
+      if (p.status !== 'uploading') return p;
+      const keyed = (p.uploadKeys ?? []).map((k) => jobs[k]);
+      const missing = keyed.some((j) => !j);
+      const failed = keyed.find((j) => j?.status === 'error');
+      if (missing || failed) {
+        changed = true;
+        return { ...p, status: 'failed', error: failed?.error ?? UPLOAD_INTERRUPTED };
+      }
+      if (keyed.every((j) => j?.status === 'done' && j.attachment)) {
+        changed = true;
+        const files = keyed.map((j) => j!.attachment!);
+        return { ...p, status: 'queued', attachments: [...p.attachments, ...files], uploadKeys: undefined };
+      }
+      return p;
+    });
+    if (changed) setPending(channelId, next);
+  };
+
   const fetchPage = (channelId: string, query: string) =>
     api.get<MessagePage>(`/api/channels/${channelId}/messages${query}`);
 
   const sendNext = async (channelId: string): Promise<void> => {
     if (!transport || !transport.isConnected() || inflight.has(channelId)) return;
-    // Strict order per channel: wait for the oldest unsent message (failed ones are skipped
-    // until the user retries or discards them).
-    const next = get().pending[channelId]?.find((p) => p.status !== 'failed');
+    // Strict order per channel: wait for the oldest unsent message. Failed ones are skipped
+    // until the user retries or discards them, and messages waiting for their files do not
+    // hold back the ones written after them.
+    const next = get().pending[channelId]?.find((p) => p.status !== 'failed' && p.status !== 'uploading');
     if (!next || next.status !== 'queued' || retryTimers.has(next.nonce)) return;
     inflight.add(channelId);
     updatePending(channelId, next.nonce, { status: 'sending', attempts: next.attempts + 1 });
@@ -488,6 +537,7 @@ export const useMessages = create<MessagesState>((set, get) => {
     },
 
     send: (channelId, input) => {
+      const waiting = input.uploadKeys ?? [];
       const p: PendingMessage = {
         nonce: createNonce(),
         channelId,
@@ -497,12 +547,21 @@ export const useMessages = create<MessagesState>((set, get) => {
         replyTo: input.replyTo,
         attachments: input.attachments,
         createdAt: Date.now(),
-        status: 'queued',
+        status: waiting.length ? 'uploading' : 'queued',
         attempts: 0,
+        uploadKeys: waiting.length ? waiting : undefined,
       };
       setPending(channelId, [...(get().pending[channelId] ?? []), p]);
+      if (waiting.length) resolveUploads(channelId);
       void sendNext(channelId);
-      return p;
+      return get().pending[channelId]?.find((x) => x.nonce === p.nonce) ?? p;
+    },
+
+    resolveUploads: () => {
+      for (const channelId of Object.keys(get().pending)) {
+        resolveUploads(channelId);
+        void sendNext(channelId);
+      }
     },
 
     retry: (channelId, nonce) => {
@@ -511,14 +570,24 @@ export const useMessages = create<MessagesState>((set, get) => {
         window.clearTimeout(timer);
         retryTimers.delete(nonce);
       }
-      updatePending(channelId, nonce, { status: 'queued', error: undefined });
+      const p = get().pending[channelId]?.find((x) => x.nonce === nonce);
+      if (p?.uploadKeys?.length) {
+        // A file failed to upload: try those uploads again, then send.
+        for (const key of p.uploadKeys) useUploads.getState().retry(key);
+        updatePending(channelId, nonce, { status: 'uploading', error: undefined });
+        resolveUploads(channelId);
+      } else {
+        updatePending(channelId, nonce, { status: 'queued', error: undefined });
+      }
       void sendNext(channelId);
     },
 
     discard: (channelId, nonce) => {
+      const p = get().pending[channelId]?.find((x) => x.nonce === nonce);
+      for (const key of p?.uploadKeys ?? []) useUploads.getState().remove(key);
       setPending(
         channelId,
-        (get().pending[channelId] ?? []).filter((p) => p.nonce !== nonce),
+        (get().pending[channelId] ?? []).filter((x) => x.nonce !== nonce),
       );
     },
 
@@ -547,3 +616,8 @@ export const EMPTY_CHANNEL: ChannelMessages = emptyChannel();
 /** Number of messages on this device that the server has not confirmed yet. */
 export const usePendingCount = () =>
   useMessages((s) => Object.values(s.pending).reduce((n, list) => n + list.length, 0));
+
+// Uploads finishing (or failing) move the messages that wait for them along.
+useUploads.subscribe((state, prev) => {
+  if (state.settled !== prev.settled) useMessages.getState().resolveUploads();
+});

@@ -2,6 +2,7 @@ import { queryClient } from '../lib/queryClient';
 import { stopRealtime } from '../lib/realtime';
 import { useChat } from '../stores/chat';
 import { useMessages } from '../stores/messages';
+import { useUploads } from '../stores/uploads';
 
 /**
  * Clears everything a signed-in session loaded (loaded on demand after sign-out).
@@ -12,6 +13,7 @@ export function teardownSession({ discardUnsent }: { discardUnsent: boolean }): 
   stopRealtime();
   useChat.getState().reset();
   if (discardUnsent) useMessages.getState().discardOutbox();
+  useUploads.getState().reset();
   useMessages.getState().reset();
   useMessages.getState().setUser(null);
   queryClient.clear();

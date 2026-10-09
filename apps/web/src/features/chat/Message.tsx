@@ -30,7 +30,7 @@ import { Spinner } from '../../components/ui/spinner';
 import { toast } from '../../components/ui/toast';
 import { Tooltip } from '../../components/ui/tooltip';
 import { UserAvatar } from '../../components/user/UserAvatar';
-import type { PendingStatus } from '../../stores/messages';
+import { UPLOAD_INTERRUPTED, type PendingStatus } from '../../stores/messages';
 import { ProfilePopover } from '../profile/ProfilePopover';
 import { ReportDialog } from '../report/ReportDialog';
 import { copyText, deleteMessage, editMessage, messageLink, setPinned, toggleReaction } from './actions';
@@ -75,13 +75,18 @@ interface MessageProps {
  * waiting for a connection and failures get a status line because they need the reader's attention.
  */
 function PendingStatusLine({ pending }: { pending: PendingState }) {
-  if (pending.status === 'sending') return null;
+  // Sending: a mark beside the first line. Uploading: each file shows its own progress.
+  if (pending.status === 'sending' || pending.status === 'uploading') return null;
   return (
     <div className="mt-0.5 flex items-center gap-2 text-xs" role="status">
       {pending.status === 'failed' ? (
         <>
           <AlertCircle className="size-3.5 text-danger" />
-          <span className="text-danger">{pending.error ?? t('chat.message.failed')}</span>
+          <span className="text-danger">
+            {pending.error === UPLOAD_INTERRUPTED
+              ? t('chat.message.uploadInterrupted')
+              : (pending.error ?? t('chat.message.failed'))}
+          </span>
           <button
             type="button"
             onClick={pending.onRetry}

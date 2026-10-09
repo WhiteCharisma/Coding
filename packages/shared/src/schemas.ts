@@ -289,6 +289,18 @@ export const messageContentSchema = z
 
 export const nonceSchema = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/, { error: 'Invalid nonce' });
 
+/** Client-chosen key that makes a retried upload return the file stored by the first attempt. */
+export const uploadKeySchema = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/, { error: 'Invalid upload key' });
+
+/** Waveform and duration computed by the uploader's browser for an audio attachment. */
+export const audioMetaSchema = z.object({
+  waveform: z.array(z.number().int().min(0).max(100)).min(1).max(LIMITS.waveformPeaks),
+  durationMs: z
+    .number()
+    .positive()
+    .max(24 * 3600_000),
+});
+
 export const sendMessageSchema = z
   .object({
     content: messageContentSchema,

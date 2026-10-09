@@ -188,6 +188,8 @@ export interface AttachmentDTO {
   mime: string;
   size: number;
   url: string;
+  /** Small WebP version for showing images in the chat (null: show `url` as it is). */
+  previewUrl: string | null;
   width: number | null;
   height: number | null;
   durationMs: number | null;

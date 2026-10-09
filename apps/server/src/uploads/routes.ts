@@ -1,18 +1,48 @@
 import fastifyMultipart from '@fastify/multipart';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
-import { Permission, idSchema } from '@creator-network/shared';
+import { Permission, audioMetaSchema, idSchema, uploadKeySchema } from '@creator-network/shared';
 import { requireAuth } from '../auth/plugin';
 import { hasPerm, requireChannelPermission, requireCommunityPermission } from '../communities/access';
 import { setCommunityIcon } from '../communities/service';
 import type { AppContext } from '../context';
-import { badRequest, forbidden } from '../lib/errors';
+import { badRequest, forbidden, notFound } from '../lib/errors';
 import { rateLimit } from '../lib/http';
 import { parse } from '../lib/validation';
 import { toAttachmentDTO } from '../messages/service';
 import { toSelfUser } from '../users/dto';
 import { setAvatar } from '../users/service';
-import { authorizeFile, fileDisposition, openFileStream, parseRange, storeUpload, type UploadMeta } from './service';
+import {
+  authorizeFile,
+  fileDisposition,
+  openFileStream,
+  openPreviewStream,
+  parseRange,
+  setAudioMeta,
+  storeUpload,
+  type UploadMeta,
+  type UploadRow,
+  type UploadTimings,
+} from './service';
+
+/**
+ * Retried uploads (lost response, flaky connection) carry the same client-chosen key and get
+ * the file the first attempt stored instead of a duplicate. Kept in memory for an hour, the
+ * same time unattached uploads live; a restart only means a retry stores a fresh copy.
+ */
+const UPLOAD_KEY_TTL_MS = 60 * 60 * 1000;
+const uploadsByKey = new Map<string, { at: number; result: Promise<UploadRow> }>();
+
+function rememberUpload(key: string, result: Promise<UploadRow>): void {
+  const now = Date.now();
+  for (const [k, v] of uploadsByKey) if (now - v.at > UPLOAD_KEY_TTL_MS) uploadsByKey.delete(k);
+  uploadsByKey.set(key, { at: now, result });
+  result.catch(() => uploadsByKey.delete(key)); // a failed attempt may be retried for real
+}
+
+/** Server-side durations for the browser's network panel (no identifiers or sizes). */
+const serverTiming = (t: UploadTimings) =>
+  `receive;dur=${t.receiveMs.toFixed(1)}, inspect;dur=${t.inspectMs.toFixed(1)}, store;dur=${t.storeMs.toFixed(1)}`;
 
 type IdParams = { Params: { id: string } };
 
@@ -69,12 +99,33 @@ export async function registerUploadRoutes(app: FastifyInstance, ctx: AppContext
       const access = requireChannelPermission(ctx.db, channelId, user.id, Permission.SEND_MESSAGES);
       if (!hasPerm(access.permissions, Permission.ATTACH_FILES))
         throw forbidden('You cannot attach files in this channel.');
-      const { file, meta } = await readSingleFile(request);
-      const row = await storeUpload(ctx, user, file, { purpose: 'attachment', channelId, meta });
-      reply.status(201);
+      const keyHeader = request.headers['x-upload-key'];
+      const key = typeof keyHeader === 'string' ? `${user.id}:${channelId}:${parse(uploadKeySchema, keyHeader)}` : null;
+      const earlier = key ? uploadsByKey.get(key) : undefined;
+      if (earlier) {
+        const row = await earlier.result.catch(() => null);
+        if (row) {
+          reply.status(201).header('X-Upload-Replayed', '1');
+          return { attachment: toAttachmentDTO(row) };
+        }
+      }
+      const timings: UploadTimings = { receiveMs: 0, inspectMs: 0, storeMs: 0 };
+      const stored = readSingleFile(request).then(({ file, meta }) =>
+        storeUpload(ctx, user, file, { purpose: 'attachment', channelId, meta, timings }),
+      );
+      if (key) rememberUpload(key, stored);
+      const row = await stored;
+      reply.status(201).header('Server-Timing', serverTiming(timings));
       return { attachment: toAttachmentDTO(row) };
     },
   );
+
+  app.put<IdParams>('/api/attachments/:id/audio', { config: rateLimit(60 * m, '1 minute') }, async (request) => {
+    const { user } = requireAuth(request);
+    const meta = parse(audioMetaSchema, request.body);
+    const row = setAudioMeta(ctx, user, parse(idSchema, request.params.id), meta);
+    return { attachment: toAttachmentDTO(row) };
+  });
 
   app.post('/api/me/avatar', { config: rateLimit(10 * m, '1 hour') }, async (request) => {
     const { user } = requireAuth(request);
@@ -101,6 +152,30 @@ export async function registerUploadRoutes(app: FastifyInstance, ctx: AppContext
   app.delete<IdParams>('/api/communities/:id/icon', async (request) => {
     const { user } = requireAuth(request);
     return { community: setCommunityIcon(ctx, user, parse(idSchema, request.params.id), null) };
+  });
+
+  /** Small WebP version of an image for the chat; same authorisation as the original. */
+  app.get<IdParams>('/api/files/:id/preview', { config: { rateLimit: false } }, async (request, reply) => {
+    const { user } = requireAuth(request);
+    const row = authorizeFile(ctx, user, parse(idSchema, request.params.id));
+    const etag = `"${row.id}-p"`;
+    if (request.headers['if-none-match'] === etag) {
+      return reply
+        .status(304)
+        .header('ETag', etag)
+        .header('Cache-Control', 'private, max-age=31536000, immutable')
+        .send();
+    }
+    const preview = await openPreviewStream(ctx, row);
+    if (!preview) throw notFound('This file has no preview.');
+    return reply
+      .header('Content-Security-Policy', "default-src 'none'; img-src 'self'; sandbox")
+      .header('Cache-Control', 'private, max-age=31536000, immutable')
+      .header('ETag', etag)
+      .header('Content-Disposition', 'inline')
+      .header('Content-Length', preview.size)
+      .type('image/webp')
+      .send(preview.stream);
   });
 
   /** Every file download is authorised here; there is no public uploads directory. */

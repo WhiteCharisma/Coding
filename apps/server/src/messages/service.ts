@@ -39,6 +39,7 @@ import {
 import { AppError, badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { markChannelNotificationsRead, notify, scrubMessageNotifications } from '../notifications/service';
 import { summaryColumns, toUserSummary, type UserRow } from '../users/dto';
+import { hasPreview } from '../uploads/previews';
 
 export type MessageRow = typeof messages.$inferSelect;
 type UploadRow = typeof uploads.$inferSelect;
@@ -60,6 +61,7 @@ export function toAttachmentDTO(u: UploadRow): AttachmentDTO {
     mime: u.mime,
     size: u.size,
     url: attachmentUrl(u.id),
+    previewUrl: hasPreview(u) ? `${attachmentUrl(u.id)}/preview` : null,
     width: u.width,
     height: u.height,
     durationMs: u.durationMs,

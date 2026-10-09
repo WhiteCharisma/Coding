@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { t } from '../../i18n';
 import { formatDayLabel, isSameDay } from '../../lib/format';
 import { EMPTY_CHANNEL, useMessages, type PendingMessage } from '../../stores/messages';
+import { displayAttachment, useUploads, type UploadJob } from '../../stores/uploads';
 import { useSession } from '../../stores/session';
 import { useUi } from '../../stores/ui';
 import { useChat } from '../../stores/chat';
@@ -43,7 +44,7 @@ function NewDivider() {
 }
 
 /** Shows an unconfirmed message with the same component (and grouping) as a confirmed one. */
-function pendingAsMessage(p: PendingMessage, self: SelfUser): MessageDTO {
+function pendingAsMessage(p: PendingMessage, self: SelfUser, jobs: Record<string, UploadJob>): MessageDTO {
   return {
     id: `pending-${p.nonce}`,
     channelId: p.channelId,
@@ -59,7 +60,11 @@ function pendingAsMessage(p: PendingMessage, self: SelfUser): MessageDTO {
     content: p.content,
     kind: 'default',
     replyTo: p.replyTo,
-    attachments: p.attachments,
+    // Files still uploading show with their local preview and progress.
+    attachments: [
+      ...p.attachments,
+      ...(p.uploadKeys ?? []).flatMap((k) => (jobs[k] ? [displayAttachment(jobs[k])] : [])),
+    ],
     reactions: [],
     mentions: [],
     mentionEveryone: false,
@@ -211,7 +216,10 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
   };
 
   const self = useSession((s) => s.user);
+  // Re-evaluated when an upload finishes or fails (progress is shown by the tiles themselves).
+  const uploadsSettled = useUploads((s) => s.settled);
   const rows = useMemo(() => {
+    const jobs = useUploads.getState().jobs;
     const out: ReactNode[] = [];
     let prev: MessageDTO | null = null;
     let dividerPlaced = false;
@@ -262,10 +270,21 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
     }
     // Unsent messages follow the newest loaded message (not shown while reading older history).
     if (!state.hasMoreAfter && self) {
-      for (const p of pending) if (!confirmedNonces.has(p.nonce)) push(pendingAsMessage(p, self), p);
+      for (const p of pending) if (!confirmedNonces.has(p.nonce)) push(pendingAsMessage(p, self, jobs), p);
     }
     return out;
-  }, [state.messages, state.hasMoreAfter, state.highlightId, pending, self, ctx, lastReadAtOpen, channelId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- uploadsSettled re-reads the uploads store
+  }, [
+    state.messages,
+    state.hasMoreAfter,
+    state.highlightId,
+    pending,
+    self,
+    ctx,
+    lastReadAtOpen,
+    channelId,
+    uploadsSettled,
+  ]);
 
   return (
     <div className="relative min-h-0 flex-1">

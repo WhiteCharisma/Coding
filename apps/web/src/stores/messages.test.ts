@@ -8,7 +8,8 @@ vi.mock('../lib/api', () => ({
   errorMessage: (e: unknown) => String(e),
 }));
 
-const { useMessages, mergeMessages } = await import('./messages');
+const { useMessages, mergeMessages, UPLOAD_INTERRUPTED } = await import('./messages');
+const { useUploads } = await import('./uploads');
 const store = () => useMessages.getState();
 const channel = () => store().byChannel['chan']!;
 
@@ -199,5 +200,94 @@ describe('outbox', () => {
     store().discardOutbox();
     expect(localStorage.getItem('cn.outbox.v1.u1')).toBeNull();
     expect(store().pending).toEqual({});
+  });
+});
+
+describe('messages with files', () => {
+  const job = (key: string, status: 'uploading' | 'done' | 'error', extra: object = {}) => ({
+    key,
+    channelId: 'chan',
+    name: `${key}.png`,
+    size: 1000,
+    mime: 'image/png',
+    kind: 'image' as const,
+    localUrl: null,
+    width: 10,
+    height: 10,
+    status,
+    progress: status === 'done' ? 1 : 0.5,
+    attachment: status === 'done' ? { ...attachmentFor(key) } : null,
+    ...extra,
+  });
+  const attachmentFor = (key: string) => ({
+    id: `att-${key}`,
+    kind: 'image' as const,
+    name: `${key}.png`,
+    mime: 'image/png',
+    size: 1000,
+    url: `/api/files/att-${key}`,
+    previewUrl: null,
+    width: 10,
+    height: 10,
+    durationMs: null,
+    waveform: null,
+  });
+  const setJobs = (jobs: ReturnType<typeof job>[]) =>
+    useUploads.setState((s) => ({
+      jobs: Object.fromEntries(jobs.map((j) => [j.key, j])),
+      settled: s.settled + 1,
+    }));
+
+  beforeEach(() => useUploads.setState({ jobs: {}, drafts: {}, settled: 0 }));
+
+  it('waits for its uploads without holding back the messages written after it', async () => {
+    const sent: { content: string; attachmentIds: string[] }[] = [];
+    store().setTransport({
+      isConnected: () => true,
+      send: async (p) => {
+        sent.push({ content: p.content, attachmentIds: p.attachmentIds });
+        return { ok: true, message: message(300 + sent.length, { content: p.content, nonce: p.nonce }) };
+      },
+    });
+    setJobs([job('k1', 'uploading')]);
+    const withFile = store().send('chan', { content: 'look', replyTo: null, attachments: [], uploadKeys: ['k1'] });
+    expect(withFile.status).toBe('uploading');
+    store().send('chan', { content: 'meanwhile', replyTo: null, attachments: [] });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(sent).toEqual([{ content: 'meanwhile', attachmentIds: [] }]);
+
+    setJobs([job('k1', 'done')]); // the upload finishes
+    await new Promise((r) => setTimeout(r, 0));
+    expect(sent[1]).toEqual({ content: 'look', attachmentIds: ['att-k1'] });
+    expect(store().pending['chan'] ?? []).toHaveLength(0);
+  });
+
+  it('fails when an upload fails, and a retry uploads again', () => {
+    store().setTransport({ isConnected: () => true, send: () => new Promise<SendAck>(() => undefined) });
+    setJobs([job('k2', 'uploading')]);
+    const p = store().send('chan', { content: '', replyTo: null, attachments: [], uploadKeys: ['k2'] });
+    setJobs([job('k2', 'error', { error: 'That file type is not supported.', permanent: true })]);
+    const failed = store().pending['chan']?.find((x) => x.nonce === p.nonce);
+    expect(failed).toMatchObject({ status: 'failed', error: 'That file type is not supported.' });
+
+    const retry = vi.spyOn(useUploads.getState(), 'retry');
+    store().retry('chan', p.nonce);
+    expect(retry).toHaveBeenCalledWith('k2');
+  });
+
+  it('keeps the text of a message whose upload a reload interrupted', () => {
+    store().setTransport({ isConnected: () => false, send: () => new Promise<SendAck>(() => undefined) });
+    setJobs([job('k3', 'done'), job('k4', 'uploading')]);
+    store().send('chan', { content: 'two files', replyTo: null, attachments: [], uploadKeys: ['k3', 'k4'] });
+    const saved = JSON.parse(localStorage.getItem('cn.outbox.v1.u1') ?? '[]');
+    expect(saved).toEqual([
+      expect.objectContaining({
+        content: 'two files',
+        status: 'failed',
+        error: UPLOAD_INTERRUPTED,
+        attachments: [expect.objectContaining({ id: 'att-k3' })],
+      }),
+    ]);
+    expect(saved[0].uploadKeys).toBeUndefined();
   });
 });

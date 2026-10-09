@@ -1,31 +1,20 @@
-import { LIMITS, type AttachmentDTO, type MessageReplyDTO, type UserSummary } from '@creator-network/shared';
-import { FileAudio, FileImage, FileText, Lock, Paperclip, RotateCcw, SendHorizontal, Smile, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { LIMITS, type MessageReplyDTO, type UserSummary } from '@creator-network/shared';
+import { FileAudio, FileText, Film, Lock, Paperclip, RotateCcw, SendHorizontal, Smile, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { t } from '../../i18n';
-import { errorMessage, uploadWithProgress } from '../../lib/api';
-import { computePeaks } from '../../lib/audio';
 import { cn } from '../../lib/cn';
 import { formatBytes } from '../../lib/format';
-import { shrinkLargeImage } from '../../lib/image';
 import { emitTyping } from '../../lib/realtime';
 import { stripFormatting } from '../../lib/markdown';
 import { useMessages } from '../../stores/messages';
 import { useSession } from '../../stores/session';
+import { useUploads, type UploadJob } from '../../stores/uploads';
 import { Button } from '../../components/ui/button';
 import { toast } from '../../components/ui/toast';
 import { Tooltip } from '../../components/ui/tooltip';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { EmojiPicker } from './EmojiPicker';
-
-interface UploadItem {
-  key: string;
-  file: File;
-  status: 'preparing' | 'uploading' | 'done' | 'error';
-  progress: number;
-  attachment?: AttachmentDTO;
-  error?: string;
-  abort?: () => void;
-}
 
 export interface ComposerProps {
   channelId: string;
@@ -57,6 +46,62 @@ function saveDraft(channelId: string, value: string): void {
 }
 
 const coarsePointer = () => window.matchMedia('(pointer: coarse)').matches;
+const NO_KEYS: string[] = [];
+
+function UploadChip({ job }: { job: UploadJob }) {
+  const Icon = job.kind === 'audio' ? FileAudio : job.kind === 'video' ? Film : FileText;
+  const failed = job.status === 'error';
+  return (
+    <li
+      className={cn(
+        'relative flex w-52 items-center gap-2 overflow-hidden rounded-lg border bg-inset px-2 py-1.5',
+        failed ? 'border-danger/50' : 'border-line',
+      )}
+      data-testid="upload-chip"
+      data-status={job.status}
+    >
+      {job.localUrl ? (
+        <img src={job.localUrl} alt="" className="size-8 shrink-0 rounded object-cover" draggable={false} />
+      ) : (
+        <Icon className={cn('mx-2 size-4 shrink-0', failed ? 'text-danger' : 'text-accent-text')} />
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-medium text-fg">{job.name}</span>
+        <span className={cn('block truncate text-[11px]', failed ? 'text-danger' : 'text-fg-muted')}>
+          {failed
+            ? (job.error ?? t('chat.composer.uploadFailed'))
+            : job.status === 'done'
+              ? formatBytes(job.size)
+              : `${t('chat.composer.uploading')} ${Math.round(job.progress * 100)}%`}
+        </span>
+      </span>
+      {failed && !job.permanent && (
+        <button
+          type="button"
+          aria-label={t('common.actions.retry')}
+          onClick={() => useUploads.getState().retry(job.key)}
+          className="rounded p-0.5 text-fg-muted hover:text-fg"
+        >
+          <RotateCcw className="size-3.5" />
+        </button>
+      )}
+      <button
+        type="button"
+        aria-label={t('chat.composer.removeAttachment', { name: job.name })}
+        onClick={() => useUploads.getState().remove(job.key)}
+        className="rounded p-0.5 text-fg-muted hover:text-fg"
+      >
+        <X className="size-3.5" />
+      </button>
+      {job.status === 'uploading' && (
+        <span
+          className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-accent transition-transform duration-200"
+          style={{ transform: `scaleX(${Math.max(0.04, job.progress)})` }}
+        />
+      )}
+    </li>
+  );
+}
 
 export function Composer({
   channelId,
@@ -71,19 +116,14 @@ export function Composer({
 }: ComposerProps) {
   const config = useSession((s) => s.config);
   const [value, setValue] = useState(() => loadDraft(channelId));
-  const [uploads, setUploads] = useState<UploadItem[]>([]);
+  // Files attached here live in the uploads store: they keep uploading if you switch channels.
+  const draftKeys = useUploads((s) => s.drafts[channelId] ?? NO_KEYS);
+  const uploads = useUploads(useShallow((s) => draftKeys.flatMap((k) => (s.jobs[k] ? [s.jobs[k]] : []))));
   const [mention, setMention] = useState<{ query: string; start: number } | null>(null);
   const [mentionIndex, setMentionIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const lastTyping = useRef(0);
-
-  // The composer is remounted per channel (ChannelView is keyed by channel id); abort unfinished uploads on unmount.
-  const uploadsRef = useRef(uploads);
-  useEffect(() => {
-    uploadsRef.current = uploads;
-  }, [uploads]);
-  useEffect(() => () => uploadsRef.current.forEach((u) => u.abort?.()), []);
 
   useEffect(() => {
     if (replyTo) textareaRef.current?.focus();
@@ -146,21 +186,24 @@ export function Composer({
     }
   };
 
-  const uploading = uploads.some((u) => u.status === 'preparing' || u.status === 'uploading');
-  const ready = uploads.filter((u) => u.status === 'done' && u.attachment);
   const overLimit = value.length - LIMITS.messageMax;
-  const canSubmit = canSend && !uploading && overLimit <= 0 && (value.trim().length > 0 || ready.length > 0);
+  // Sending while files upload is fine: the message waits for them, the conversation does not.
+  const canSubmit =
+    canSend &&
+    overLimit <= 0 &&
+    !uploads.some((u) => u.status === 'error') &&
+    (value.trim().length > 0 || uploads.length > 0);
 
   const submit = () => {
     if (!canSubmit) return;
     useMessages.getState().send(channelId, {
       content: value.trim(),
       replyTo,
-      attachments: ready.map((u) => u.attachment as AttachmentDTO),
+      attachments: [],
+      uploadKeys: useUploads.getState().takeDraft(channelId),
     });
     setValue('');
     saveDraft(channelId, '');
-    setUploads([]);
     onCancelReply();
     if (lastTyping.current) emitTyping(channelId, false);
     lastTyping.current = 0;
@@ -203,39 +246,6 @@ export function Composer({
     }
   };
 
-  const startUpload = useCallback(
-    async (item: UploadItem) => {
-      const setItem = (patch: Partial<UploadItem>) =>
-        setUploads((list) => list.map((u) => (u.key === item.key ? { ...u, ...patch } : u)));
-      setItem({ status: 'preparing', progress: 0, error: undefined });
-      let file = item.file;
-      const form = new FormData();
-      if (file.type.startsWith('audio/') || /\.(wav|mp3|ogg|flac|m4a|aac)$/i.test(file.name)) {
-        const meta = await computePeaks(file);
-        if (meta) {
-          form.append('waveform', JSON.stringify(meta.peaks));
-          form.append('durationMs', String(meta.durationMs));
-        }
-      } else if (file.type.startsWith('image/')) {
-        file = await shrinkLargeImage(file);
-      }
-      form.append('file', file, file.name);
-      const handle = uploadWithProgress<{ attachment: AttachmentDTO }>(
-        `/api/channels/${channelId}/attachments`,
-        form,
-        (p) => setItem({ progress: p }),
-      );
-      setItem({ status: 'uploading', abort: handle.abort });
-      try {
-        const res = await handle.promise;
-        setItem({ status: 'done', progress: 1, attachment: res.attachment, abort: undefined });
-      } catch (err) {
-        setItem({ status: 'error', error: errorMessage(err), abort: undefined });
-      }
-    },
-    [channelId],
-  );
-
   const addFiles = (files: FileList | File[]) => {
     const list = Array.from(files);
     const maxMb = config?.maxUploadMb ?? 25;
@@ -245,29 +255,12 @@ export function Composer({
       list.length = Math.max(0, room);
       toast.error(t('chat.composer.maxAttachments', { max: LIMITS.attachmentsPerMessage }));
     }
-    const items: UploadItem[] = [];
-    for (const file of list) {
-      if (file.size > maxMb * 1024 * 1024) {
-        items.push({
-          key: crypto.randomUUID(),
-          file,
-          status: 'error',
-          progress: 0,
-          error: t('chat.composer.fileTooLarge', { name: file.name, max: maxMb }),
-        });
-        continue;
-      }
-      items.push({ key: crypto.randomUUID(), file, status: 'preparing', progress: 0 });
-    }
-    setUploads((u) => [...u, ...items]);
-    for (const it of items) if (it.status === 'preparing') void startUpload(it);
-  };
-
-  const removeUpload = (key: string) => {
-    setUploads((list) => {
-      list.find((u) => u.key === key)?.abort?.();
-      return list.filter((u) => u.key !== key);
+    const accepted = list.filter((file) => {
+      if (file.size <= maxMb * 1024 * 1024) return true;
+      toast.error(t('chat.composer.fileTooLarge', { name: file.name, max: maxMb }));
+      return false;
     });
+    if (accepted.length) useUploads.getState().add(channelId, accepted);
   };
 
   if (!canSend) {
@@ -339,65 +332,9 @@ export function Composer({
         )}
         {uploads.length > 0 && (
           <ul className="flex flex-wrap gap-2 border-b border-line-subtle p-2.5">
-            {uploads.map((u) => {
-              const Icon = u.file.type.startsWith('image/')
-                ? FileImage
-                : u.file.type.startsWith('audio/')
-                  ? FileAudio
-                  : FileText;
-              return (
-                <li
-                  key={u.key}
-                  className={cn(
-                    'relative flex w-52 items-center gap-2 overflow-hidden rounded-lg border bg-inset px-2.5 py-2',
-                    u.status === 'error' ? 'border-danger/50' : 'border-line',
-                  )}
-                >
-                  <Icon className={cn('size-4 shrink-0', u.status === 'error' ? 'text-danger' : 'text-accent-text')} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-medium text-fg">{u.file.name}</span>
-                    <span
-                      className={cn(
-                        'block truncate text-[11px]',
-                        u.status === 'error' ? 'text-danger' : 'text-fg-muted',
-                      )}
-                    >
-                      {u.status === 'error'
-                        ? (u.error ?? t('chat.composer.uploadFailed'))
-                        : u.status === 'done'
-                          ? formatBytes(u.file.size)
-                          : `${t('chat.composer.uploading')} ${Math.round(u.progress * 100)}%`}
-                    </span>
-                  </span>
-                  {u.status === 'error' &&
-                    u.error !==
-                      t('chat.composer.fileTooLarge', { name: u.file.name, max: config?.maxUploadMb ?? 25 }) && (
-                      <button
-                        type="button"
-                        aria-label={t('common.actions.retry')}
-                        onClick={() => void startUpload(u)}
-                        className="rounded p-0.5 text-fg-muted hover:text-fg"
-                      >
-                        <RotateCcw className="size-3.5" />
-                      </button>
-                    )}
-                  <button
-                    type="button"
-                    aria-label={t('chat.composer.removeAttachment', { name: u.file.name })}
-                    onClick={() => removeUpload(u.key)}
-                    className="rounded p-0.5 text-fg-muted hover:text-fg"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                  {(u.status === 'uploading' || u.status === 'preparing') && (
-                    <span
-                      className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-accent transition-transform duration-200"
-                      style={{ transform: `scaleX(${Math.max(0.04, u.progress)})` }}
-                    />
-                  )}
-                </li>
-              );
-            })}
+            {uploads.map((job) => (
+              <UploadChip key={job.key} job={job} />
+            ))}
           </ul>
         )}
         <div className="flex items-end gap-1 p-1.5">

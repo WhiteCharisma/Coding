@@ -1,10 +1,11 @@
 import type { AttachmentDTO } from '@creator-network/shared';
-import { Download, File, FileArchive, FileAudio, FileText, Pause, Play } from 'lucide-react';
-import { memo, useMemo, useState, type KeyboardEvent } from 'react';
+import { Download, File, FileArchive, FileAudio, FileText, Film, Pause, Play } from 'lucide-react';
+import { memo, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { t } from '../../i18n';
 import { seekTo, togglePlay, usePlayer } from '../../lib/audio';
 import { cn } from '../../lib/cn';
 import { formatBytes, formatDuration, hueFor } from '../../lib/format';
+import { localUrlFor, useUploads, type DisplayAttachment } from '../../stores/uploads';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 
 const downloadUrl = (a: AttachmentDTO) => `${a.url}?download=1`;
@@ -121,16 +122,60 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
   );
 });
 
-function ImageTile({ a, onOpen, single }: { a: AttachmentDTO; onOpen: () => void; single: boolean }) {
-  const ratio = a.width && a.height ? a.width / a.height : 1;
+/** Upload progress of a file in a message that is still being sent. */
+function UploadProgress({ uploadKey, overlay }: { uploadKey: string; overlay?: boolean }) {
+  const job = useUploads((s) => s.jobs[uploadKey]);
+  if (!job || job.status === 'done') return null;
+  const failed = job.status === 'error';
+  return (
+    <span
+      className={cn(
+        'flex items-center gap-2 text-[11px] font-medium',
+        overlay ? 'absolute inset-x-2 bottom-2 rounded-md bg-scrim px-2 py-1 text-white' : 'mt-1 text-fg-muted',
+      )}
+      role="status"
+    >
+      <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+        <span
+          className={cn(
+            'block h-full origin-left rounded-full transition-transform duration-200',
+            failed ? 'bg-danger' : 'bg-accent',
+          )}
+          style={{ transform: `scaleX(${failed ? 1 : Math.max(0.04, job.progress)})` }}
+        />
+      </span>
+      <span className="tabular-nums">
+        {failed ? t('chat.composer.uploadFailed') : `${Math.round(job.progress * 100)}%`}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Shows the small server preview (or, for the sender, the local copy of the file), fades it in
+ * once decoded, and keeps the space reserved from the known dimensions so nothing jumps.
+ */
+function ImageTile({ a, onOpen, single }: { a: DisplayAttachment; onOpen: () => void; single: boolean }) {
+  const job = useUploads((s) => (a.uploadKey ? s.jobs[a.uploadKey] : undefined));
+  const src = (a.uploadKey ? job?.localUrl : localUrlFor(a.id)) ?? a.previewUrl ?? a.url;
+  const width = a.width ?? job?.width ?? null;
+  const height = a.height ?? job?.height ?? null;
+  const ratio = width && height ? width / height : 4 / 3;
+  const img = useRef<HTMLImageElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  useLayoutEffect(() => {
+    if (img.current?.complete && img.current.naturalWidth > 0) setLoaded(true);
+  }, [src]);
   return (
     <button
       type="button"
       onClick={onOpen}
+      disabled={!!a.uploadKey}
       aria-label={t('chat.attachments.open')}
       className={cn(
         'group/img relative block overflow-hidden rounded-lg border border-line-subtle bg-inset',
         single ? 'max-w-[min(100%,420px)]' : 'aspect-square',
+        !loaded && 'skeleton',
       )}
       style={
         single
@@ -144,16 +189,69 @@ function ImageTile({ a, onOpen, single }: { a: AttachmentDTO; onOpen: () => void
       }
     >
       <img
-        src={a.url}
+        ref={img}
+        src={src}
         alt={t('chat.attachments.imageAlt', { name: a.name })}
         loading="lazy"
         decoding="async"
-        width={a.width ?? undefined}
-        height={a.height ?? undefined}
-        className="size-full object-cover transition-transform duration-[var(--dur-slow)] ease-out group-hover/img:scale-[1.02]"
+        width={width ?? undefined}
+        height={height ?? undefined}
+        onLoad={() => setLoaded(true)}
+        className={cn(
+          'size-full object-cover transition-[opacity,transform] duration-[var(--dur-slow)] ease-out group-hover/img:scale-[1.02]',
+          loaded ? 'opacity-100' : 'opacity-0',
+        )}
         draggable={false}
       />
+      {a.uploadKey && <UploadProgress uploadKey={a.uploadKey} overlay />}
     </button>
+  );
+}
+
+/** A file in a message that is still uploading (audio, video and documents). */
+function UploadingCard({ a }: { a: DisplayAttachment }) {
+  const Icon = a.kind === 'audio' ? FileAudio : a.kind === 'video' ? Film : FileText;
+  return (
+    <div className="flex w-full max-w-sm items-center gap-3 rounded-xl border border-line bg-elevated/70 p-3">
+      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-text">
+        <Icon className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-ui font-medium text-fg">{a.name}</span>
+        <span className="font-mono text-[11px] text-fg-muted uppercase">
+          {extLabel(a)} · {formatBytes(a.size)}
+        </span>
+        {a.uploadKey && <UploadProgress uploadKey={a.uploadKey} />}
+      </span>
+    </div>
+  );
+}
+
+/** Full-size view: the preview appears at once, the original replaces it when it has loaded. */
+function ImageViewer({ a }: { a: AttachmentDTO }) {
+  const quick = localUrlFor(a.id) ?? a.previewUrl;
+  const [originalLoaded, setOriginalLoaded] = useState(false);
+  return (
+    <div className="relative grid place-items-center">
+      {quick && !originalLoaded && (
+        <img
+          src={quick}
+          alt=""
+          aria-hidden
+          className="col-start-1 row-start-1 max-h-[70dvh] w-auto rounded-lg object-contain"
+        />
+      )}
+      <img
+        src={a.url}
+        alt={t('chat.attachments.imageAlt', { name: a.name })}
+        onLoad={() => setOriginalLoaded(true)}
+        className={cn(
+          'col-start-1 row-start-1 max-h-[70dvh] w-auto rounded-lg object-contain transition-opacity duration-[var(--dur-base)]',
+          quick && !originalLoaded ? 'opacity-0' : 'opacity-100',
+        )}
+        style={a.width && a.height ? { aspectRatio: `${a.width} / ${a.height}` } : undefined}
+      />
+    </div>
   );
 }
 
@@ -185,7 +283,7 @@ function FileCard({ a }: { a: AttachmentDTO }) {
   );
 }
 
-export const Attachments = memo(function Attachments({ items }: { items: AttachmentDTO[] }) {
+export const Attachments = memo(function Attachments({ items }: { items: DisplayAttachment[] }) {
   const [open, setOpen] = useState<AttachmentDTO | null>(null);
   const images = items.filter((a) => a.kind === 'image');
   const others = items.filter((a) => a.kind !== 'image');
@@ -199,7 +297,9 @@ export const Attachments = memo(function Attachments({ items }: { items: Attachm
         </div>
       )}
       {others.map((a) =>
-        a.kind === 'audio' ? (
+        a.uploadKey ? (
+          <UploadingCard key={a.id} a={a} />
+        ) : a.kind === 'audio' ? (
           <AudioCard key={a.id} a={a} />
         ) : a.kind === 'video' ? (
           <video
@@ -221,11 +321,7 @@ export const Attachments = memo(function Attachments({ items }: { items: Attachm
             description={`${open.width ?? '?'}×${open.height ?? '?'} · ${formatBytes(open.size)}`}
           >
             <div className="flex flex-col items-center gap-3">
-              <img
-                src={open.url}
-                alt={t('chat.attachments.imageAlt', { name: open.name })}
-                className="max-h-[70dvh] w-auto rounded-lg object-contain"
-              />
+              <ImageViewer a={open} />
               <a
                 href={downloadUrl(open)}
                 className="inline-flex items-center gap-2 text-sm font-medium text-accent-text hover:underline"

@@ -88,12 +88,14 @@ export function uploadWithProgress<T>(
   path: string,
   form: FormData,
   onProgress?: (fraction: number) => void,
+  headers: Record<string, string> = {},
 ): UploadHandle<T> {
   const xhr = new XMLHttpRequest();
   const promise = new Promise<T>((resolve, reject) => {
     xhr.open('POST', path);
     xhr.withCredentials = true;
     xhr.setRequestHeader('X-Requested-With', CSRF['X-Requested-With']);
+    for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress?.(e.loaded / e.total);
     };

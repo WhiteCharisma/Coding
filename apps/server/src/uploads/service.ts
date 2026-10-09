@@ -13,6 +13,8 @@ import { newId } from '../db/ids';
 import { uploads } from '../db/schema';
 import { AppError, badRequest, notFound, tooLarge, unsupported } from '../lib/errors';
 import type { UserRow } from '../users/dto';
+import { stripLocationMetadata } from './metadata';
+import { ensurePreview, hasPreview, previewKeyFor } from './previews';
 
 export type UploadRow = typeof uploads.$inferSelect;
 export type UploadPurpose = UploadRow['purpose'];
@@ -84,6 +86,45 @@ export interface UploadMeta {
   durationMs?: number | null;
 }
 
+const NO_AUDIO_META = { waveform: null, durationMs: null };
+
+/** Waveform peaks and duration are computed by the uploader's browser: keep only well-formed values. */
+function cleanAudioMeta(meta: UploadMeta): { waveform: number[] | null; durationMs: number | null } {
+  const w = meta.waveform;
+  const waveform =
+    Array.isArray(w) &&
+    w.length > 0 &&
+    w.length <= LIMITS.waveformPeaks &&
+    w.every((v) => Number.isInteger(v) && v >= 0 && v <= 100)
+      ? w
+      : null;
+  const d = meta.durationMs;
+  const durationMs = typeof d === 'number' && Number.isFinite(d) && d > 0 && d < 24 * 3600_000 ? Math.round(d) : null;
+  return { waveform, durationMs };
+}
+
+/**
+ * Sets the waveform/duration of an audio upload after the fact: the browser starts the upload
+ * right away and analyses the file in parallel, instead of decoding it first. Only the uploader
+ * may do this, and only before the file is attached to a message.
+ */
+export function setAudioMeta(ctx: AppContext, user: UserRow, uploadId: string, meta: UploadMeta): UploadRow {
+  const row = ctx.db.select().from(uploads).where(eq(uploads.id, uploadId)).get();
+  if (!row || row.uploaderId !== user.id || row.status !== 'pending' || uploadKindForMime(row.mime) !== 'audio') {
+    throw notFound('File not found.');
+  }
+  const clean = cleanAudioMeta(meta);
+  ctx.db.update(uploads).set(clean).where(eq(uploads.id, uploadId)).run();
+  return { ...row, ...clean };
+}
+
+/** Where an upload's server time went (sent as a Server-Timing header). */
+export interface UploadTimings {
+  receiveMs: number;
+  inspectMs: number;
+  storeMs: number;
+}
+
 /**
  * Streams an upload to disk, enforces the size limit while streaming, detects
  * the real type from the file signature, validates it against the allowlist for
@@ -93,8 +134,9 @@ export async function storeUpload(
   ctx: AppContext,
   user: UserRow,
   file: IncomingFile,
-  opts: { purpose: UploadPurpose; channelId?: string | null; meta?: UploadMeta },
+  opts: { purpose: UploadPurpose; channelId?: string | null; meta?: UploadMeta; timings?: UploadTimings },
 ): Promise<UploadRow> {
+  const started = performance.now();
   const isProfileImage = opts.purpose !== 'attachment';
   const limitBytes = isProfileImage ? PROFILE_IMAGE_MAX_BYTES : ctx.settings.get().maxUploadMb * 1024 * 1024;
   const id = newId();
@@ -120,6 +162,7 @@ export async function storeUpload(
       throw tooLarge(`Files can be at most ${Math.round(limitBytes / 1024 / 1024)} MB.`);
     }
     if (size === 0) throw badRequest('The file is empty.');
+    const received = performance.now();
 
     const detected = await fileTypeFromFile(tmpPath);
     let mime = detected ? (MIME_ALIASES[detected.mime] ?? detected.mime) : null;
@@ -136,6 +179,9 @@ export async function storeUpload(
     let width: number | null = null;
     let height: number | null = null;
     if (kind === 'image') {
+      // Photos often carry the place they were taken. Remove it (and XMP/IPTC) without
+      // re-encoding: the stored original keeps its exact quality.
+      if (await stripLocationMetadata(tmpPath, mime)) size = (await fs.stat(tmpPath)).size;
       try {
         const dim = await imageSizeFromFile(tmpPath);
         width = dim.width ?? null;
@@ -152,22 +198,9 @@ export async function storeUpload(
       }
     }
 
-    let waveform: number[] | null = null;
-    let durationMs: number | null = null;
-    if (kind === 'audio' && opts.meta) {
-      const w = opts.meta.waveform;
-      if (
-        Array.isArray(w) &&
-        w.length > 0 &&
-        w.length <= LIMITS.waveformPeaks &&
-        w.every((v) => Number.isInteger(v) && v >= 0 && v <= 100)
-      ) {
-        waveform = w;
-      }
-      const d = opts.meta.durationMs;
-      if (typeof d === 'number' && Number.isFinite(d) && d > 0 && d < 24 * 3600_000) durationMs = Math.round(d);
-    }
+    const { waveform, durationMs } = kind === 'audio' && opts.meta ? cleanAudioMeta(opts.meta) : NO_AUDIO_META;
 
+    const inspected = performance.now();
     const storageKey = storageKeyFor(id);
     const finalPath = resolveStoragePath(ctx, storageKey);
     await fs.mkdir(path.dirname(finalPath), { recursive: true });
@@ -191,6 +224,13 @@ export async function storeUpload(
       createdAt: Date.now(),
     };
     ctx.db.insert(uploads).values(row).run();
+    // Background: the preview is usually ready before anyone opens the message.
+    if (hasPreview(row)) void ensurePreview(ctx, row, (key) => resolveStoragePath(ctx, key));
+    if (opts.timings) {
+      opts.timings.receiveMs = received - started;
+      opts.timings.inspectMs = inspected - received;
+      opts.timings.storeMs = performance.now() - inspected;
+    }
     return row;
   } finally {
     await fs.rm(tmpPath, { force: true });
@@ -258,9 +298,19 @@ export function openFileStream(ctx: AppContext, row: UploadRow, range?: ByteRang
 export async function deleteStoredFile(ctx: AppContext, storageKey: string): Promise<void> {
   try {
     await fs.rm(resolveStoragePath(ctx, storageKey), { force: true });
+    await fs.rm(resolveStoragePath(ctx, previewKeyFor(storageKey)), { force: true });
   } catch (err) {
     if (!(err instanceof AppError)) throw err;
   }
+}
+
+/** Opens the preview of an image, generating it first if needed; null when it has none. */
+export async function openPreviewStream(ctx: AppContext, row: UploadRow) {
+  if (!hasPreview(row)) return null;
+  if (!(await ensurePreview(ctx, row, (key) => resolveStoragePath(ctx, key)))) return null;
+  const full = resolveStoragePath(ctx, previewKeyFor(row.storageKey));
+  const { size } = await fs.stat(full);
+  return { stream: createReadStream(full), size };
 }
 
 export const ACCEPTED_MIME_TYPES = Object.values(UPLOAD_MIME_GROUPS).flat();

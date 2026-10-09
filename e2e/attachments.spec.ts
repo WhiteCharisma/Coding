@@ -1,6 +1,8 @@
+import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { MessageDTO } from '@creator-network/shared';
+import { encodePng } from '../apps/server/src/seed/png';
 import {
   api,
   createCommunity,
@@ -9,6 +11,7 @@ import {
   joinWithInvite,
   messageRow,
   secondUser,
+  sendMessage,
   signUp,
   test,
 } from './fixtures';
@@ -84,5 +87,60 @@ test.describe('attachments', () => {
     await joinWithInvite(o.context, await createInvite(context, community.id));
     expect((await o.context.request.get(image.url)).status()).toBe(200);
     await o.context.close();
+  });
+
+  test('an image can be sent while it uploads, and others get a small preview', async ({
+    page,
+    context,
+    browser,
+    consoleErrors,
+  }) => {
+    await signUp(context);
+    const community = await createCommunity(context);
+    const channel = community.channels[0];
+    if (!channel) throw new Error('no channel');
+    const code = await createInvite(context, community.id);
+    // Hold the upload back so it is visibly still in progress.
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route('**/api/channels/*/attachments', async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto(`/c/${community.id}/${channel.id}`);
+
+    // A 1600×1200 noisy PNG (≈5.8 MB): big enough to get a server-side preview.
+    const big = encodePng(1600, 1200, new Uint8Array(randomBytes(1600 * 1200 * 3)));
+    await page
+      .locator('input[type="file"]')
+      .setInputFiles({ name: 'big-artwork.png', mimeType: 'image/png', buffer: big });
+    await page.getByTestId('composer-input').fill('fresh artwork');
+    await page.getByTestId('composer-send').click();
+
+    // Sent right away, shown with the local copy of the file while it uploads...
+    const pending = page.locator('[data-pending-nonce]').filter({ hasText: 'fresh artwork' });
+    await expect(pending.locator('img')).toHaveAttribute('src', /^blob:/);
+    // ...and the conversation is not blocked: a later message goes out first.
+    await sendMessage(page, 'meanwhile, a quick note');
+    await expect(messageRow(page, 'meanwhile, a quick note')).toBeVisible();
+    await expect(pending).toHaveCount(1);
+
+    release();
+    const row = messageRow(page, 'fresh artwork');
+    await expect(row.locator('img')).toBeVisible({ timeout: 20_000 });
+    await expect(pending).toHaveCount(0);
+
+    // Another member gets the small WebP preview in the chat, not the 5.8 MB original.
+    const viewer = await secondUser(browser, consoleErrors);
+    await signUp(viewer.context);
+    await joinWithInvite(viewer.context, code);
+    const previewResponse = viewer.page.waitForResponse((r) => r.url().endsWith('/preview'));
+    await viewer.page.goto(`/c/${community.id}/${channel.id}`);
+    const response = await previewResponse;
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toBe('image/webp');
+    expect((await response.body()).length).toBeLessThan(big.length / 4);
+    await expect(messageRow(viewer.page, 'fresh artwork').locator('img')).toHaveAttribute('src', /\/preview$/);
+    await viewer.context.close();
   });
 });

@@ -24,6 +24,7 @@ export const chat = {
   message: {
     pending: 'Sending…',
     queued: 'Waiting for connection',
+    uploadInterrupted: 'The upload was interrupted. Attach the files again, or send the message without them.',
     failed: 'Not delivered',
     retry: 'Retry',
     discard: 'Discard',

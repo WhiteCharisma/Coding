@@ -22,22 +22,37 @@ export async function squareImage(file: File, size = 384): Promise<File> {
   return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webp', { type: 'image/webp' });
 }
 
-/** Downscales very large photos before attaching them (keeps the original format family). */
-export async function shrinkLargeImage(file: File, maxSide = 2560): Promise<File> {
-  if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 1.5 * 1024 * 1024) return file;
+/** Server limits for images (apps/server/src/uploads/service.ts). */
+const MAX_SIDE = 8192;
+const MAX_PIXELS = 40_000_000;
+
+export interface PreparedImage {
+  file: File;
+  width: number | null;
+  height: number | null;
+}
+
+/**
+ * Reads an image's size for an instant local preview. The file is sent as it is: originals keep
+ * their full quality (the server makes small previews for the chat). Only an image beyond the
+ * server's limits is downscaled — otherwise the server would refuse it.
+ */
+export async function prepareImage(file: File): Promise<PreparedImage> {
   const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) return file;
-  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-  if (scale >= 1) {
+  if (!bitmap) return { file, width: null, height: null };
+  const { width, height } = bitmap;
+  const scale = Math.min(1, MAX_SIDE / Math.max(width, height), Math.sqrt(MAX_PIXELS / (width * height)));
+  if (scale >= 1 || !/^image\/(jpeg|png|webp)$/.test(file.type)) {
     bitmap.close();
-    return file;
+    return { file, width, height };
   }
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
+  canvas.width = Math.floor(width * scale);
+  canvas.height = Math.floor(height * scale);
   canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.88));
-  return blob && blob.size < file.size ? new File([blob], file.name, { type }) : file;
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.92));
+  if (!blob) return { file, width, height };
+  return { file: new File([blob], file.name, { type }), width: canvas.width, height: canvas.height };
 }

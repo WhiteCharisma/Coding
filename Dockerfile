@@ -9,7 +9,7 @@ ARG NODE_IMAGE=node:24.21.0-bookworm-slim
 # ---------------------------------------------------------------- build stage
 FROM ${NODE_IMAGE} AS build
 WORKDIR /app
-# The native modules (better-sqlite3, argon2) ship prebuilt binaries for linux x64/arm64
+# The native modules (better-sqlite3, argon2, sharp) ship prebuilt binaries for linux x64/arm64
 # (glibc and musl) inside their npm packages, so no compiler toolchain is needed and
 # dependency install scripts are not run at all (--ignore-scripts).
 COPY package.json package-lock.json ./
@@ -39,7 +39,10 @@ RUN --mount=type=secret,id=build_ca,required=false \
   if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; \
   npm ci --omit=dev --ignore-scripts --workspace @creator-network/server --no-audit --no-fund && npm cache clean --force
 # Fail the build early if no prebuilt native binary matches this platform.
-RUN node -e "new (require('better-sqlite3'))(':memory:').prepare('select 1').get(); require('argon2'); console.log('native modules OK')"
+# npm may nest a workspace's dependencies (sharp lives in apps/server/node_modules); make sure the
+# directory exists so the runtime stage can always copy it.
+RUN mkdir -p apps/server/node_modules
+RUN cd apps/server && node -e "new (require('better-sqlite3'))(':memory:').prepare('select 1').get(); require('argon2'); require('sharp'); console.log('native modules OK')"
 
 # ---------------------------------------------------------------- runtime stage
 FROM ${NODE_IMAGE} AS runtime
@@ -53,6 +56,7 @@ ENV NODE_ENV=production \
     NODE_OPTIONS=--max-semi-space-size=16
 WORKDIR /app
 COPY --from=deps --chown=root:root /app/node_modules ./node_modules
+COPY --from=deps --chown=root:root /app/apps/server/node_modules ./apps/server/node_modules
 COPY --from=build --chown=root:root /app/package.json ./package.json
 COPY --from=build --chown=root:root /app/apps/server/package.json ./apps/server/package.json
 COPY --from=build --chown=root:root /app/apps/server/dist ./apps/server/dist
