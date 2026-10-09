@@ -27,6 +27,18 @@ describe('registration', () => {
     expect(session.body.user.id).toBe(res.body.user.id);
   });
 
+  it('reports the session state without a 401 for anonymous visitors', async () => {
+    const c = srv.client();
+    const anon = await c.get('/api/auth/state');
+    expect(anon.status).toBe(200);
+    expect(anon.body.user).toBeNull();
+    const user = await c.register('state.probe');
+    const signedIn = await c.get('/api/auth/state');
+    expect(signedIn.status).toBe(200);
+    expect(signedIn.body.user.id).toBe(user.id);
+    expect(signedIn.body.user).not.toHaveProperty('passwordHash');
+  });
+
   it('stores only an Argon2id hash of the password and a hash of the session token', async () => {
     const c = srv.client();
     const user = await c.register('hashcheck');

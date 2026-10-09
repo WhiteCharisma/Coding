@@ -101,8 +101,12 @@ export function RequireAuth() {
 export function PublicOnly() {
   const status = useSession((s) => s.status);
   const location = useLocation();
+  // Once the page has been shown to a signed-out visitor, signing in on it (login, register)
+  // is handled by that page's own navigation — redirecting here as well would race with it.
+  const [shownAnonymous, setShownAnonymous] = useState(false);
+  if (status === 'anonymous' && !shownAnonymous) setShownAnonymous(true);
   if (status === 'loading') return <FullscreenSpinner />;
-  if (status === 'authenticated') {
+  if (status === 'authenticated' && !shownAnonymous) {
     const next = new URLSearchParams(location.search).get('next');
     return <Navigate to={next && next.startsWith('/') && !next.startsWith('//') ? next : '/home'} replace />;
   }

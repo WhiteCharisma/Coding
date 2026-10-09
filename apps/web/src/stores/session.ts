@@ -1,6 +1,6 @@
 import type { PublicConfig, SelfUser } from '@creator-network/shared';
 import { create } from 'zustand';
-import { api, ApiError } from '../lib/api';
+import { api } from '../lib/api';
 
 type Status = 'loading' | 'anonymous' | 'authenticated';
 
@@ -25,11 +25,10 @@ export const useSession = create<SessionState>((set, get) => ({
   async init() {
     const [config, session] = await Promise.allSettled([
       api.get<PublicConfig>('/api/config'),
-      api.get<{ user: SelfUser }>('/api/auth/session', { quiet401: true }),
+      api.get<{ user: SelfUser | null }>('/api/auth/state'),
     ]);
     if (config.status === 'fulfilled') set({ config: config.value });
-    if (session.status === 'fulfilled') set({ user: session.value.user, status: 'authenticated' });
-    else if (session.reason instanceof ApiError && session.reason.status === 401) set({ status: 'anonymous', user: null });
+    if (session.status === 'fulfilled' && session.value.user) set({ user: session.value.user, status: 'authenticated' });
     else set({ status: 'anonymous', user: null });
   },
   setUser: (user) => set({ user, status: 'authenticated', endedReason: null }),

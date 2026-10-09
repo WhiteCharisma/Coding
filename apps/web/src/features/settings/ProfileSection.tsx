@@ -83,8 +83,8 @@ export function ProfileSection({ user }: { user: SelfUser }) {
 
       <SettingsCard className="overflow-hidden p-0 sm:p-0">
         <div className="h-24" style={bannerStyle(form.bannerHue)} />
-        <div className="-mt-8 flex items-end gap-3 px-4 pb-4">
-          <UserAvatar name={form.displayName || user.displayName} src={user.avatarUrl} size="xl" className="rounded-full ring-4 ring-sidebar" />
+        <div className="flex items-end gap-3 px-4 pb-4">
+          <UserAvatar name={form.displayName || user.displayName} src={user.avatarUrl} size="xl" className="-mt-8 rounded-full ring-4 ring-sidebar" />
           <div className="min-w-0 pb-1">
             <p className="truncate font-semibold text-fg">{form.displayName || user.displayName}</p>
             <p className="truncate text-sm text-fg-muted">{form.headline || `@${user.username}`}</p>

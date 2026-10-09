@@ -38,12 +38,12 @@ export function CommunityCard({ c, onJoined }: { c: CommunitySummary; onJoined?:
       <div className="flex items-start gap-3">
         <CommunityIcon name={c.name} src={c.iconUrl} size="lg" />
         <div className="min-w-0 flex-1">
-          <h3 className="flex items-center gap-2 font-display text-base font-semibold tracking-tight text-fg">
-            <span className="truncate">{c.name}</span>
-            {c.isDemo && <DemoBadge />}
+          <h3 className="font-display text-base leading-snug font-semibold tracking-tight text-fg">
+            <span className="line-clamp-2 break-words">{c.name}</span>
           </h3>
-          <p className="mt-0.5 flex items-center gap-1 text-xs text-fg-muted">
+          <p className="mt-1 flex items-center gap-1 text-xs text-fg-muted">
             <Users className="size-3.5" /> {t('common.labels.members', { count: c.memberCount })}
+            {c.isDemo && <DemoBadge className="ml-1.5" />}
           </p>
         </div>
       </div>

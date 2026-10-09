@@ -247,7 +247,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
           ) : (
             <>
               {message.content && (
-                <div className="text-base break-words whitespace-pre-wrap text-fg-2 [overflow-wrap:anywhere]">
+                <div className="text-base break-words whitespace-pre-wrap text-fg-2 [overflow-wrap:anywhere]" data-testid="message-content">
                   {formatted}
                   {message.editedAt && (
                     <Tooltip content={formatDateTime(message.editedAt)}>

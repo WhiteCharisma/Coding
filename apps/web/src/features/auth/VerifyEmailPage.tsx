@@ -28,8 +28,8 @@ export default function VerifyEmailPage() {
         setState('done');
         // Refresh the signed-in user so the "confirm your email" banner disappears.
         if (useSession.getState().status === 'authenticated') {
-          const { user } = await api.get<{ user: SelfUser }>('/api/auth/session', { quiet401: true });
-          useSession.getState().setUser(user);
+          const { user } = await api.get<{ user: SelfUser | null }>('/api/auth/state');
+          if (user) useSession.getState().setUser(user);
         }
       })
       .catch(() => setState((s) => (s === 'done' ? s : 'failed')));

@@ -99,8 +99,9 @@ export function resolveReport(ctx: AppContext, staff: UserRow, reportId: string,
     deleteMessage(ctx, staff, report.targetId, { asPlatformStaff: true, reason: input.note });
   } else if (input.action === 'warn_user') {
     if (!subjectUserId) throw badRequest('This report has no user to warn.');
+    const subject = ctx.db.select({ username: users.username }).from(users).where(eq(users.id, subjectUserId)).get();
     notify(ctx, { userId: subjectUserId, type: 'moderation', actorId: null, data: { event: 'warning', reason: input.note } });
-    audit(ctx.db, { scope: 'platform', actorId: staff.id, action: 'user.warned', targetType: 'user', targetId: subjectUserId, reason: input.note, metadata: { reportId } });
+    audit(ctx.db, { scope: 'platform', actorId: staff.id, action: 'user.warned', targetType: 'user', targetId: subjectUserId, targetLabel: subject?.username ?? null, reason: input.note, metadata: { reportId } });
   } else if (input.action === 'suspend_user') {
     if (!subjectUserId) throw badRequest('This report has no user to suspend.');
     suspendUser(ctx, staff, subjectUserId, input.note || `Violation reported: ${report.reason}`, input.suspendDays ?? null);

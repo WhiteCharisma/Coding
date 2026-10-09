@@ -49,6 +49,10 @@ export function registerAuthRoutes(app: FastifyInstance, ctx: AppContext): void 
     return { user: toSelfUser(user) };
   });
 
+  // Same as /api/auth/session but never 401: lets the app probe for a session on load
+  // without a failed request in the browser console.
+  app.get('/api/auth/state', async (request) => ({ user: request.auth ? toSelfUser(request.auth.user) : null }));
+
   app.post('/api/auth/register', { config: rateLimit(5 * m, '1 hour') }, async (request, reply) => {
     const input = parse(registerSchema, request.body);
     const user = await auth.register(ctx, input);

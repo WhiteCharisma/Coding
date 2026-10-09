@@ -24,6 +24,29 @@ export function MeterArt({ bars = 28, className }: { bars?: number; className?: 
   );
 }
 
+/** Decorative mirrored waveform: a smooth envelope of thin bars, like a track overview. */
+export function WaveformArt({ bars = 72, className }: { bars?: number; className?: string }) {
+  return (
+    <div aria-hidden className={className}>
+      <div className="flex h-full items-center gap-[3px]">
+        {Array.from({ length: bars }, (_, i) => {
+          const x = i / (bars - 1);
+          const envelope = Math.sin(Math.PI * x) ** 0.6;
+          const detail = 0.55 + 0.45 * Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.23));
+          const h = Math.max(4, envelope * detail * 100);
+          return (
+            <span
+              key={i}
+              className="w-full min-w-[2px] rounded-full bg-accent/70 motion-safe:animate-[meter_3.2s_ease-in-out_infinite]"
+              style={{ height: `${h}%`, opacity: 0.35 + envelope * 0.65, animationDelay: `${(i % 9) * 160}ms` }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function AuthLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
   const config = useSession((s) => s.config);
   return (
@@ -42,8 +65,8 @@ export function AuthLayout({ children, title, subtitle }: { children: ReactNode;
       </div>
       <aside className="relative hidden w-[44%] max-w-2xl overflow-hidden border-l border-line-subtle bg-sidebar lg:block">
         <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_70%_20%,var(--accent-soft),transparent_70%)]" />
-        <div className="absolute inset-x-12 bottom-24 top-1/3">
-          <MeterArt className="h-full opacity-80" />
+        <div className="absolute inset-x-12 top-1/2 h-40 -translate-y-1/2">
+          <WaveformArt className="h-full" />
         </div>
         <div className="absolute inset-x-12 bottom-10">
           <p className="font-display text-xl font-medium tracking-tight text-fg-2 text-balance">{t('common.tagline')}</p>

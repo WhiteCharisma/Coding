@@ -43,7 +43,7 @@ export default defineConfig([
     languageOptions: { globals: globals.browser, sourceType: 'script' },
   },
   {
-    files: ['apps/server/**/*.{ts,mjs}', 'packages/**/*.ts', 'scripts/**/*.mjs', 'e2e/**/*.ts', '*.{js,mjs,ts}'],
+    files: ['apps/server/**/*.{ts,mjs}', 'packages/**/*.ts', 'scripts/**/*.mjs', 'e2e/**/*.{ts,mjs}', '*.{js,mjs,ts}'],
     languageOptions: { globals: globals.node },
   },
 ]);

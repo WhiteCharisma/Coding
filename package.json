@@ -18,7 +18,7 @@
     "build": "npm run build -w @creator-network/web && npm run build -w @creator-network/server",
     "start": "node apps/server/dist/main.js",
     "cli": "tsx apps/server/src/cli.ts",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc -p e2e/tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
