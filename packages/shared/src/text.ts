@@ -7,6 +7,17 @@ export function stripControlChars(value: string): string {
   return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F‪-‮⁦-⁩]/g, '');
 }
 
+/**
+ * Message text as the server stores it: control characters removed, line endings unified,
+ * leading blank lines and trailing whitespace dropped. The client applies the same function to
+ * messages it shows before the server confirms them, so the text never changes on confirmation.
+ */
+export function normalizeMessageContent(value: string): string {
+  return stripControlChars(value)
+    .replace(/\r\n?/g, '\n')
+    .replace(/^\n+|\s+$/g, '');
+}
+
 export function isSafeHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);

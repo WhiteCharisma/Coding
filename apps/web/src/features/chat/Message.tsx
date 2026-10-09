@@ -1,5 +1,19 @@
 import { Permission, type MessageDTO } from '@creator-network/shared';
-import { Copy, CornerUpLeft, Flag, Link2, MoreHorizontal, Pencil, Pin, PinOff, SmilePlus, Trash2 } from 'lucide-react';
+import {
+  AlertCircle,
+  Clock,
+  Copy,
+  CornerUpLeft,
+  Flag,
+  Link2,
+  MoreHorizontal,
+  Pencil,
+  Pin,
+  PinOff,
+  RotateCcw,
+  SmilePlus,
+  Trash2,
+} from 'lucide-react';
 import { memo, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { t } from '../../i18n';
 import { errorMessage } from '../../lib/api';
@@ -12,9 +26,11 @@ import { ConfirmDialog } from '../../components/ui/confirm';
 import { Sheet } from '../../components/ui/dialog';
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from '../../components/ui/menu';
 import { Textarea } from '../../components/ui/input';
+import { Spinner } from '../../components/ui/spinner';
 import { toast } from '../../components/ui/toast';
 import { Tooltip } from '../../components/ui/tooltip';
 import { UserAvatar } from '../../components/user/UserAvatar';
+import type { PendingStatus } from '../../stores/messages';
 import { ProfilePopover } from '../profile/ProfilePopover';
 import { ReportDialog } from '../report/ReportDialog';
 import { copyText, deleteMessage, editMessage, messageLink, setPinned, toggleReaction } from './actions';
@@ -37,11 +53,58 @@ export interface MessageContext {
   onMentionClick: (username: string) => void;
 }
 
+/** A message this device has sent but the server has not confirmed yet. */
+export interface PendingState {
+  status: PendingStatus;
+  error?: string;
+  onRetry: () => void;
+  onDiscard: () => void;
+}
+
 interface MessageProps {
   message: MessageDTO;
   compact: boolean;
   highlighted: boolean;
   ctx: MessageContext;
+  pending?: PendingState;
+}
+
+/**
+ * Delivery state of an unconfirmed message. "Sending" is a small mark beside the first line that
+ * never changes the row's height, so a message looks the same before and after confirmation;
+ * waiting for a connection and failures get a status line because they need the reader's attention.
+ */
+function PendingStatusLine({ pending }: { pending: PendingState }) {
+  if (pending.status === 'sending') return null;
+  return (
+    <div className="mt-0.5 flex items-center gap-2 text-xs" role="status">
+      {pending.status === 'failed' ? (
+        <>
+          <AlertCircle className="size-3.5 text-danger" />
+          <span className="text-danger">{pending.error ?? t('chat.message.failed')}</span>
+          <button
+            type="button"
+            onClick={pending.onRetry}
+            className="inline-flex items-center gap-1 font-semibold text-accent-text hover:underline"
+          >
+            <RotateCcw className="size-3" /> {t('chat.message.retry')}
+          </button>
+          <button
+            type="button"
+            onClick={pending.onDiscard}
+            className="inline-flex items-center gap-1 text-fg-muted hover:text-danger"
+          >
+            <Trash2 className="size-3" /> {t('chat.message.discard')}
+          </button>
+        </>
+      ) : (
+        <>
+          <Clock className="size-3.5 text-warning" />
+          <span className="text-fg-muted">{t('chat.message.queued')}</span>
+        </>
+      )}
+    </div>
+  );
 }
 
 function ReplyPreview({ message, onJump }: { message: MessageDTO; onJump: (id: string) => void }) {
@@ -156,8 +219,8 @@ function InlineEditor({ message, onDone }: { message: MessageDTO; onDone: () => 
   );
 }
 
-export const Message = memo(function Message({ message, compact, highlighted, ctx }: MessageProps) {
-  const editing = ctx.editingId === message.id;
+export const Message = memo(function Message({ message, compact, highlighted, ctx, pending }: MessageProps) {
+  const editing = !pending && ctx.editingId === message.id;
   const setEditing = (on: boolean) => ctx.setEditingId(on ? message.id : null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -177,7 +240,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
   const canReact = (ctx.permissions & Permission.ADD_REACTIONS) !== 0;
   const canPin = canManage || ctx.isDm;
   const mentionsMe = message.mentionEveryone || message.mentions.some((m) => m.id === ctx.selfId);
-  const blocked = !!author && ctx.blockedIds.has(author.id) && !revealBlocked;
+  const blocked = !pending && !!author && ctx.blockedIds.has(author.id) && !revealBlocked;
   const formatted = useMemo(
     () =>
       formatMessage(message.content, {
@@ -241,7 +304,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
     });
 
   const startPress = (e: React.PointerEvent) => {
-    if (e.pointerType !== 'touch') return;
+    if (e.pointerType !== 'touch' || pending) return;
     pressTimer.current = window.setTimeout(() => {
       setSheetMounted(true);
       setSheetOpen(true);
@@ -265,8 +328,10 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
 
   return (
     <div
-      id={`message-${message.id}`}
-      data-message-id={message.id}
+      id={pending ? undefined : `message-${message.id}`}
+      data-message-id={pending ? undefined : message.id}
+      data-pending-nonce={pending ? (message.nonce ?? undefined) : undefined}
+      data-compact={compact || undefined}
       className={cn(
         'group relative px-4 transition-colors duration-[var(--dur-fast)] hover:bg-hover/70',
         compact ? 'py-0.5 compact:py-0' : 'mt-3 pt-1 pb-0.5 compact:mt-1.5',
@@ -274,8 +339,8 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
           'bg-mention before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-mention-bar hover:bg-mention',
         highlighted && 'animate-highlight',
       )}
-      onPointerEnter={(e) => e.pointerType === 'mouse' && setToolsMounted(true)}
-      onFocusCapture={() => setToolsMounted(true)}
+      onPointerEnter={(e) => !pending && e.pointerType === 'mouse' && setToolsMounted(true)}
+      onFocusCapture={() => !pending && setToolsMounted(true)}
       onPointerDown={startPress}
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
@@ -285,10 +350,21 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
       }}
     >
       {!compact && <ReplyPreview message={message} onJump={ctx.onJump} />}
+      {pending?.status === 'sending' && (
+        <span
+          className="absolute top-1 right-4 flex h-[1.45rem] items-center text-fg-muted"
+          role="status"
+          aria-label={t('chat.message.pending')}
+        >
+          <Spinner className="size-3" />
+        </span>
+      )}
       <div className="flex gap-3">
-        <div className="w-10 shrink-0">
+        <div className="relative w-10 shrink-0">
           {compact ? (
-            <span className="block pt-1 text-right opacity-0 transition-opacity group-hover:opacity-100">
+            // Out of flow: whatever the time format, the hover timestamp can never make the
+            // row taller than its text (a wrapped "03:24 PM" used to add ~25px per message).
+            <span className="absolute inset-x-0 top-0 flex h-[1.45rem] items-center justify-end whitespace-nowrap opacity-0 transition-opacity group-hover:opacity-100">
               {timestamp}
             </span>
           ) : author ? (
@@ -347,7 +423,10 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
             <>
               {message.content && (
                 <div
-                  className="text-base break-words whitespace-pre-wrap text-fg-2 [overflow-wrap:anywhere]"
+                  className={cn(
+                    'text-base break-words whitespace-pre-wrap [overflow-wrap:anywhere]',
+                    pending && pending.status !== 'failed' ? 'text-fg-muted' : 'text-fg-2',
+                  )}
                   data-testid="message-content"
                 >
                   {formatted}
@@ -359,13 +438,17 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
                 </div>
               )}
               {message.attachments.length > 0 && <Attachments items={message.attachments} />}
-              <ReactionBar message={message} canReact={canReact} />
+              {pending ? (
+                <PendingStatusLine pending={pending} />
+              ) : (
+                <ReactionBar message={message} canReact={canReact} />
+              )}
             </>
           )}
         </div>
       </div>
 
-      {toolsMounted && !editing && !blocked && (
+      {toolsMounted && !pending && !editing && !blocked && (
         <div
           role="toolbar"
           aria-label={t('chat.actions.menu')}

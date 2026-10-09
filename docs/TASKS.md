@@ -70,6 +70,19 @@ Update this file in the same commit as the work it describes.
 - [x] Security review notes and "Before production" checklist (docs/SECURITY.md)
 - [x] Hostinger guide (docs/DEPLOYMENT.md) and operations guide (docs/OPERATIONS.md)
 
+## Release 0.2 — Frutiger Aero upgrade (branch `feature/frutiger-aero-premium-upgrade`)
+
+- [x] Message spacing: root causes found and fixed, regression tests (unit + E2E)
+  - hover timestamp in grouped rows wrapped ("03:24 PM" in a 40px gutter) → +25px per row
+  - newline after a code block rendered as an empty line (pre-wrap); blank-line runs uncapped
+  - unsent messages used a different layout and un-normalised text → jump on confirmation
+- [ ] Transfer performance: baseline, bottlenecks, fixes, after-measurements
+- [ ] Aero design system and full-screen redesign
+- [ ] Motion system and reaction animations
+- [ ] Interface sounds with independent volume settings
+- [ ] WebRTC voice with verified audio quality
+- [ ] Responsive/a11y polish, docs, deployment and rollback notes
+
 ## Next steps (not done — require the owner's infrastructure or decisions)
 
 1. Deploy to the real Hostinger VPS (docs/DEPLOYMENT.md) and confirm Let's Encrypt issuance,

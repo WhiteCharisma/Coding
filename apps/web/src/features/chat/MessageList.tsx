@@ -1,20 +1,8 @@
-import type { MessageDTO } from '@creator-network/shared';
-import { AlertCircle, ArrowDown, Clock, RotateCcw, Trash2 } from 'lucide-react';
-import {
-  Fragment,
-  memo,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import type { MessageDTO, SelfUser } from '@creator-network/shared';
+import { ArrowDown, RotateCcw } from 'lucide-react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { t } from '../../i18n';
-import { cn } from '../../lib/cn';
 import { formatDayLabel, isSameDay } from '../../lib/format';
-import { formatMessage } from '../../lib/markdown';
 import { EMPTY_CHANNEL, useMessages, type PendingMessage } from '../../stores/messages';
 import { useSession } from '../../stores/session';
 import { useUi } from '../../stores/ui';
@@ -22,8 +10,6 @@ import { useChat } from '../../stores/chat';
 import { Button } from '../../components/ui/button';
 import { MessageSkeleton } from '../../components/ui/skeleton';
 import { Spinner } from '../../components/ui/spinner';
-import { UserAvatar } from '../../components/user/UserAvatar';
-import { Attachments } from './Attachments';
 import { Message, type MessageContext } from './Message';
 
 const GROUP_WINDOW_MS = 7 * 60 * 1000;
@@ -56,82 +42,37 @@ function NewDivider() {
   );
 }
 
-const PendingRow = memo(function PendingRow({
-  p,
-  onRetry,
-  onDiscard,
-}: {
-  p: PendingMessage;
-  onRetry: () => void;
-  onDiscard: () => void;
-}) {
-  const user = useSession((s) => s.user);
-  const formatted = useMemo(
-    () => formatMessage(p.content, { mentions: new Set(), selfUsername: user?.username ?? '' }),
-    [p.content, user?.username],
-  );
-  if (!user) return null;
-  return (
-    <div className="px-4 pt-1 pb-0.5" data-pending-nonce={p.nonce}>
-      <div className="flex gap-3">
-        <div className="w-10 shrink-0">
-          <UserAvatar
-            name={user.displayName}
-            src={user.avatarUrl}
-            size="lg"
-            className={cn(p.status !== 'failed' && 'opacity-70')}
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-fg">{user.displayName}</p>
-          {p.content && (
-            <div
-              className={cn(
-                'text-base break-words whitespace-pre-wrap [overflow-wrap:anywhere]',
-                p.status === 'failed' ? 'text-fg-2' : 'text-fg-muted',
-              )}
-            >
-              {formatted}
-            </div>
-          )}
-          {p.attachments.length > 0 && <Attachments items={p.attachments} />}
-          <div className="mt-1 flex items-center gap-2 text-xs" role="status">
-            {p.status === 'failed' ? (
-              <>
-                <AlertCircle className="size-3.5 text-danger" />
-                <span className="text-danger">{p.error ?? t('chat.message.failed')}</span>
-                <button
-                  type="button"
-                  onClick={onRetry}
-                  className="inline-flex items-center gap-1 font-semibold text-accent-text hover:underline"
-                >
-                  <RotateCcw className="size-3" /> {t('chat.message.retry')}
-                </button>
-                <button
-                  type="button"
-                  onClick={onDiscard}
-                  className="inline-flex items-center gap-1 text-fg-muted hover:text-danger"
-                >
-                  <Trash2 className="size-3" /> {t('chat.message.discard')}
-                </button>
-              </>
-            ) : p.status === 'sending' ? (
-              <>
-                <Spinner className="size-3 text-fg-muted" />
-                <span className="text-fg-muted">{t('chat.message.pending')}</span>
-              </>
-            ) : (
-              <>
-                <Clock className="size-3.5 text-warning" />
-                <span className="text-fg-muted">{t('chat.message.queued')}</span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
+/** Shows an unconfirmed message with the same component (and grouping) as a confirmed one. */
+function pendingAsMessage(p: PendingMessage, self: SelfUser): MessageDTO {
+  return {
+    id: `pending-${p.nonce}`,
+    channelId: p.channelId,
+    author: {
+      id: self.id,
+      username: self.username,
+      displayName: self.displayName,
+      avatarUrl: self.avatarUrl,
+      headline: self.headline,
+      isDemo: self.isDemo,
+      deleted: false,
+    },
+    content: p.content,
+    kind: 'default',
+    replyTo: p.replyTo,
+    attachments: p.attachments,
+    reactions: [],
+    mentions: [],
+    mentionEveryone: false,
+    editedAt: null,
+    deletedAt: null,
+    pinnedAt: null,
+    createdAt: p.createdAt,
+    nonce: p.nonce,
+  };
+}
+
+/** Same key before and after confirmation, so React keeps the row's DOM node (no flash, no jump). */
+const rowKey = (m: MessageDTO, selfId: string) => (m.nonce && m.author?.id === selfId ? `n:${m.nonce}` : m.id);
 
 interface MessageListProps {
   channelId: string;
@@ -269,16 +210,18 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
     }
   };
 
+  const self = useSession((s) => s.user);
   const rows = useMemo(() => {
     const out: ReactNode[] = [];
     let prev: MessageDTO | null = null;
     let dividerPlaced = false;
     const lastRead = lastReadAtOpen;
-    for (const m of state.messages) {
-      if (m.deletedAt) continue;
+    const confirmedNonces = new Set<string>();
+    const push = (m: MessageDTO, pendingItem: PendingMessage | null) => {
       const newDay = !prev || !isSameDay(prev.createdAt, m.createdAt);
-      const showDivider = !dividerPlaced && lastRead !== null && m.id > lastRead && m.author?.id !== ctx.selfId;
-      if (newDay) out.push(<DaySeparator key={`d-${m.id}`} time={m.createdAt} />);
+      const showDivider =
+        !pendingItem && !dividerPlaced && lastRead !== null && m.id > lastRead && m.author?.id !== ctx.selfId;
+      if (newDay) out.push(<DaySeparator key={`d-${rowKey(m, ctx.selfId)}`} time={m.createdAt} />);
       if (showDivider) {
         out.push(<NewDivider key="new-divider" />);
         dividerPlaced = true;
@@ -291,11 +234,38 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
         prev.author?.id === m.author?.id &&
         m.createdAt - prev.createdAt < GROUP_WINDOW_MS &&
         prev.kind === m.kind;
-      out.push(<Message key={m.id} message={m} compact={compact} highlighted={state.highlightId === m.id} ctx={ctx} />);
+      out.push(
+        <Message
+          key={rowKey(m, ctx.selfId)}
+          message={m}
+          compact={compact}
+          highlighted={state.highlightId === m.id}
+          ctx={ctx}
+          pending={
+            pendingItem
+              ? {
+                  status: pendingItem.status,
+                  error: pendingItem.error,
+                  onRetry: () => useMessages.getState().retry(channelId, pendingItem.nonce),
+                  onDiscard: () => useMessages.getState().discard(channelId, pendingItem.nonce),
+                }
+              : undefined
+          }
+        />,
+      );
       prev = m;
+    };
+    for (const m of state.messages) {
+      if (m.deletedAt) continue;
+      if (m.nonce && m.author?.id === ctx.selfId) confirmedNonces.add(m.nonce);
+      push(m, null);
+    }
+    // Unsent messages follow the newest loaded message (not shown while reading older history).
+    if (!state.hasMoreAfter && self) {
+      for (const p of pending) if (!confirmedNonces.has(p.nonce)) push(pendingAsMessage(p, self), p);
     }
     return out;
-  }, [state.messages, state.highlightId, ctx, lastReadAtOpen]);
+  }, [state.messages, state.hasMoreAfter, state.highlightId, pending, self, ctx, lastReadAtOpen, channelId]);
 
   return (
     <div className="relative min-h-0 flex-1">
@@ -320,16 +290,6 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
           {state.status === 'ready' && !state.hasMoreBefore && beginning}
           <div role="log" aria-live="polite" aria-relevant="additions" aria-label={t('chat.list.label')}>
             {rows}
-            {!state.hasMoreAfter &&
-              pending.map((p) => (
-                <Fragment key={p.nonce}>
-                  <PendingRow
-                    p={p}
-                    onRetry={() => useMessages.getState().retry(channelId, p.nonce)}
-                    onDiscard={() => useMessages.getState().discard(channelId, p.nonce)}
-                  />
-                </Fragment>
-              ))}
           </div>
           <div ref={bottomSentinel} aria-hidden className="h-px" />
         </div>

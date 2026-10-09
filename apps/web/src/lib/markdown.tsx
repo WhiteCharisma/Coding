@@ -101,11 +101,27 @@ function renderTextBlock(text: string, ctx: FormatContext, keyPrefix: string): R
   });
 }
 
+const isCodeBlock = (seg: string | undefined) =>
+  !!seg && seg.startsWith('```') && seg.endsWith('```') && seg.length >= 6;
+
+/**
+ * Message text is shown with `white-space: pre-wrap`, so every newline in a text segment is a
+ * line break. A code block already starts and ends its own line: the newline right before and
+ * right after it must not add an empty line. Runs of blank lines are capped at one, so a stray
+ * stack of Enter presses cannot open a huge gap (the stored text is unchanged).
+ */
+function tidyTextSegment(seg: string, afterBlock: boolean, beforeBlock: boolean): string {
+  let text = seg.replace(/\n{3,}/g, '\n\n');
+  if (afterBlock) text = text.replace(/^\n/, '');
+  if (beforeBlock) text = text.replace(/\n$/, '');
+  return text;
+}
+
 export function formatMessage(content: string, ctx: FormatContext): ReactNode[] {
   const out: ReactNode[] = [];
   const segments = content.split(/(```[\s\S]*?```)/g);
   segments.forEach((seg, idx) => {
-    if (seg.startsWith('```') && seg.endsWith('```') && seg.length >= 6) {
+    if (isCodeBlock(seg)) {
       const body = seg.slice(3, -3).replace(/^[a-z0-9+-]*\n/i, '');
       out.push(
         <pre
@@ -116,7 +132,8 @@ export function formatMessage(content: string, ctx: FormatContext): ReactNode[] 
         </pre>,
       );
     } else if (seg) {
-      out.push(...renderTextBlock(seg, ctx, `s${idx}`));
+      const text = tidyTextSegment(seg, isCodeBlock(segments[idx - 1]), isCodeBlock(segments[idx + 1]));
+      if (text) out.push(...renderTextBlock(text, ctx, `s${idx}`));
     }
   });
   return out;

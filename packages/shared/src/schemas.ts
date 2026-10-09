@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isSafeHttpUrl, isValidTimeZone, stripControlChars } from './text';
+import { isSafeHttpUrl, isValidTimeZone, normalizeMessageContent, stripControlChars } from './text';
 import {
   CHANNEL_NAME_PATTERN,
   COMMUNITY_TAGS,
@@ -284,11 +284,7 @@ export const deleteCommunitySchema = z.object({
 
 export const messageContentSchema = z
   .string()
-  .transform((v) =>
-    stripControlChars(v)
-      .replace(/\r\n?/g, '\n')
-      .replace(/^\n+|\s+$/g, ''),
-  )
+  .transform(normalizeMessageContent)
   .pipe(z.string().max(LIMITS.messageMax, { error: `Messages can be at most ${LIMITS.messageMax} characters` }));
 
 export const nonceSchema = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/, { error: 'Invalid nonce' });

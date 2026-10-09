@@ -29,6 +29,22 @@ describe('message formatting', () => {
     expect(out).toMatch(/<code[^>]*>\*\*raw\*\*<\/code>/);
   });
 
+  it('adds no empty line around code blocks (text is shown with pre-wrap)', () => {
+    const out = html('intro\n```\nconst x = 1;\n```\noutro');
+    // The block breaks the line itself: the newlines next to it must not become blank lines.
+    expect(out).toMatch(/^intro<pre/);
+    expect(out).toMatch(/<\/pre>outro$/);
+    expect(out).toContain('<code>const x = 1;</code>');
+  });
+
+  it('keeps line breaks but caps runs of blank lines at one', () => {
+    expect(html('line one\nline two')).toBe('line one\nline two');
+    expect(html('para one\n\npara two')).toBe('para one\n\npara two');
+    expect(html('para one\n\n\n\n\n\npara two')).toBe('para one\n\npara two');
+    // Code keeps its own blank lines untouched.
+    expect(html('```\na\n\n\n\nb\n```')).toContain('<code>a\n\n\n\nb</code>');
+  });
+
   it('highlights only mentions the server resolved', () => {
     const out = html('hi @bob and @ghost', ['bob']);
     expect(out).toMatch(/<[^>]+>@bob<\//);

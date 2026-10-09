@@ -156,6 +156,31 @@ describe('outbox', () => {
     expect(store().pending['chan'] ?? []).toHaveLength(0);
   });
 
+  it('replaces an unsent message with the confirmed one in a single update', async () => {
+    serveHistory(5);
+    await store().loadLatest('chan');
+    let release: ((ack: SendAck) => void) | null = null;
+    store().setTransport({
+      isConnected: () => true,
+      send: () => new Promise<SendAck>((resolve) => (release = resolve)),
+    });
+    const p = store().send('chan', { content: 'hi\n\n', replyTo: null, attachments: [] });
+    expect(p.content).toBe('hi'); // normalised like the server, so the text does not change on confirmation
+    await Promise.resolve();
+    const seen: [pending: number, messages: number][] = [];
+    const unsubscribe = useMessages.subscribe((s) =>
+      seen.push([(s.pending['chan'] ?? []).length, s.byChannel['chan']?.messages.length ?? 0]),
+    );
+    (release as unknown as (ack: SendAck) => void)({
+      ok: true,
+      message: message(100, { content: 'hi', nonce: p.nonce }),
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    unsubscribe();
+    // Never a frame with both copies (a duplicate) or with neither (a flash and a jump).
+    expect(seen).toEqual([[0, 6]]);
+  });
+
   it('keeps unsent messages when the session ends on its own, for the next sign-in', () => {
     store().setTransport({ isConnected: () => false, send: () => new Promise<SendAck>(() => undefined) });
     store().send('chan', { content: 'typed while offline', replyTo: null, attachments: [] });

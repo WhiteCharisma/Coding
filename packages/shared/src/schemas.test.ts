@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { extractMentions } from './mentions';
 import { channelNameSchema, isEmoji, messageContentSchema, registerSchema, usernameSchema } from './schemas';
-import { isSafeHttpUrl } from './text';
+import { isSafeHttpUrl, normalizeMessageContent } from './text';
 
 describe('mentions', () => {
   it('extracts usernames and @everyone, but not email addresses', () => {
@@ -25,6 +25,13 @@ describe('schemas', () => {
 
   it('strips control and bidi-override characters from messages', () => {
     expect(messageContentSchema.parse('hello‮world\u0007\r\nline')).toBe('helloworld\nline');
+  });
+
+  it('normalises message text the same way on the server and for unsent messages', () => {
+    for (const raw of ['\n\nhi there  \n\n', 'a\r\nb\rc', '  indented\n']) {
+      expect(normalizeMessageContent(raw)).toBe(messageContentSchema.parse(raw));
+    }
+    expect(normalizeMessageContent('\n\nhi there  \n\n')).toBe('hi there');
   });
 
   it('accepts only http(s) links without credentials', () => {

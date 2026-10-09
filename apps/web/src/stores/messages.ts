@@ -21,6 +21,7 @@ import type {
   ReactionEvent,
   SendAck,
 } from '@creator-network/shared';
+import { normalizeMessageContent } from '@creator-network/shared';
 import { create } from 'zustand';
 import { api, errorMessage } from '../lib/api';
 import { createNonce } from '../lib/format';
@@ -419,24 +420,31 @@ export const useMessages = create<MessagesState>((set, get) => {
     },
 
     receive: (m) => {
-      const list = get().pending[m.channelId];
-      if (m.nonce && list?.some((p) => p.nonce === m.nonce)) {
-        setPending(
-          m.channelId,
-          list.filter((p) => p.nonce !== m.nonce),
-        );
+      // The confirmed message replaces its unsent copy in ONE state update, so the list never
+      // renders a frame with both (duplicate) or neither (a flash and a jump).
+      const { pending, byChannel } = get();
+      const list = pending[m.channelId];
+      const confirmsPending = !!m.nonce && !!list?.some((p) => p.nonce === m.nonce);
+      const c = byChannel[m.channelId];
+      const append = !!c && c.status === 'ready' && !c.hasMoreAfter;
+      if (!confirmsPending && !append) return;
+      const patch: Partial<MessagesState> = {};
+      if (confirmsPending && list) {
+        const nextPending = { ...pending, [m.channelId]: list.filter((p) => p.nonce !== m.nonce) };
+        if (nextPending[m.channelId]?.length === 0) delete nextPending[m.channelId];
+        patch.pending = nextPending;
       }
-      const c = get().byChannel[m.channelId];
-      if (!c || c.status !== 'ready' || c.hasMoreAfter) return;
-      patchChannel(m.channelId, (cur) => {
-        let messages = mergeMessages(cur.messages, [m], true);
-        let hasMoreBefore = cur.hasMoreBefore;
+      if (append) {
+        let messages = mergeMessages(c.messages, [m], true);
+        let hasMoreBefore = c.hasMoreBefore;
         if (messages.length > MAX_WINDOW) {
           messages = messages.slice(messages.length - MAX_WINDOW);
           hasMoreBefore = true;
         }
-        return { messages, hasMoreBefore };
-      });
+        patch.byChannel = { ...byChannel, [m.channelId]: { ...c, messages, hasMoreBefore } };
+      }
+      set(patch);
+      if (patch.pending) saveOutbox(patch.pending);
     },
 
     update: (m) => {
@@ -483,7 +491,8 @@ export const useMessages = create<MessagesState>((set, get) => {
       const p: PendingMessage = {
         nonce: createNonce(),
         channelId,
-        content: input.content,
+        // Exactly what the server will store, so the text does not change on confirmation.
+        content: normalizeMessageContent(input.content),
         replyToId: input.replyTo?.id ?? null,
         replyTo: input.replyTo,
         attachments: input.attachments,
