@@ -1,6 +1,6 @@
 {
   "name": "@creator-network/shared",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Shared validation schemas, permission constants and API types used by both the server and the web client. Must never import server-only code.",
