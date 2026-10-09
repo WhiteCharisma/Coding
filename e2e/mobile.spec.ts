@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test';
 import { createCommunity, expect, messageRow, sendMessage, signInUi, signUp, test } from './fixtures';
 
 // Runs in the "mobile" project (Pixel 7 viewport, touch).
@@ -44,5 +45,37 @@ test.describe('phone layout', () => {
     await row.dispatchEvent('pointerup', { pointerType: 'touch', isPrimary: true });
     await expect(page.getByRole('dialog', { name: 'Message actions' })).toBeVisible();
     await expect(page.getByRole('dialog').getByRole('button', { name: /Edit/ })).toBeVisible();
+  });
+
+  test('bottom bar, action sheet and dialogs stay clear of the home indicator', async ({ page, context }) => {
+    // iPhone-style insets; Chromium then reports them through env(safe-area-inset-*).
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { top: 47, bottom: 34, left: 0, right: 0 } });
+    await signUp(context);
+    const community = await createCommunity(context);
+    const channel = community.channels[0];
+    if (!channel) throw new Error('no channel');
+    // Space between an element and the bottom of the screen (polled: sheets slide in).
+    const clearance = (locator: Locator) =>
+      expect.poll(() => locator.evaluate((el) => Math.round(window.innerHeight - el.getBoundingClientRect().bottom)));
+
+    await page.goto('/home');
+    const nav = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
+    await clearance(nav.getByRole('list')).toBeGreaterThanOrEqual(34);
+
+    await page.goto(`/c/${community.id}/${channel.id}`);
+    await sendMessage(page, 'mind the home indicator', 'button');
+    const row = messageRow(page, 'mind the home indicator');
+    await row.dispatchEvent('pointerdown', { pointerType: 'touch', isPrimary: true });
+    await page.waitForTimeout(650);
+    await row.dispatchEvent('pointerup', { pointerType: 'touch', isPrimary: true });
+    const sheet = page.getByRole('dialog', { name: 'Message actions' });
+    await clearance(sheet.getByRole('button').last()).toBeGreaterThanOrEqual(34);
+
+    // A dialog with a footer: the delete confirmation.
+    await sheet.getByRole('button', { name: /Delete/ }).click();
+    const confirm = page.getByRole('dialog', { name: 'Delete message?' });
+    await clearance(confirm.getByRole('button', { name: 'Delete' })).toBeGreaterThanOrEqual(34);
   });
 });

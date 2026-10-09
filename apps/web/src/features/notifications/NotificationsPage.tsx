@@ -60,7 +60,7 @@ export default function NotificationsPage() {
               <CheckCheck /> {t('common.actions.markAllRead')}
             </Button>
           </div>
-          <div className="no-scrollbar mb-4 flex gap-1.5 overflow-x-auto pb-1" role="tablist">
+          <div className="no-scrollbar mb-4 flex gap-1.5 -mx-1 -mt-1 overflow-x-auto p-1" role="tablist">
             {FILTERS.map((x) => (
               <button
                 key={x.key}

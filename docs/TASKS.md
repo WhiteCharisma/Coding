@@ -90,7 +90,7 @@ Update this file in the same commit as the work it describes.
   - Source Sans 3 (OFL) replaces Inter/Bricolage; original glossy logo; glossy primitives
   - shell: floating glass panes, bubble dock rail, glass mobile nav; presence orbs with rims;
     framed (rounded-square) display pictures with presence-coloured mounts on profiles
-- [ ] Redesign every screen on the new system (in progress)
+- [x] Redesign every screen on the new system
   - [x] chat: title-bar headers with orbs, glass day pills, glass hover toolbar, glossy reactions,
         glass composer with round send orb, photo frames, glossy audio play orb, file orbs
   - [x] lists: Windows-7-style selection (`aero-item`) for channels, DMs, settings, admin, menus;
@@ -102,8 +102,10 @@ Update this file in the same commit as the work it describes.
   - [x] fixes found on the way: role colours made readable on both themes (`role-name`); emoji
         picker now closes after a pick; a file that does not decode as an image gets no (broken)
         local preview
-  - [ ] remaining: dialogs' inner layouts, admin tables, search filters, image viewer chrome,
-        mobile drawer polish
+  - [x] final pass (desktop + phone, Daylight + Twilight): dialogs, community settings tabs,
+        admin pages, search and its filters, image viewer, mobile drawer and bottom sheets.
+        Fixed: keyboard focus rings clipped into stray bars inside scrolling tab/chip rows; raw
+        markdown markers (`**`, backticks) in search snippets
 - [x] Motion system and reaction animations (docs/DESIGN.md → Motion)
   - motion levels Full / Calm / Reduce motion (OS setting forces Reduce)
   - live-only message entrance, delete fade, edit flash, reaction pop + glints, count roll,
@@ -130,8 +132,15 @@ Update this file in the same commit as the work it describes.
   - [x] call bar compacts on phones (label truncates; mode chip and settings link move to
         Settings); the header voice button gives way to the room strip on phones; error and
         offline screens as glass windows; Admin → Overview shows how many people are in voice
-  - [ ] upgrade test of a 0.1 deployment with `deploy/update.sh` (data kept), release notes with
-        OVH deployment, rollback and the approval list, final full checks
+  - [x] safe areas: the iPhone home-indicator inset was ignored by dialog footers and the
+        touch action sheet (the helper class lost against padding utilities) → explicit insets;
+        e2e test emulates a 34 px inset (failed before the fix: 17 px)
+  - [x] version 0.2.0 (Admin → Overview showed 0.1.0)
+  - [x] upgrade test of a fresh 0.1 install (956e6cf) with the real `deploy/update.sh`: backup
+        first, messages/photo/session kept, preview made for the old photo, voice config and
+        `microphone=(self)` live; code rollback and full restore both verified; Studio call
+        through the Docker image + Caddy measured 318.1 / 319.5 kbit/s stereo
+  - [ ] release notes with OVH deployment, rollback and the approval list, final full checks
 
 ## Next steps (not done — require the owner's infrastructure or decisions)
 

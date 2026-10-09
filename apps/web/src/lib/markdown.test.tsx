@@ -58,6 +58,13 @@ describe('message formatting', () => {
     expect(out).toContain('&lt;b&gt;match&lt;/b&gt;');
   });
 
+  it('shows search snippets without formatting markers', () => {
+    const out = renderToStaticMarkup(
+      <>{renderHighlight('📣 **\u0001Glasshouse\u0002 EP** is *out*, see `notes`\n```\nbpm 92\n```')}</>,
+    );
+    expect(out).toMatch(/^📣 <mark[^>]*>Glasshouse<\/mark> EP is out, see notes\nbpm 92\n$/);
+  });
+
   it('strips formatting for previews', () => {
     expect(stripFormatting('**bold** `code` ~~x~~')).toBe('bold code x');
   });

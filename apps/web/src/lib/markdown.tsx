@@ -151,8 +151,22 @@ export function stripFormatting(content: string): string {
     .trim();
 }
 
+/**
+ * Search snippets come from the raw message text: drop the formatting markers ("**", "`",
+ * fences…) so results read like the message does, keeping line breaks and the highlight markers.
+ */
+function stripMarkers(text: string): string {
+  return text
+    .replace(/```[a-z0-9+-]*\n?/gi, '')
+    .replace(/`([^`\n]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/~~([^~]+)~~/g, '$1')
+    .replace(/(^|[^*\w])\*(?=\S)([^*\n]*?\S)\*(?![*\w])/g, '$1$2');
+}
+
 /** Renders search highlights (\u0001…\u0002 markers from the server) safely. */
-export function renderHighlight(text: string): ReactNode[] {
+export function renderHighlight(raw: string): ReactNode[] {
+  const text = stripMarkers(raw);
   const out: ReactNode[] = [];
   // eslint-disable-next-line no-control-regex -- \u0001/\u0002 are the server's highlight delimiters
   const re = /\u0001([^\u0002]*)\u0002/g;

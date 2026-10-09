@@ -61,9 +61,17 @@ export function DialogContent({
             <X className="size-4" />
           </D.Close>
         </div>
-        <div className="scroll-area min-h-0 flex-1 px-5 pt-3 pb-5">{children}</div>
+        <div
+          className={cn(
+            'scroll-area min-h-0 flex-1 px-5 pt-3',
+            // On phones the dialog is a bottom sheet: keep its end clear of the home indicator.
+            footer ? 'pb-5' : 'pb-[max(1.25rem,env(safe-area-inset-bottom))]',
+          )}
+        >
+          {children}
+        </div>
         {footer && (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-inset/60 px-5 py-3 safe-bottom">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-inset/60 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             {footer}
           </div>
         )}

@@ -30,7 +30,7 @@ export function MobileNav() {
   return (
     <nav
       aria-label={t('shell.nav.primary')}
-      className="glass safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-rail)] border-x-0 border-b-0 bg-overlay md:hidden"
+      className="glass fixed inset-x-0 pb-[env(safe-area-inset-bottom)] bottom-0 z-[var(--z-rail)] border-x-0 border-b-0 bg-overlay md:hidden"
     >
       <ul className="mx-auto flex h-[var(--mobile-nav-height)] max-w-lg items-stretch justify-around">
         {items.map(({ to, label, icon: Icon, badge }) => (

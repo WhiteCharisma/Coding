@@ -590,7 +590,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
       {/* Touch devices: long-press opens an action sheet (no hover needed). */}
       {sheetMounted && (
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen} side="bottom" title={t('chat.actions.menu')}>
-          <div className="safe-bottom flex flex-col gap-3 p-4">
+          <div className="flex flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {canReact && (
               <EmojiGrid
                 onPick={(e) => {

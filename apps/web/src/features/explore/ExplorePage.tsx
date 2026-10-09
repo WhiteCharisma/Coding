@@ -105,7 +105,7 @@ export default function ExplorePage() {
               className="h-11 pl-9"
             />
           </div>
-          <div className="no-scrollbar mb-6 flex gap-1.5 overflow-x-auto pb-1">
+          <div className="no-scrollbar mb-6 flex gap-1.5 -mx-1 -mt-1 overflow-x-auto p-1">
             {[null, ...COMMUNITY_TAGS].map((tg) => (
               <button
                 key={tg ?? 'all'}
