@@ -308,12 +308,23 @@ export const useMessages = create<MessagesState>((set, get) => {
       patchChannel(channelId, { loadingOlder: true });
       try {
         const page = await fetchPage(channelId, `?before=${first.id}&limit=${PAGE}`);
-        patchChannel(channelId, (cur) => ({
-          messages: mergeMessages(cur.messages, page.messages),
-          hasMoreBefore: page.hasMoreBefore,
-          loadingOlder: false,
-          prependSeq: cur.prependSeq + 1,
-        }));
+        patchChannel(channelId, (cur) => {
+          let messages = mergeMessages(cur.messages, page.messages);
+          let hasMoreAfter = cur.hasMoreAfter;
+          // Keep the rendered window bounded while scrolling far back: drop the newest
+          // messages (they are re-fetched when scrolling down or jumping to the present).
+          if (messages.length > MAX_WINDOW) {
+            messages = messages.slice(0, MAX_WINDOW);
+            hasMoreAfter = true;
+          }
+          return {
+            messages,
+            hasMoreBefore: page.hasMoreBefore,
+            hasMoreAfter,
+            loadingOlder: false,
+            prependSeq: cur.prependSeq + 1,
+          };
+        });
       } catch {
         patchChannel(channelId, { loadingOlder: false });
       }

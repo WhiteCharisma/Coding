@@ -2,6 +2,7 @@ import { io as ioClient } from 'socket.io-client';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { messages } from '../src/db/schema';
+import { MAX_SOCKETS_PER_USER } from '../src/realtime/gateway';
 import {
   createTestServer,
   nextEvent,
@@ -52,6 +53,18 @@ describe('socket authentication', () => {
 
   it('rejects handshakes from foreign origins (cross-site WebSocket hijacking)', async () => {
     await expect(alice.socket({ origin: 'https://evil.example' })).rejects.toBeTruthy();
+  });
+
+  it('caps concurrent connections per account', async () => {
+    const heavy = srv.client();
+    await heavy.register('many.tabs');
+    for (let i = 0; i < MAX_SOCKETS_PER_USER; i++) await heavy.socket();
+    await expect(heavy.socket()).rejects.toThrow('too_many_connections');
+    // Closing one frees a slot.
+    heavy.closeSockets();
+    await sleep(100);
+    await expect(heavy.socket()).resolves.toBeTruthy();
+    heavy.closeSockets();
   });
 });
 

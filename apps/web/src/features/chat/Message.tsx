@@ -163,6 +163,11 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
   const [reportOpen, setReportOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [revealBlocked, setRevealBlocked] = useState(false);
+  // Hover toolbar, touch action sheet and delete dialog are mounted on first use only:
+  // a channel renders up to 600 rows and most are never hovered or long-pressed.
+  const [toolsMounted, setToolsMounted] = useState(false);
+  const [sheetMounted, setSheetMounted] = useState(false);
+  const [confirmMounted, setConfirmMounted] = useState(false);
   const pressTimer = useRef<number | null>(null);
 
   const author = message.author;
@@ -228,13 +233,19 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
       key: 'delete',
       label: t('chat.actions.delete'),
       icon: <Trash2 />,
-      onSelect: () => setConfirmDelete(true),
+      onSelect: () => {
+        setConfirmMounted(true);
+        setConfirmDelete(true);
+      },
       danger: true,
     });
 
   const startPress = (e: React.PointerEvent) => {
     if (e.pointerType !== 'touch') return;
-    pressTimer.current = window.setTimeout(() => setSheetOpen(true), 480);
+    pressTimer.current = window.setTimeout(() => {
+      setSheetMounted(true);
+      setSheetOpen(true);
+    }, 480);
   };
   const cancelPress = () => {
     if (pressTimer.current) window.clearTimeout(pressTimer.current);
@@ -263,6 +274,8 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
           'bg-mention before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-mention-bar hover:bg-mention',
         highlighted && 'animate-highlight',
       )}
+      onPointerEnter={(e) => e.pointerType === 'mouse' && setToolsMounted(true)}
+      onFocusCapture={() => setToolsMounted(true)}
       onPointerDown={startPress}
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
@@ -352,7 +365,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
         </div>
       </div>
 
-      {!editing && !blocked && (
+      {toolsMounted && !editing && !blocked && (
         <div
           role="toolbar"
           aria-label={t('chat.actions.menu')}
@@ -398,46 +411,50 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
       )}
 
       {/* Touch devices: long-press opens an action sheet (no hover needed). */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen} side="bottom" title={t('chat.actions.menu')}>
-        <div className="safe-bottom flex flex-col gap-3 p-4">
-          {canReact && (
-            <EmojiGrid
-              onPick={(e) => {
-                setSheetOpen(false);
-                void toggleReaction(message, e);
-              }}
-            />
-          )}
-          <div className="flex flex-col">
-            {actions.map((a) => (
-              <button
-                key={a.key}
-                type="button"
-                onClick={() => {
+      {sheetMounted && (
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen} side="bottom" title={t('chat.actions.menu')}>
+          <div className="safe-bottom flex flex-col gap-3 p-4">
+            {canReact && (
+              <EmojiGrid
+                onPick={(e) => {
                   setSheetOpen(false);
-                  a.onSelect();
+                  void toggleReaction(message, e);
                 }}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-3 text-left text-base [&_svg]:size-5',
-                  a.danger ? 'text-danger' : 'text-fg-2 active:bg-active',
-                )}
-              >
-                {a.icon} {a.label}
-              </button>
-            ))}
+              />
+            )}
+            <div className="flex flex-col">
+              {actions.map((a) => (
+                <button
+                  key={a.key}
+                  type="button"
+                  onClick={() => {
+                    setSheetOpen(false);
+                    a.onSelect();
+                  }}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-3 text-left text-base [&_svg]:size-5',
+                    a.danger ? 'text-danger' : 'text-fg-2 active:bg-active',
+                  )}
+                >
+                  {a.icon} {a.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </Sheet>
+        </Sheet>
+      )}
 
-      <ConfirmDialog
-        open={confirmDelete}
-        onOpenChange={setConfirmDelete}
-        title={t('chat.actions.deleteTitle')}
-        body={t('chat.actions.deleteBody')}
-        confirmLabel={t('common.actions.delete')}
-        danger
-        onConfirm={() => deleteMessage(message)}
-      />
+      {confirmMounted && (
+        <ConfirmDialog
+          open={confirmDelete}
+          onOpenChange={setConfirmDelete}
+          title={t('chat.actions.deleteTitle')}
+          body={t('chat.actions.deleteBody')}
+          confirmLabel={t('common.actions.delete')}
+          danger
+          onConfirm={() => deleteMessage(message)}
+        />
+      )}
       {reportOpen && (
         <ReportDialog
           open={reportOpen}

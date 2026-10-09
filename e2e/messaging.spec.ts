@@ -97,6 +97,7 @@ test.describe('real-time community chat', () => {
     for (const n of [1, 2, 3]) await sendMessage(page, `ordered message ${n}`);
     await expect(messageRow(page, 'ordered message 3')).toBeVisible();
     await page.reload();
+    await expect(messageRow(page, 'ordered message 3')).toBeVisible();
     const texts = await page.locator('[data-message-id]').allInnerTexts();
     const order = ['ordered message 1', 'ordered message 2', 'ordered message 3'].map((s) =>
       texts.findIndex((t) => t.includes(s)),

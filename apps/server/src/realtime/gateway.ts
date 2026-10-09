@@ -34,6 +34,8 @@ type IO = Server<ClientToServerEvents, ServerToClientEvents, Record<string, neve
 type ClientSocket = Socket<ClientToServerEvents, ServerToClientEvents, Record<string, never>, SocketData>;
 
 const TYPING_MIN_INTERVAL_MS = 2500;
+/** Concurrent connections per account (tabs and devices); bounds what one account can hold open. */
+export const MAX_SOCKETS_PER_USER = 20;
 const SLOW_CONSUMER_PACKETS = 2000;
 const presenceQuerySchema = z.object({ userIds: z.array(idSchema).max(500) });
 const channelPayload = z.object({ channelId: idSchema });
@@ -82,6 +84,10 @@ export class SocketGateway implements Realtime {
       const auth = validateSessionToken(ctx, cookies[ctx.config.sessionCookieName]);
       if (!auth) {
         next(new Error('unauthorized'));
+        return;
+      }
+      if ((this.socketsByUser.get(auth.user.id)?.size ?? 0) >= MAX_SOCKETS_PER_USER) {
+        next(new Error('too_many_connections'));
         return;
       }
       socket.data = {

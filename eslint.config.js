@@ -51,4 +51,9 @@ export default defineConfig([
     files: ['apps/server/**/*.{ts,mjs}', 'packages/**/*.ts', 'scripts/**/*.mjs', 'e2e/**/*.{ts,mjs}', '*.{js,mjs,ts}'],
     languageOptions: { globals: globals.node },
   },
+  {
+    // Benchmarks run code inside the browser through page.evaluate().
+    files: ['scripts/bench/**/*.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
 ]);

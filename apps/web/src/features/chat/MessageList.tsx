@@ -149,6 +149,29 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
   const snapshot = useRef({ scrollHeight: 0, scrollTop: 0, atBottom: true });
   const [showJump, setShowJump] = useState(false);
   const initialScrollDone = useRef(false);
+  // The first visible message and its distance from the top of the viewport. Restoring it
+  // after the message window changes (older page prepended, newest or oldest messages
+  // trimmed, edits above the viewport) keeps what the reader is looking at in place.
+  const anchor = useRef<{ id: string; offset: number } | null>(null);
+  const anchorFrame = useRef(0);
+
+  const captureAnchor = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const box = el.getBoundingClientRect();
+    let row = document
+      .elementFromPoint(box.left + Math.min(96, box.width / 2), box.top + 4)
+      ?.closest<HTMLElement>('[data-message-id]');
+    if (!row || !el.contains(row)) {
+      row =
+        [...el.querySelectorAll<HTMLElement>('[data-message-id]')].find(
+          (r) => r.getBoundingClientRect().bottom > box.top,
+        ) ?? null;
+    }
+    anchor.current = row?.dataset.messageId
+      ? { id: row.dataset.messageId, offset: row.getBoundingClientRect().top - box.top }
+      : null;
+  }, []);
 
   // "New messages" marker: the read position when the channel was opened (does not move while reading).
   const [lastReadAtOpen] = useState<string | null>(() => {
@@ -164,15 +187,27 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
     snapshot.current = { scrollHeight: el.scrollHeight, scrollTop: el.scrollTop, atBottom };
     setAtBottom(atBottom && !useMessages.getState().byChannel[channelId]?.hasMoreAfter);
     setShowJump(distance > 600 || !!useMessages.getState().byChannel[channelId]?.hasMoreAfter);
-  }, [channelId, setAtBottom]);
+    if (!anchorFrame.current) {
+      anchorFrame.current = requestAnimationFrame(() => {
+        anchorFrame.current = 0;
+        captureAnchor();
+      });
+    }
+  }, [channelId, setAtBottom, captureAnchor]);
 
-  // Keep the viewport anchored when older messages are prepended.
+  useEffect(() => () => cancelAnimationFrame(anchorFrame.current), []);
+
+  // Keep the reader's place when the message window changes above or below the viewport.
   useLayoutEffect(() => {
     const el = scrollRef.current;
-    if (!el || state.prependSeq === 0) return;
-    const { scrollHeight, scrollTop } = snapshot.current;
-    el.scrollTop = el.scrollHeight - (scrollHeight - scrollTop);
-  }, [state.prependSeq]);
+    const a = anchor.current;
+    if (!el || !a || !initialScrollDone.current) return;
+    if (snapshot.current.atBottom && !state.hasMoreAfter) return; // stick-to-bottom handles this
+    const row = el.querySelector<HTMLElement>(`[data-message-id="${CSS.escape(a.id)}"]`);
+    if (!row) return;
+    const delta = row.getBoundingClientRect().top - el.getBoundingClientRect().top - a.offset;
+    if (Math.abs(delta) > 0.5) el.scrollTop += delta;
+  }, [state.messages, state.hasMoreAfter]);
 
   // Stick to the bottom when new messages arrive while already at the bottom.
   const lastId = state.messages[state.messages.length - 1]?.id;
@@ -207,10 +242,10 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
         for (const e of entries) {
           if (!e.isIntersecting) continue;
           if (e.target === topSentinel.current) {
-            const el = scrollRef.current;
-            if (el) snapshot.current = { ...snapshot.current, scrollHeight: el.scrollHeight, scrollTop: el.scrollTop };
+            captureAnchor();
             void useMessages.getState().loadOlder(channelId);
           } else if (e.target === bottomSentinel.current) {
+            captureAnchor();
             void useMessages.getState().loadNewer(channelId);
           }
         }
@@ -220,7 +255,7 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
     if (topSentinel.current) io.observe(topSentinel.current);
     if (bottomSentinel.current) io.observe(bottomSentinel.current);
     return () => io.disconnect();
-  }, [channelId, state.status]);
+  }, [channelId, state.status, captureAnchor]);
 
   const jumpToPresent = async () => {
     if (state.hasMoreAfter) await useMessages.getState().loadLatest(channelId);
@@ -283,11 +318,6 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
             </div>
           )}
           {state.status === 'ready' && !state.hasMoreBefore && beginning}
-          {state.loadingOlder && (
-            <div className="flex justify-center py-3" role="status" aria-label={t('chat.list.loadingOlder')}>
-              <Spinner className="text-fg-muted" />
-            </div>
-          )}
           <div role="log" aria-live="polite" aria-relevant="additions" aria-label={t('chat.list.label')}>
             {rows}
             {!state.hasMoreAfter &&
@@ -301,14 +331,28 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
                 </Fragment>
               ))}
           </div>
-          {state.loadingNewer && (
-            <div className="flex justify-center py-3">
-              <Spinner className="text-fg-muted" />
-            </div>
-          )}
           <div ref={bottomSentinel} aria-hidden className="h-px" />
         </div>
       </div>
+      {/* Loading indicators float over the list so they never shift the messages being read. */}
+      {state.loadingOlder && (
+        <div
+          className="pointer-events-none absolute inset-x-0 top-2 flex justify-center"
+          role="status"
+          aria-label={t('chat.list.loadingOlder')}
+        >
+          <span className="rounded-full border border-line bg-overlay p-1.5 shadow-md">
+            <Spinner className="text-fg-muted" />
+          </span>
+        </div>
+      )}
+      {state.loadingNewer && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-14 flex justify-center" role="status">
+          <span className="rounded-full border border-line bg-overlay p-1.5 shadow-md">
+            <Spinner className="text-fg-muted" />
+          </span>
+        </div>
+      )}
       {showJump && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
           <Button
