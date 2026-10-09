@@ -6,14 +6,22 @@ import { TooltipProvider } from '../components/ui/tooltip';
 import { queryClient } from '../lib/queryClient';
 import { useSession } from '../stores/session';
 import { ErrorBoundary } from './ErrorBoundary';
-import { PublicOnly, RequireAuth, SessionBoot } from './guards';
+import { PublicOnly, SessionBoot } from './guards';
 import { FullscreenSpinner, NotFoundPage } from './misc';
-import { AppShell } from '../features/shell/AppShell';
-import { HomePage } from '../features/home/HomePage';
-import { ChannelPage, CommunityIndexPage } from '../features/community/CommunityPages';
-import { DmIndexPage, DmPage } from '../features/dm/DmPages';
 
-// Route-level code splitting: pages outside the core chat experience load on demand.
+// Route-level code splitting. Public pages (welcome, sign-in, invites) load without the
+// signed-in app; the app shell, chat and real-time client load once the user is signed in.
+const RequireAuth = lazy(() => import('./RequireAuth'));
+const AppShell = lazy(() => import('../features/shell/AppShell').then((m) => ({ default: m.AppShell })));
+const HomePage = lazy(() => import('../features/home/HomePage').then((m) => ({ default: m.HomePage })));
+const ChannelPage = lazy(() =>
+  import('../features/community/CommunityPages').then((m) => ({ default: m.ChannelPage })),
+);
+const CommunityIndexPage = lazy(() =>
+  import('../features/community/CommunityPages').then((m) => ({ default: m.CommunityIndexPage })),
+);
+const DmIndexPage = lazy(() => import('../features/dm/DmPages').then((m) => ({ default: m.DmIndexPage })));
+const DmPage = lazy(() => import('../features/dm/DmPages').then((m) => ({ default: m.DmPage })));
 const WelcomePage = lazy(() => import('../features/auth/WelcomePage'));
 const LoginPage = lazy(() => import('../features/auth/LoginPage'));
 const RegisterPage = lazy(() => import('../features/auth/RegisterPage'));

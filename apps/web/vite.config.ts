@@ -31,8 +31,9 @@ export default defineConfig({
               name: 'realtime',
               test: /node_modules[\\/](socket\.io-client|socket\.io-parser|engine\.io-client|engine\.io-parser|@socket\.io)[\\/]/,
             },
-            { name: 'ui', test: /node_modules[\\/](radix-ui|@radix-ui|@floating-ui|lucide-react)[\\/]/ },
             { name: 'data', test: /node_modules[\\/](@tanstack|zustand)[\\/]/ },
+            // Icons are tiny individually; one shared chunk avoids dozens of small requests.
+            { name: 'icons', test: /node_modules[\\/]lucide-react[\\/]/ },
           ],
         },
       },

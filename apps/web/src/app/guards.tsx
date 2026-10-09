@@ -1,17 +1,9 @@
-import type { BootstrapDTO } from '@creator-network/shared';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router';
-import { api, errorMessage, onUnauthorized } from '../lib/api';
-import { queryClient } from '../lib/queryClient';
-import { setNavigator, startRealtime, stopRealtime } from '../lib/realtime';
-import { useChat } from '../stores/chat';
-import { useMessages } from '../stores/messages';
+import { onUnauthorized } from '../lib/api';
+import { setNavigator } from '../lib/navigator';
 import { useSession } from '../stores/session';
 import { applyTheme, useUi } from '../stores/ui';
-import { Button } from '../components/ui/button';
-import { EmptyState } from '../components/ui/empty-state';
-import { t } from '../i18n';
-import { CloudOff } from 'lucide-react';
 import { FullscreenSpinner } from './misc';
 
 /** Loads the session once, keeps the theme in sync and tears everything down on sign-out. */
@@ -38,77 +30,15 @@ export function SessionBoot() {
     return () => mq.removeEventListener('change', listener);
   }, [theme]);
 
+  // After signing out (or the session ending), drop everything the signed-in app loaded.
+  const previous = useRef(status);
   useEffect(() => {
-    if (status === 'anonymous') {
-      stopRealtime();
-      useChat.getState().reset();
-      useMessages.getState().reset();
-      useMessages.getState().setUser(null);
-      queryClient.clear();
+    if (status === 'anonymous' && previous.current === 'authenticated') {
+      void import('./teardown').then((m) => m.teardownSession());
     }
+    previous.current = status;
   }, [status]);
   return null;
-}
-
-/** Signed-in area: loads bootstrap data, connects the socket, enforces onboarding. */
-export function RequireAuth() {
-  const status = useSession((s) => s.status);
-  const user = useSession((s) => s.user);
-  const ready = useChat((s) => s.ready);
-  const location = useLocation();
-  const [error, setError] = useState<string | null>(null);
-  const loading = useRef(false);
-
-  useEffect(() => {
-    if (status !== 'authenticated' || !user || ready || loading.current) return;
-    loading.current = true;
-    useMessages.getState().setUser(user.id);
-    api
-      .get<BootstrapDTO>('/api/me/bootstrap')
-      .then((b) => {
-        useChat.getState().applyBootstrap(b);
-        useSession.getState().setUser(b.user);
-        useSession.getState().setConfig(b.config);
-        startRealtime();
-        setError(null);
-      })
-      .catch((err: unknown) => setError(errorMessage(err)))
-      .finally(() => {
-        loading.current = false;
-      });
-  }, [status, user, ready]);
-
-  if (status === 'loading') return <FullscreenSpinner />;
-  if (status === 'anonymous') {
-    const next = location.pathname + location.search;
-    return (
-      <Navigate
-        to={next === '/home' || next === '/' ? '/welcome' : `/login?next=${encodeURIComponent(next)}`}
-        replace
-      />
-    );
-  }
-  if (error && !ready) {
-    return (
-      <div className="grid min-h-dvh place-items-center bg-main">
-        <EmptyState
-          icon={CloudOff}
-          title={t('common.errors.offline')}
-          body={error}
-          actions={
-            <Button variant="primary" onClick={() => window.location.reload()}>
-              {t('common.actions.retry')}
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
-  if (!ready || !user) return <FullscreenSpinner />;
-  if (!user.onboardingCompleted && location.pathname !== '/onboarding') {
-    return <Navigate to={`/onboarding${location.search}`} replace />;
-  }
-  return <Outlet />;
 }
 
 /** Pages for signed-out visitors; signed-in users are sent into the app. */

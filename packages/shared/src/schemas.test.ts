@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { extractMentions } from './mentions';
-import {
-  channelNameSchema,
-  isEmoji,
-  isSafeHttpUrl,
-  messageContentSchema,
-  registerSchema,
-  usernameSchema,
-} from './schemas';
+import { channelNameSchema, isEmoji, messageContentSchema, registerSchema, usernameSchema } from './schemas';
+import { isSafeHttpUrl } from './text';
 
 describe('mentions', () => {
   it('extracts usernames and @everyone, but not email addresses', () => {

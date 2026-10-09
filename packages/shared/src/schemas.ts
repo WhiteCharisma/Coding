@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isSafeHttpUrl, isValidTimeZone, stripControlChars } from './text';
 import {
   CHANNEL_NAME_PATTERN,
   COMMUNITY_TAGS,
@@ -40,12 +41,6 @@ export const passwordSchema = z
   .min(LIMITS.passwordMin, { error: `Password must be at least ${LIMITS.passwordMin} characters` })
   .max(LIMITS.passwordMax, { error: `Password must be at most ${LIMITS.passwordMax} characters` });
 
-/** Strips control characters (except newlines and tabs) that have no place in user text. */
-export function stripControlChars(value: string): string {
-  // eslint-disable-next-line no-control-regex
-  return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F‪-‮⁦-⁩]/g, '');
-}
-
 const singleLine = (max: number) =>
   z
     .string()
@@ -62,31 +57,11 @@ export const displayNameSchema = singleLine(LIMITS.displayNameMax).pipe(
   z.string().min(1, { error: 'Display name is required' }),
 );
 
-export function isSafeHttpUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
-    if (url.username || url.password) return false;
-    return url.hostname.includes('.') && url.hostname.length <= 253;
-  } catch {
-    return false;
-  }
-}
-
 export const httpUrlSchema = z
   .string()
   .trim()
   .max(300)
   .refine(isSafeHttpUrl, { error: 'Enter a full http(s) address, e.g. https://example.com' });
-
-export function isValidTimeZone(tz: string): boolean {
-  try {
-    new Intl.DateTimeFormat('en-US', { timeZone: tz });
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 /* ------------------------------------------------------------------ Auth */
 

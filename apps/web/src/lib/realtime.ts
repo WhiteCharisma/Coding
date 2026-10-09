@@ -19,20 +19,16 @@ import { useSession } from '../stores/session';
 import { useUi } from '../stores/ui';
 import { toast } from '../components/ui/toast';
 import { api, ApiError } from './api';
+import { navigateTo } from './navigator';
 import { queryClient } from './queryClient';
 
 type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 let socket: ClientSocket | null = null;
 let connectedBefore = false;
-let navigate: ((to: string) => void) | null = null;
 let idleTimer: number | null = null;
 let isIdle = false;
 const readTimers = new Map<string, number>();
-
-export function setNavigator(fn: (to: string) => void): void {
-  navigate = fn;
-}
 
 function self(): SelfUser | null {
   return useSession.getState().user;
@@ -155,7 +151,7 @@ function notificationToast(n: NotificationDTO): void {
     : '/notifications';
   toast.info(text, {
     label: t('common.actions.open'),
-    onClick: () => navigate?.(n.messageId && n.communityId ? `${target}?m=${n.messageId}` : target),
+    onClick: () => navigateTo(n.messageId && n.communityId ? `${target}?m=${n.messageId}` : target),
   });
 }
 
@@ -249,7 +245,7 @@ export function startRealtime(): void {
     for (const ch of c.channels) useMessages.getState().dropChannel(ch.id);
     useChat.getState().removeCommunity(communityId);
     if (reason !== 'left') toast.info(t(`community.join.${reason}`, { name: c.name }));
-    if (window.location.pathname.startsWith(`/c/${communityId}`)) navigate?.('/home');
+    if (window.location.pathname.startsWith(`/c/${communityId}`)) navigateTo('/home');
   });
   s.on('dm:update', ({ channelId }) => void refreshDm(channelId));
   s.on('user:update', ({ userId }) => {

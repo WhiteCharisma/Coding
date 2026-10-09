@@ -62,6 +62,12 @@ export default function WelcomePage() {
     hidden: { opacity: 0, y: reduce ? 0 : 14 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
   };
+  // The headline is the page's largest element: it slides in but is never transparent,
+  // so the browser can paint it (and count it as loaded) immediately.
+  const headline = {
+    hidden: { y: reduce ? 0 : 14 },
+    show: { y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
+  };
   const closed = config?.registrationMode === 'closed';
   return (
     <LazyMotion features={domAnimation} strict>
@@ -85,7 +91,7 @@ export default function WelcomePage() {
               {t('auth.welcome.eyebrow')}
             </m.p>
             <m.h1
-              variants={item}
+              variants={headline}
               className="mt-4 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-fg text-balance sm:text-5xl lg:text-[3.5rem]"
             >
               {t('auth.welcome.title')}
