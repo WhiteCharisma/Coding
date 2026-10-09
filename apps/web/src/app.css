@@ -350,6 +350,9 @@
     z-index: -1;
     pointer-events: none;
     background: var(--sky-scene);
+    /* No text here: a local font keeps this layer from downloading the web font before the
+       page has any text (on slow links that download delayed the app's JavaScript). */
+    font-family: sans-serif;
   }
   ::selection {
     background: var(--accent-soft);
