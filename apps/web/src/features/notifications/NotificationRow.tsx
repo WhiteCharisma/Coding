@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { formatRelative } from '../../lib/format';
+import { Orb } from '../../components/ui/orb';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { describeNotification } from './describe';
 
@@ -27,12 +28,10 @@ export function NotificationRow({ n, onRead }: { n: NotificationDTO; onRead: (id
         {n.actor ? (
           <UserAvatar name={n.actor.displayName} src={n.actor.avatarUrl} size="lg" />
         ) : (
-          <span className="grid size-10 place-items-center rounded-full bg-elevated">
-            <Icon className="size-5 text-fg-2" />
-          </span>
+          <Orb icon={Icon} size="md" tone="neutral" />
         )}
         {n.actor && (
-          <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-accent text-accent-fg ring-2 ring-main">
+          <span className="gloss absolute -right-1.5 -bottom-1.5 grid size-5 place-items-center rounded-full border border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg shadow-sm">
             <Icon className="size-3" />
           </span>
         )}
@@ -42,13 +41,15 @@ export function NotificationRow({ n, onRead }: { n: NotificationDTO; onRead: (id
         {d.detail && <span className="mt-0.5 line-clamp-2 block text-sm text-fg-muted">{d.detail}</span>}
         <span className="mt-1 block font-mono text-[11px] text-fg-muted">{formatRelative(n.updatedAt)}</span>
       </span>
-      {unread && <span aria-label={t('common.labels.new')} className="mt-2 size-2 shrink-0 rounded-full bg-accent" />}
+      {unread && (
+        <span
+          aria-label={t('common.labels.new')}
+          className="mt-2 size-2.5 shrink-0 rounded-full bg-accent-text shadow-[0_0_6px_var(--accent-glow)]"
+        />
+      )}
     </>
   );
-  const cls = cn(
-    'flex items-start gap-3 rounded-xl px-3 py-3 transition-colors',
-    unread ? 'bg-accent-soft/40 hover:bg-accent-soft/60' : 'hover:bg-hover',
-  );
+  const cls = cn('aero-item flex items-start gap-3 rounded-xl px-3 py-3', unread && 'bg-accent-soft/40');
   return d.href ? (
     <Link to={d.href} className={cls} onClick={() => unread && onRead(n.id)}>
       {body}

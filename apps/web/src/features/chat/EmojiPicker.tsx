@@ -1,5 +1,5 @@
 import { REACTION_EMOJI } from '@creator-network/shared';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { t } from '../../i18n';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 
@@ -32,14 +32,26 @@ export function EmojiPicker({
   open?: boolean;
   onOpenChange?: (o: boolean) => void;
 }) {
+  // Closes once an emoji is picked (controlled by the parent when it passes `open`).
+  const [innerOpen, setInnerOpen] = useState(false);
+  const isOpen = open ?? innerOpen;
+  const setOpen = (next: boolean) => {
+    if (open === undefined) setInnerOpen(next);
+    onOpenChange?.(next);
+  };
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={isOpen} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent side="top" align="end" className="w-auto p-2">
         <p className="px-1 pb-1.5 text-2xs font-semibold tracking-wide text-fg-muted uppercase">
           {t('chat.emoji.frequently')}
         </p>
-        <EmojiGrid onPick={onPick} />
+        <EmojiGrid
+          onPick={(emoji) => {
+            onPick(emoji);
+            setOpen(false);
+          }}
+        />
       </PopoverContent>
     </Popover>
   );

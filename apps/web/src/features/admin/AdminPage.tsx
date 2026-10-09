@@ -20,6 +20,7 @@ import { useSession } from '../../stores/session';
 import { CountBadge } from '../../components/ui/badge';
 import { EmptyState } from '../../components/ui/empty-state';
 import { PageLayout, SidebarLayout } from '../shell/SidebarLayout';
+import { useIsDesktop } from '../shell/hooks';
 import { OverviewSection, type AdminOverview } from './OverviewSection';
 import { ReportsSection } from './ReportsSection';
 import { UsersSection } from './UsersSection';
@@ -57,6 +58,8 @@ export default function AdminPage() {
   const isAdmin = user?.platformRole === 'admin';
   const isStaff = !!user && user.platformRole !== 'member';
   const overview = useAdminOverview();
+  // On phones the list is its own page: nothing is "current" there until a section opens.
+  const showCurrent = useIsDesktop() || !!section;
   if (!user) return null;
   if (!isStaff) {
     return (
@@ -80,7 +83,7 @@ export default function AdminPage() {
 
   const sidebar = (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-[var(--header-height)] shrink-0 items-center border-b border-line-subtle px-4">
+      <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center px-4">
         <h1 className="font-display text-[15px] font-semibold tracking-tight text-fg">{t('admin.title')}</h1>
       </div>
       <nav aria-label={t('admin.title')} className="scroll-area min-h-0 flex-1 p-2">
@@ -89,13 +92,10 @@ export default function AdminPage() {
             <li key={key}>
               <Link
                 to={`/admin/${key}`}
-                aria-current={active === key ? 'page' : undefined}
-                className={cn(
-                  'flex h-10 items-center gap-3 rounded-md px-3 text-ui transition-colors duration-[var(--dur-fast)] md:h-9',
-                  active === key ? 'text-fg md:bg-selected' : 'text-fg-2 hover:bg-hover hover:text-fg',
-                )}
+                aria-current={showCurrent && active === key ? 'page' : undefined}
+                className="aero-item flex h-10 items-center gap-3 rounded-lg px-3 text-ui text-fg-2 hover:text-fg md:h-9"
               >
-                <Icon className="size-4 text-fg-muted" />
+                <Icon className={cn('size-4', showCurrent && active === key ? 'text-accent-text' : 'text-fg-muted')} />
                 <span className="flex-1">{t(`admin.sections.${key}`)}</span>
                 {key === 'reports' && openReports > 0 && <CountBadge count={openReports} tone="danger" />}
                 <ChevronRight className="size-4 text-fg-faint md:hidden" />

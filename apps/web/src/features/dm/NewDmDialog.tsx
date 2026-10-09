@@ -111,10 +111,8 @@ export function NewDmDialog({ open, onOpenChange }: { open: boolean; onOpenChang
                     type="button"
                     onClick={() => toggle(u)}
                     aria-pressed={on}
-                    className={cn(
-                      'flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors',
-                      on ? 'bg-selected' : 'hover:bg-hover',
-                    )}
+                    data-selected={on || undefined}
+                    className="aero-item flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left"
                   >
                     <UserAvatar name={u.displayName} src={u.avatarUrl} size="md" />
                     <span className="min-w-0 flex-1">

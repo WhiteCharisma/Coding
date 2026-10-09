@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { t } from '../../i18n';
 import { api, errorMessage } from '../../lib/api';
-import { cn } from '../../lib/cn';
 import { useChat } from '../../stores/chat';
 import { DemoBadge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -34,7 +33,7 @@ export function CommunityCard({ c, onJoined }: { c: CommunitySummary; onJoined?:
     }
   };
   return (
-    <article className="group flex flex-col rounded-xl border border-line-subtle bg-sidebar/70 p-4 transition-[border-color,transform,box-shadow] duration-[var(--dur-base)] ease-out hover:-translate-y-0.5 hover:border-line hover:shadow-md">
+    <article className="tile tile-link group flex flex-col p-4">
       <div className="flex items-start gap-3">
         <CommunityIcon name={c.name} src={c.iconUrl} size="lg" />
         <div className="min-w-0 flex-1">
@@ -51,7 +50,7 @@ export function CommunityCard({ c, onJoined }: { c: CommunitySummary; onJoined?:
       {c.tags.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-1">
           {c.tags.map((tag) => (
-            <li key={tag} className="rounded-full bg-active px-2 py-0.5 text-[11px] text-fg-2">
+            <li key={tag} className="rounded-full border border-line-subtle bg-hover px-2 py-0.5 text-[11px] text-fg-2">
               {t(`common.tags.${tag}`)}
             </li>
           ))}
@@ -113,12 +112,7 @@ export default function ExplorePage() {
                 type="button"
                 aria-pressed={tag === tg}
                 onClick={() => setTag(tg)}
-                className={cn(
-                  'shrink-0 rounded-full border px-3 py-1 text-sm transition-colors',
-                  tag === tg
-                    ? 'border-accent-border bg-accent-soft text-accent-text'
-                    : 'border-line text-fg-2 hover:border-line-strong',
-                )}
+                className="chip px-3 py-1 text-sm"
               >
                 {tg ? t(`common.tags.${tg}`) : t('explore.allTags')}
               </button>

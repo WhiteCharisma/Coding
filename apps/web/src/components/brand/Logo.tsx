@@ -22,7 +22,15 @@ export function LogoMark({ className }: { className?: string }) {
         </linearGradient>
       </defs>
       <circle cx="20" cy="20" r="18" fill={`url(#${id}-orb)`} />
-      <circle cx="20" cy="20" r="17.4" fill="none" style={{ stroke: 'var(--knob-hi)' }} strokeOpacity="0.55" strokeWidth="1.2" />
+      <circle
+        cx="20"
+        cy="20"
+        r="17.4"
+        fill="none"
+        style={{ stroke: 'var(--knob-hi)' }}
+        strokeOpacity="0.55"
+        strokeWidth="1.2"
+      />
       <path
         d="M6.5 23c3.2-6.4 6.6-6.4 9.8 0s6.6 6.4 9.8 0 5.2-5.6 7.4-2.4"
         fill="none"

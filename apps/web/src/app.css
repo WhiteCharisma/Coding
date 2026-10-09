@@ -6,6 +6,10 @@
 
 /* Expose design tokens to Tailwind utilities (bg-main, text-fg-muted, border-line, …). */
 @theme inline {
+  --color-sky-1: var(--sky-1);
+  --color-sky-2: var(--sky-2);
+  --color-sky-3: var(--sky-3);
+  --color-sky-4: var(--sky-4);
   --color-app: var(--bg-app);
   --color-rail: var(--bg-rail);
   --color-sidebar: var(--bg-sidebar);
@@ -13,6 +17,7 @@
   --color-elevated: var(--bg-elevated);
   --color-overlay: var(--bg-overlay);
   --color-inset: var(--bg-inset);
+  --color-tile: var(--bg-tile);
   --color-hover: var(--bg-hover);
   --color-active: var(--bg-active);
   --color-selected: var(--bg-selected);
@@ -323,10 +328,10 @@
 :root[data-theme='light'] {
   --sky-scene:
     radial-gradient(42% 34% at 88% 4%, oklch(0.99 0.05 95 / 0.95), oklch(0.98 0.04 95 / 0.35) 45%, transparent 72%),
-    radial-gradient(1.6% 1.6% at 14% 34%, transparent 68%, oklch(1 0 0 / 0.75) 74%, transparent 82%),
-    radial-gradient(1% 1% at 19% 28%, transparent 64%, oklch(1 0 0 / 0.7) 72%, transparent 82%),
-    radial-gradient(2.2% 2.2% at 82% 46%, transparent 70%, oklch(1 0 0 / 0.6) 76%, transparent 84%),
-    radial-gradient(1.2% 1.2% at 76% 52%, transparent 66%, oklch(1 0 0 / 0.65) 74%, transparent 84%),
+    radial-gradient(circle 20px at 14% 34%, transparent 68%, oklch(1 0 0 / 0.75) 74%, transparent 82%),
+    radial-gradient(circle 12px at 19% 28%, transparent 64%, oklch(1 0 0 / 0.7) 72%, transparent 82%),
+    radial-gradient(circle 28px at 82% 46%, transparent 70%, oklch(1 0 0 / 0.6) 76%, transparent 84%),
+    radial-gradient(circle 15px at 76% 52%, transparent 66%, oklch(1 0 0 / 0.65) 74%, transparent 84%),
     radial-gradient(14% 7% at 12% 62%, var(--cloud) 30%, transparent 70%),
     radial-gradient(11% 8% at 21% 58%, var(--cloud) 25%, transparent 70%),
     radial-gradient(16% 6% at 18% 67%, oklch(0.97 0.012 232) 30%, transparent 72%),
@@ -350,13 +355,13 @@
       oklch(0.62 0.12 280 / 0.16) 42%,
       transparent 54%
     ),
-    radial-gradient(0.12% 0.12% at 12% 14%, oklch(1 0 0 / 0.9), transparent 100%),
-    radial-gradient(0.1% 0.1% at 31% 8%, oklch(1 0 0 / 0.8), transparent 100%),
-    radial-gradient(0.14% 0.14% at 58% 18%, oklch(1 0 0 / 0.85), transparent 100%),
-    radial-gradient(0.1% 0.1% at 73% 6%, oklch(1 0 0 / 0.7), transparent 100%),
-    radial-gradient(0.12% 0.12% at 91% 22%, oklch(1 0 0 / 0.8), transparent 100%),
-    radial-gradient(2% 2% at 84% 44%, transparent 70%, oklch(0.85 0.1 210 / 0.35) 76%, transparent 84%),
-    radial-gradient(1.2% 1.2% at 16% 40%, transparent 66%, oklch(0.85 0.1 210 / 0.35) 74%, transparent 84%),
+    radial-gradient(circle 1.5px at 12% 14%, oklch(1 0 0 / 0.9), transparent 100%),
+    radial-gradient(circle 1.5px at 31% 8%, oklch(1 0 0 / 0.8), transparent 100%),
+    radial-gradient(circle 1.5px at 58% 18%, oklch(1 0 0 / 0.85), transparent 100%),
+    radial-gradient(circle 1.5px at 73% 6%, oklch(1 0 0 / 0.7), transparent 100%),
+    radial-gradient(circle 1.5px at 91% 22%, oklch(1 0 0 / 0.8), transparent 100%),
+    radial-gradient(circle 26px at 84% 44%, transparent 70%, oklch(0.85 0.1 210 / 0.35) 76%, transparent 84%),
+    radial-gradient(circle 15px at 16% 40%, transparent 66%, oklch(0.85 0.1 210 / 0.35) 74%, transparent 84%),
     linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 40%, var(--sky-3) 78%, var(--sky-4) 100%);
 }
 
@@ -427,6 +432,107 @@
       animation: sheen 700ms var(--ease-out) 1 both;
     }
   }
+  /* A glass tile inside a pane (cards, blocks of a page): pearl, with a polished top edge. */
+  .tile {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--glass-edge);
+    background-color: var(--bg-tile);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 1px 2px var(--border-subtle),
+      0 8px 20px -14px var(--glass-edge-low);
+  }
+  /* A tile you can open: lifts slightly and catches a sky-blue edge. */
+  .tile-link {
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .tile-link:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-border);
+      box-shadow:
+        inset 0 1px 0 var(--glass-sheen),
+        0 12px 28px -14px var(--accent-glow);
+    }
+  }
+  /*
+   * List items (channels, conversations, settings sections): a soft edge on hover and, when
+   * current or selected, a pale glossy band with a crisp blue edge (Windows 7 selection spirit).
+   * Edges are inset shadows, so states never shift the layout.
+   */
+  .aero-item {
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .aero-item:hover {
+      background-color: var(--bg-hover);
+      box-shadow: inset 0 0 0 1px var(--hot-border);
+    }
+  }
+  .aero-item:is([aria-current='page'], [aria-selected='true'], [data-selected], [data-highlighted]) {
+    background-color: transparent;
+    background-image: linear-gradient(180deg, var(--selection-hi), var(--selection-lo));
+    box-shadow:
+      inset 0 0 0 1px var(--selection-border),
+      inset 0 2px 0 -1px var(--glass-sheen);
+    color: var(--text);
+  }
+  /* Toggle pills (filters, tags, disciplines): pearl glass, glossy sky-blue when on. */
+  .chip {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    border: 1px solid var(--glass-edge);
+    background-color: var(--bg-tile);
+    color: var(--text-2);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 1px 2px var(--border-subtle);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out),
+      transform var(--dur-instant) var(--ease-out);
+  }
+  .chip:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  @media (hover: hover) {
+    .chip:hover:not(:disabled) {
+      border-color: var(--accent-border);
+      color: var(--text);
+    }
+  }
+  .chip:is([aria-pressed='true'], [aria-selected='true'], [data-selected]) {
+    border-color: var(--accent-border);
+    background-image: linear-gradient(180deg, var(--accent-hi), var(--accent-lo));
+    color: var(--accent-fg);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 4px 12px -6px var(--accent-glow);
+  }
+
+  /* A photo in a message: a polished glass rim over its edge. */
+  .photo-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 0 1px var(--glass-edge),
+      inset 0 1px 0 1px var(--glass-sheen);
+    pointer-events: none;
+  }
+
   /* A display picture behind glass: a polished inner edge and a soft reflection over the photo. */
   .avatar-frame {
     position: relative;
@@ -467,6 +573,40 @@
   .avatar-mount[data-presence='dnd'] {
     --mount: var(--presence-dnd);
   }
+  /* A soap-glass bubble: clear centre, bright rim, a specular dot (decoration only). */
+  .bubble {
+    border-radius: 9999px;
+    background:
+      radial-gradient(circle at 32% 28%, var(--knob-hi) 0 5%, transparent 13%),
+      radial-gradient(
+        circle at 50% 50%,
+        transparent 56%,
+        color-mix(in oklab, var(--knob-hi) 30%, transparent) 66%,
+        color-mix(in oklab, var(--knob-hi) 75%, transparent) 71%,
+        transparent 73%
+      ),
+      radial-gradient(circle at 68% 78%, color-mix(in oklab, var(--aqua) 35%, transparent), transparent 58%);
+    opacity: 0.85;
+  }
+  /*
+   * Names in a community's role colour: the hue is kept, the lightness is clamped so any colour
+   * a community picks stays readable (≥ 4.5:1) on Daylight and on Twilight glass.
+   */
+  .role-name {
+    color: color-mix(in oklab, var(--role) 38%, var(--text));
+  }
+  :root[data-theme='dark'] .role-name {
+    color: color-mix(in oklab, var(--role) 45%, var(--text));
+  }
+  @supports (color: oklch(from red l c h)) {
+    .role-name {
+      color: oklch(from var(--role) min(l, 0.5) c h);
+    }
+    :root[data-theme='dark'] .role-name {
+      color: oklch(from var(--role) max(l, 0.8) c h);
+    }
+  }
+
   /* Labels printed on coloured pictures and bubbles. */
   .emboss {
     text-shadow: 0 1px 2px oklch(0.2 0.06 250 / 0.45);
@@ -502,16 +642,6 @@
   }
   .text-balance {
     text-wrap: balance;
-  }
-}
-
-@keyframes meter {
-  0%,
-  100% {
-    transform: scaleY(1);
-  }
-  50% {
-    transform: scaleY(0.55);
   }
 }
 

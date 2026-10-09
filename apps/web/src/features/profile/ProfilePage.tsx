@@ -33,8 +33,8 @@ import { bannerStyle, useProfile } from './useProfile';
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-line-subtle bg-sidebar/60 p-4">
-      <h2 className="mb-2 text-2xs font-semibold tracking-[0.08em] text-fg-muted uppercase">{title}</h2>
+    <section className="tile p-4">
+      <h2 className="mb-2 text-ui font-semibold text-accent-text">{title}</h2>
       {children}
     </section>
   );
@@ -75,17 +75,14 @@ export default function ProfilePage() {
   return (
     <PageLayout label={p?.displayName}>
       <div className="scroll-area flex-1">
-        <div className="h-36 md:h-48" style={bannerStyle(p?.bannerHue ?? null)} />
+        <div className="relative h-36 overflow-hidden md:h-48" style={bannerStyle(p?.bannerHue ?? null)}>
+          <span aria-hidden className="bubble absolute top-6 right-[22%] size-12" />
+          <span aria-hidden className="bubble absolute top-16 right-[10%] size-7 max-sm:hidden" />
+        </div>
         <div className="mx-auto max-w-3xl px-4 pb-16 md:px-8">
           <div className="-mt-14 flex flex-wrap items-end justify-between gap-4">
             {p ? (
-              <UserAvatar
-                name={p.displayName}
-                src={p.avatarUrl}
-                size="2xl"
-                presence={presence}
-                framed
-              />
+              <UserAvatar name={p.displayName} src={p.avatarUrl} size="2xl" presence={presence} framed />
             ) : (
               <Skeleton className="size-24 rounded-avatar" />
             )}
@@ -171,7 +168,7 @@ export default function ProfilePage() {
                   {p.disciplines.map((d) => (
                     <li
                       key={d}
-                      className="rounded-full border border-accent-border/60 bg-accent-soft px-3 py-1 text-sm text-accent-text"
+                      className="gloss rounded-full border border-accent-border bg-linear-to-b from-accent-hi to-accent-lo px-3 py-1 text-sm text-accent-fg shadow-sm"
                     >
                       {t(`common.disciplines.${d}`)}
                     </li>

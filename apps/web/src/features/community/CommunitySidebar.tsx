@@ -19,6 +19,7 @@ import { api, errorMessage } from '../../lib/api';
 import { cn } from '../../lib/cn';
 import { useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
+import { CommunityIcon } from '../../components/community/CommunityIcon';
 import { CountBadge, DemoBadge } from '../../components/ui/badge';
 import { ConfirmDialog } from '../../components/ui/confirm';
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from '../../components/ui/menu';
@@ -57,16 +58,12 @@ function ChannelLink({
       aria-current={active ? 'page' : undefined}
       title={channel.topic || undefined}
       className={cn(
-        'group relative mx-2 flex h-8 items-center gap-2 rounded-md px-2 text-ui transition-colors duration-[var(--dur-fast)]',
-        active
-          ? 'bg-selected text-fg'
-          : hasUnread
-            ? 'text-fg hover:bg-hover'
-            : 'text-fg-muted hover:bg-hover hover:text-fg-2',
+        'aero-item group relative mx-2 flex h-8 items-center gap-2 rounded-lg px-2 text-ui',
+        active || hasUnread ? 'text-fg' : 'text-fg-muted hover:text-fg-2',
       )}
     >
       {hasUnread && !active && (
-        <span aria-hidden className="absolute top-1/2 -left-2 h-2 w-1 -translate-y-1/2 rounded-r-full bg-fg" />
+        <span aria-hidden className="absolute top-1/2 -left-2 h-2 w-1 -translate-y-1/2 rounded-r-full bg-accent-text" />
       )}
       <Icon
         className={cn('size-4', active ? 'text-accent-text' : 'text-fg-faint')}
@@ -156,9 +153,10 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
         <MenuTrigger asChild>
           <button
             type="button"
-            className="flex h-[var(--header-height)] shrink-0 items-center gap-2 border-b border-line-subtle px-4 text-left transition-colors hover:bg-hover"
+            className="titlebar flex h-[var(--header-height)] shrink-0 items-center gap-2.5 px-3 text-left transition-colors hover:bg-hover"
             data-testid="community-menu"
           >
+            <CommunityIcon name={community.name} src={community.iconUrl} size="sm" />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
                 <span className="truncate font-display text-[15px] font-semibold tracking-tight text-fg">

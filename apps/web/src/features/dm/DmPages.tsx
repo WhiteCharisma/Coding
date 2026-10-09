@@ -6,6 +6,7 @@ import { dmDisplayName, useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
 import { Button } from '../../components/ui/button';
 import { EmptyState } from '../../components/ui/empty-state';
+import { Orb } from '../../components/ui/orb';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { ChannelView } from '../chat/ChannelView';
 import { ChannelHeader } from '../community/ChannelHeader';
@@ -76,9 +77,7 @@ export function DmPage() {
               {dm.kind === 'dm' && first ? (
                 <UserAvatar name={first.displayName} src={first.avatarUrl} size="xl" framed />
               ) : (
-                <span className="grid size-16 place-items-center rounded-full bg-elevated">
-                  <Users className="size-7 text-fg-2" />
-                </span>
+                <Orb icon={Users} size="xl" tone="neutral" />
               )}
               <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight text-fg">{name}</h2>
               {dm.kind === 'dm' && first && (

@@ -1,7 +1,6 @@
 import { DISCIPLINES, LIMITS, type Discipline } from '@creator-network/shared';
 import { Check } from 'lucide-react';
 import { t } from '../../i18n';
-import { cn } from '../../lib/cn';
 
 /** Multi-select chip list for creative disciplines (max LIMITS.disciplinesMax). */
 export function DisciplinePicker({
@@ -27,12 +26,7 @@ export function DisciplinePicker({
               aria-pressed={on}
               disabled={!on && full}
               onClick={() => onChange(on ? value.filter((x) => x !== d) : [...value, d])}
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition-[background-color,border-color,color] duration-[var(--dur-fast)] disabled:opacity-40',
-                on
-                  ? 'border-accent-border bg-accent-soft text-accent-text'
-                  : 'border-line text-fg-2 hover:border-line-strong hover:text-fg',
-              )}
+              className="chip px-3.5 py-1.5 text-sm disabled:opacity-40"
             >
               {on && <Check className="size-3.5" />}
               {t(`common.disciplines.${d}`)}

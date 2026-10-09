@@ -67,9 +67,7 @@ export default function LoginPage() {
     <AuthLayout title={t('auth.login.title')} subtitle={t('auth.login.subtitle')}>
       <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4" noValidate>
         {ended === 'expired' && (
-          <p className="rounded-lg border border-line bg-elevated px-3 py-2.5 text-sm text-fg-2">
-            {t('auth.sessionExpired')}
-          </p>
+          <p className="tile rounded-lg px-3 py-2.5 text-sm text-fg-2">{t('auth.sessionExpired')}</p>
         )}
         {suspension && <SuspendedNotice s={suspension} />}
         <FormError message={error} />

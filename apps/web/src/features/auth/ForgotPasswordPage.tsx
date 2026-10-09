@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
   if (config && !config.emailEnabled) {
     return (
       <AuthLayout title={t('auth.forgot.title')}>
-        <p className="rounded-xl border border-line bg-elevated p-4 text-fg-2">{t('auth.forgot.unavailable')}</p>
+        <p className="tile p-4 text-fg-2">{t('auth.forgot.unavailable')}</p>
         {config.appealContact && <p className="mt-3 text-sm text-fg-muted">{config.appealContact}</p>}
         {back}
       </AuthLayout>

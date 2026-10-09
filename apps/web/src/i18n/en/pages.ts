@@ -54,6 +54,8 @@ export const dm = {
   rename: 'Rename group',
   addPeople: 'Add people',
   you: 'You: ',
+  filter: 'Find a conversation',
+  noMatch: 'No conversation matches "{query}".',
 };
 
 export const notifications = {

@@ -4,8 +4,8 @@
  *
  * - Each upload carries a stable key (X-Upload-Key): a retry after a lost response returns the
  *   file the server already stored instead of a duplicate.
- * - Images get an instant local preview (object URL of the original file) and are sent as they
- *   are; the server makes the small chat previews.
+ * - Images get a local preview (object URL of the original file) as soon as they decode, and are
+ *   sent as they are; the server makes the small chat previews.
  * - Audio starts uploading immediately; the waveform is computed in parallel and added after.
  */
 import { uploadKindForMime, type AttachmentDTO, type UploadKind } from '@creator-network/shared';
@@ -80,7 +80,11 @@ export const useUploads = create<UploadsState>((set, get) => {
       if (job.kind === 'image') {
         const prepared = await prepareImage(file);
         body = prepared.file;
-        patch(key, { width: prepared.width, height: prepared.height });
+        const current = get().jobs[key];
+        if (!current) return; // removed meanwhile
+        // Only a file that really decodes as an image gets a local preview (never a broken picture).
+        const localUrl = current.localUrl ?? (prepared.width !== null ? URL.createObjectURL(file) : null);
+        patch(key, { width: prepared.width, height: prepared.height, localUrl });
       }
       if (!get().jobs[key]) return; // removed meanwhile
       const form = new FormData();
@@ -106,7 +110,8 @@ export const useUploads = create<UploadsState>((set, get) => {
           /* the waveform is optional: the file itself was uploaded */
         }
       }
-      if (job.localUrl) localByAttachment.set(attachment.id, job.localUrl);
+      const localUrl = get().jobs[key]?.localUrl;
+      if (localUrl) localByAttachment.set(attachment.id, localUrl);
       patch(key, { status: 'done', progress: 1, attachment });
     } catch (err) {
       if (err instanceof ApiError && err.code === 'aborted') return;
@@ -136,7 +141,7 @@ export const useUploads = create<UploadsState>((set, get) => {
           size: file.size,
           mime: file.type,
           kind,
-          localUrl: kind === 'image' ? URL.createObjectURL(file) : null,
+          localUrl: null,
           width: null,
           height: null,
           status: 'uploading',

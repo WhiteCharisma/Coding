@@ -23,7 +23,10 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn('inline-flex rounded-xl border border-line bg-inset p-1 shadow-[inset_0_1px_2px_var(--border-subtle)]', className)}
+      className={cn(
+        'inline-flex rounded-xl border border-line bg-inset p-1 shadow-[inset_0_1px_2px_var(--border-subtle)]',
+        className,
+      )}
     >
       {options.map((o) => (
         <button

@@ -62,7 +62,7 @@ export function CommunitiesSection({ isAdmin }: { isAdmin: boolean }) {
           type="search"
         />
       </div>
-      <div className="rounded-xl border border-line-subtle bg-sidebar/60">
+      <div className="tile">
         {list.isLoading ? (
           <div className="flex flex-col gap-2 p-4">
             <Skeleton className="h-12" />
@@ -213,7 +213,7 @@ export function InvitesSection() {
           !fieldError(error, 'maxUses') &&
           !fieldError(error, 'expiresInHours') && <p className="mt-2 text-sm text-danger">{errorMessage(error)}</p>}
       </SettingsCard>
-      <div className="rounded-xl border border-line-subtle bg-sidebar/60">
+      <div className="tile">
         {list.isLoading ? (
           <div className="p-4">
             <Skeleton className="h-12" />
@@ -489,7 +489,7 @@ export function BackupsSection({ overview }: { overview: AdminOverview | undefin
           <Archive /> {t('admin.backups.create')}
         </Button>
       </SettingsCard>
-      <div className="rounded-xl border border-line-subtle bg-sidebar/60">
+      <div className="tile">
         {list.isLoading ? (
           <div className="p-4">
             <Skeleton className="h-12" />
@@ -539,10 +539,7 @@ export function AuditSection() {
   if (events.length === 0) return <EmptyState icon={ScrollText} title={t('admin.audit.empty')} />;
   return (
     <div className="flex flex-col gap-4">
-      <ol
-        className="divide-y divide-line-subtle rounded-xl border border-line-subtle bg-sidebar/60"
-        data-testid="admin-audit"
-      >
+      <ol className="divide-y divide-line-subtle tile" data-testid="admin-audit">
         {events.map((e) => (
           <li key={e.id} className="flex items-start gap-3 px-4 py-3">
             {e.actor ? (

@@ -90,7 +90,20 @@ Update this file in the same commit as the work it describes.
   - Source Sans 3 (OFL) replaces Inter/Bricolage; original glossy logo; glossy primitives
   - shell: floating glass panes, bubble dock rail, glass mobile nav; presence orbs with rims;
     framed (rounded-square) display pictures with presence-coloured mounts on profiles
-- [ ] Redesign every screen on the new system (headers, lists, chat, composer, auth, settings…)
+- [ ] Redesign every screen on the new system (in progress)
+  - [x] chat: title-bar headers with orbs, glass day pills, glass hover toolbar, glossy reactions,
+        glass composer with round send orb, photo frames, glossy audio play orb, file orbs
+  - [x] lists: Windows-7-style selection (`aero-item`) for channels, DMs, settings, admin, menus;
+        DM contact list with a filter field; member groups fold ("Online (3)")
+  - [x] public pages: welcome "window" with original illustration, sign-in/up/recovery as glass
+        windows over the sky (`SkyArt`), onboarding window, not-found
+  - [x] home hero, Control-Panel-style section headings, glass tiles everywhere, glossy chips,
+        luminous profile banners, notification rows
+  - [x] fixes found on the way: role colours made readable on both themes (`role-name`); emoji
+        picker now closes after a pick; a file that does not decode as an image gets no (broken)
+        local preview
+  - [ ] remaining: dialogs' inner layouts, admin tables, search filters, image viewer chrome,
+        mobile drawer polish
 - [ ] Motion system and reaction animations
 - [ ] Interface sounds with independent volume settings
 - [ ] WebRTC voice with verified audio quality

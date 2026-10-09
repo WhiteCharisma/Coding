@@ -37,11 +37,7 @@ function ResultRow({ r }: { r: SearchResultDTO }) {
     return d ? d.name || d.participants.map((p) => p.displayName).join(', ') : null;
   });
   return (
-    <Link
-      to={href}
-      className="block rounded-xl border border-line-subtle bg-sidebar/60 p-3 transition-colors hover:border-line"
-      aria-label={t('search.jump')}
-    >
+    <Link to={href} className="tile tile-link block p-3" aria-label={t('search.jump')}>
       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 text-xs text-fg-muted">
         {r.channelKind === 'text' ? (
           <span className="inline-flex items-center gap-1">
@@ -155,7 +151,7 @@ export default function SearchPage() {
             </Button>
           </div>
           {showFilters && (
-            <div className="mt-3 grid gap-3 rounded-xl border border-line-subtle bg-sidebar/60 p-3 sm:grid-cols-2 animate-pop-in">
+            <div className="mt-3 grid gap-3 tile p-3 sm:grid-cols-2 animate-pop-in">
               <Field label={t('search.community')}>
                 {(p) => (
                   <Select {...p} value={communityId} onChange={(e) => setParam('communityId', e.target.value)}>

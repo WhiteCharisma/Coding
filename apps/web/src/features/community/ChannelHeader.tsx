@@ -5,6 +5,7 @@ import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { useUi } from '../../stores/ui';
 import { Button } from '../../components/ui/button';
+import { Orb } from '../../components/ui/orb';
 import { Tooltip } from '../../components/ui/tooltip';
 
 interface ChannelHeaderProps {
@@ -33,7 +34,7 @@ export function ChannelHeader({
   const setDrawer = useUi((s) => s.setMobileSidebarOpen);
   const Icon = icon === 'hash' ? Hash : icon === 'lock' ? Lock : icon === 'megaphone' ? Megaphone : null;
   return (
-    <header className="flex h-[var(--header-height)] shrink-0 items-center gap-1 border-b border-line-subtle bg-main/95 px-2 md:gap-2 md:px-4">
+    <header className="titlebar flex h-[var(--header-height)] shrink-0 items-center gap-1 px-2 md:gap-2 md:px-3">
       <Link
         to={backTo}
         aria-label={t('common.actions.back')}
@@ -51,7 +52,7 @@ export function ChannelHeader({
         <MenuIcon className="size-5" />
       </Button>
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        {Icon ? <Icon className="size-5 shrink-0 text-fg-faint" aria-hidden /> : icon}
+        {Icon ? <Orb icon={Icon} size="sm" /> : icon}
         <h1 className="truncate font-display text-[15px] font-semibold tracking-tight text-fg">{title}</h1>
         {topic && (
           <>
@@ -72,7 +73,9 @@ export function ChannelHeader({
               aria-label={t('shell.togglePins')}
               aria-pressed={activePanel === 'pins'}
               onClick={() => onTogglePanel('pins')}
-              className={cn(activePanel === 'pins' && 'bg-active text-fg')}
+              className={cn(
+                activePanel === 'pins' && 'bg-selected text-fg shadow-[inset_0_1px_2px_var(--glass-edge-low)]',
+              )}
             >
               <Pin className="size-[18px]" />
             </Button>
@@ -86,7 +89,9 @@ export function ChannelHeader({
               aria-label={t('shell.toggleMembers')}
               aria-pressed={activePanel === 'members'}
               onClick={() => onTogglePanel('members')}
-              className={cn(activePanel === 'members' && 'bg-active text-fg')}
+              className={cn(
+                activePanel === 'members' && 'bg-selected text-fg shadow-[inset_0_1px_2px_var(--glass-edge-low)]',
+              )}
             >
               <Users className="size-[18px]" />
             </Button>

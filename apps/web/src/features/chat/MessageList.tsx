@@ -23,11 +23,11 @@ function DaySeparator({ time }: { time: number }) {
       className="relative my-4 flex items-center px-4"
       aria-label={formatDayLabel(time, { today: t('common.labels.today'), yesterday: t('common.labels.yesterday') })}
     >
-      <div className="h-px flex-1 bg-line-subtle" />
-      <span className="mx-3 font-mono text-[11px] font-medium tracking-wide text-fg-muted uppercase">
+      <div className="h-px flex-1 bg-linear-to-r from-transparent to-line" />
+      <span className="glass mx-3 rounded-full bg-elevated px-3 py-0.5 text-[11px] font-semibold tracking-wide text-fg-muted uppercase shadow-none">
         {formatDayLabel(time, { today: t('common.labels.today'), yesterday: t('common.labels.yesterday') })}
       </span>
-      <div className="h-px flex-1 bg-line-subtle" />
+      <div className="h-px flex-1 bg-linear-to-l from-transparent to-line" />
     </div>
   );
 }
@@ -35,8 +35,8 @@ function DaySeparator({ time }: { time: number }) {
 function NewDivider() {
   return (
     <div role="separator" className="relative my-2 flex items-center pr-4 pl-4" aria-label={t('chat.list.newMessages')}>
-      <div className="h-px flex-1 bg-danger/60" />
-      <span className="ml-2 rounded-sm bg-danger px-1.5 py-px text-[10px] font-bold tracking-wider text-danger-fg uppercase">
+      <div className="h-px flex-1 bg-linear-to-r from-transparent to-danger/70" />
+      <span className="gloss ml-2 rounded-full border border-danger/40 bg-danger px-2 py-px text-[10px] font-bold tracking-wider text-danger-fg uppercase shadow-sm">
         {t('chat.list.newMessages')}
       </span>
     </div>
@@ -320,14 +320,14 @@ export function MessageList({ channelId, ctx, beginning }: MessageListProps) {
           role="status"
           aria-label={t('chat.list.loadingOlder')}
         >
-          <span className="rounded-full border border-line bg-overlay p-1.5 shadow-md">
+          <span className="glass rounded-full bg-overlay p-1.5">
             <Spinner className="text-fg-muted" />
           </span>
         </div>
       )}
       {state.loadingNewer && (
         <div className="pointer-events-none absolute inset-x-0 bottom-14 flex justify-center" role="status">
-          <span className="rounded-full border border-line bg-overlay p-1.5 shadow-md">
+          <span className="glass rounded-full bg-overlay p-1.5">
             <Spinner className="text-fg-muted" />
           </span>
         </div>

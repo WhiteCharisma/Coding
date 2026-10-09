@@ -17,6 +17,7 @@ import { useReduceMotion } from '../../lib/motion';
 import { useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
 import { Logo } from '../../components/brand/Logo';
+import { SkyArt } from '../../components/brand/SkyArt';
 import { CommunityIcon } from '../../components/community/CommunityIcon';
 import { Button } from '../../components/ui/button';
 import { Field, Input, Textarea } from '../../components/ui/input';
@@ -48,12 +49,7 @@ function PendingInvite({ code, onJoined }: { code: string; onJoined: (c: Communi
       api.get<{ invite: InvitePreviewDTO }>(`/api/invites/${encodeURIComponent(code)}`).then((r) => r.invite),
     retry: false,
   });
-  if (preview.isError)
-    return (
-      <p className="rounded-xl border border-line bg-elevated p-4 text-sm text-fg-muted">
-        {t('auth.invite.invalidBody')}
-      </p>
-    );
+  if (preview.isError) return <p className="tile p-4 text-sm text-fg-muted">{t('auth.invite.invalidBody')}</p>;
   if (!preview.data) return <Skeleton className="h-20 rounded-2xl" />;
   const inv = preview.data;
   const isMember = inv.alreadyMember || !!joined[inv.community.id];
@@ -139,7 +135,7 @@ function CommunityStep({ invite, onJoined }: { invite: string | null; onJoined: 
         <section>
           <h2 className="mb-2 text-sm font-semibold tracking-wide text-fg-2">{t('onboarding.community.create')}</h2>
           {creating ? (
-            <div className="rounded-2xl border border-line bg-elevated p-4 animate-pop-in">
+            <div className="tile rounded-2xl p-4 animate-pop-in">
               <p className="mb-4 text-sm text-fg-muted">{t('onboarding.community.createHint')}</p>
               <CreateCommunityForm compact onCreated={onJoined} />
             </div>
@@ -163,7 +159,7 @@ function TourStep() {
   return (
     <ul className="flex flex-col gap-3">
       {items.map(({ icon: Icon, title, body }) => (
-        <li key={title} className="flex gap-4 rounded-2xl border border-line-subtle bg-elevated p-4">
+        <li key={title} className="flex gap-4 tile rounded-2xl p-4">
           <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-inset text-accent-text">
             <Icon className="size-5" />
           </span>
@@ -239,95 +235,107 @@ export default function OnboardingPage() {
 
   return (
     <LazyMotion features={domAnimation} strict>
-      <div className="flex min-h-dvh flex-col bg-app">
-        <header className="mx-auto flex w-full max-w-2xl items-center justify-between gap-4 px-5 pt-6 sm:px-8">
-          <Logo name={config?.instanceName ?? t('common.appName')} />
-          <span className="font-mono text-xs text-fg-muted">
-            {t('onboarding.progress', { current: stepIndex + 1, total: STEPS.length })}
-          </span>
+      <div className="relative flex min-h-dvh flex-col">
+        <SkyArt />
+        <header className="relative mx-auto w-full max-w-2xl px-4 pt-4 sm:px-6">
+          <div className="glass flex items-center justify-between gap-4 rounded-2xl bg-elevated py-2 pr-4 pl-3">
+            <Logo name={config?.instanceName ?? t('common.appName')} />
+            <span className="text-xs font-semibold text-fg-muted">
+              {t('onboarding.progress', { current: stepIndex + 1, total: STEPS.length })}
+            </span>
+          </div>
         </header>
-        <div className="mx-auto mt-5 flex w-full max-w-2xl gap-1.5 px-5 sm:px-8" aria-hidden>
-          {STEPS.map((s, i) => (
-            <span
-              key={s}
-              className={cn(
-                'h-1 flex-1 rounded-full transition-colors duration-[var(--dur-slow)]',
-                i <= stepIndex ? 'bg-accent' : 'bg-line',
-              )}
-            />
-          ))}
-        </div>
-        <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-5 pt-10 pb-32 sm:px-8">
-          <AnimatePresence mode="wait" custom={direction} initial={false}>
-            <m.div
-              key={step}
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: reduce ? 0.12 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {step === 'profile' && (
-                <>
-                  <StepHeading title={t('onboarding.profile.title')} subtitle={t('onboarding.profile.subtitle')} />
-                  <div className="flex flex-col gap-6">
-                    <AvatarUploader hint={t('onboarding.profile.avatarHint')} />
-                    <Field label={t('onboarding.profile.headline')} optional={t('common.labels.optional')}>
-                      {(p) => (
-                        <Input
-                          {...p}
-                          value={headline}
-                          onChange={(e) => setHeadline(e.target.value)}
-                          maxLength={LIMITS.headlineMax}
-                          placeholder={t('onboarding.profile.headlinePlaceholder')}
-                        />
-                      )}
-                    </Field>
-                    <Field label={t('onboarding.profile.bio')} optional={t('common.labels.optional')}>
-                      {(p) => (
-                        <Textarea
-                          {...p}
-                          value={bio}
-                          onChange={(e) => setBio(e.target.value)}
-                          maxLength={LIMITS.bioMax}
-                          rows={4}
-                          placeholder={t('onboarding.profile.bioPlaceholder')}
-                        />
-                      )}
-                    </Field>
-                  </div>
-                </>
-              )}
-              {step === 'disciplines' && (
-                <>
-                  <StepHeading
-                    title={t('onboarding.disciplines.title')}
-                    subtitle={t('onboarding.disciplines.subtitle', { max: LIMITS.disciplinesMax })}
-                  />
-                  <DisciplinePicker
-                    value={disciplines}
-                    onChange={setDisciplines}
-                    label={t('onboarding.disciplines.title')}
-                  />
-                </>
-              )}
-              {step === 'community' && (
-                <>
-                  <StepHeading title={t('onboarding.community.title')} subtitle={t('onboarding.community.subtitle')} />
-                  <CommunityStep invite={invite} onJoined={onJoined} />
-                </>
-              )}
-              {step === 'tour' && (
-                <>
-                  <StepHeading title={t('onboarding.tour.title')} subtitle={t('onboarding.tour.subtitle')} />
-                  <TourStep />
-                </>
-              )}
-            </m.div>
-          </AnimatePresence>
+        <main id="main" className="relative mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-32 sm:px-6">
+          <div className="glass overflow-hidden rounded-3xl bg-overlay">
+            <div className="flex gap-1.5 px-6 pt-6 sm:px-8" aria-hidden>
+              {STEPS.map((s, i) => (
+                <span
+                  key={s}
+                  className={cn(
+                    'h-1.5 flex-1 rounded-full transition-[background-color,box-shadow] duration-[var(--dur-slow)]',
+                    i <= stepIndex
+                      ? 'bg-linear-to-r from-aqua to-accent shadow-[0_0_8px_var(--accent-glow)]'
+                      : 'bg-active',
+                  )}
+                />
+              ))}
+            </div>
+            <div className="px-6 pt-8 pb-8 sm:px-8">
+              <AnimatePresence mode="wait" custom={direction} initial={false}>
+                <m.div
+                  key={step}
+                  custom={direction}
+                  variants={variants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: reduce ? 0.12 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {step === 'profile' && (
+                    <>
+                      <StepHeading title={t('onboarding.profile.title')} subtitle={t('onboarding.profile.subtitle')} />
+                      <div className="flex flex-col gap-6">
+                        <AvatarUploader hint={t('onboarding.profile.avatarHint')} />
+                        <Field label={t('onboarding.profile.headline')} optional={t('common.labels.optional')}>
+                          {(p) => (
+                            <Input
+                              {...p}
+                              value={headline}
+                              onChange={(e) => setHeadline(e.target.value)}
+                              maxLength={LIMITS.headlineMax}
+                              placeholder={t('onboarding.profile.headlinePlaceholder')}
+                            />
+                          )}
+                        </Field>
+                        <Field label={t('onboarding.profile.bio')} optional={t('common.labels.optional')}>
+                          {(p) => (
+                            <Textarea
+                              {...p}
+                              value={bio}
+                              onChange={(e) => setBio(e.target.value)}
+                              maxLength={LIMITS.bioMax}
+                              rows={4}
+                              placeholder={t('onboarding.profile.bioPlaceholder')}
+                            />
+                          )}
+                        </Field>
+                      </div>
+                    </>
+                  )}
+                  {step === 'disciplines' && (
+                    <>
+                      <StepHeading
+                        title={t('onboarding.disciplines.title')}
+                        subtitle={t('onboarding.disciplines.subtitle', { max: LIMITS.disciplinesMax })}
+                      />
+                      <DisciplinePicker
+                        value={disciplines}
+                        onChange={setDisciplines}
+                        label={t('onboarding.disciplines.title')}
+                      />
+                    </>
+                  )}
+                  {step === 'community' && (
+                    <>
+                      <StepHeading
+                        title={t('onboarding.community.title')}
+                        subtitle={t('onboarding.community.subtitle')}
+                      />
+                      <CommunityStep invite={invite} onJoined={onJoined} />
+                    </>
+                  )}
+                  {step === 'tour' && (
+                    <>
+                      <StepHeading title={t('onboarding.tour.title')} subtitle={t('onboarding.tour.subtitle')} />
+                      <TourStep />
+                    </>
+                  )}
+                </m.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </main>
-        <footer className="fixed inset-x-0 bottom-0 border-t border-line-subtle bg-app/90 backdrop-blur-md">
+        <footer className="glass fixed inset-x-0 bottom-0 rounded-none border-x-0 border-b-0 bg-elevated">
           <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-5 py-4 sm:px-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button
               variant="ghost"

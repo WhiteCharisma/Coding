@@ -27,8 +27,8 @@ export function SettingsCard({
   return (
     <section
       className={cn(
-        'rounded-xl border p-4 sm:p-5',
-        tone === 'danger' ? 'border-danger/30 bg-danger-soft/40' : 'border-line-subtle bg-sidebar/60',
+        'p-4 sm:p-5',
+        tone === 'danger' ? 'rounded-xl border border-danger/30 bg-danger-soft/40' : 'tile',
         className,
       )}
     >

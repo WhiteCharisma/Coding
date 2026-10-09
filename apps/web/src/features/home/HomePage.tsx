@@ -12,6 +12,7 @@ import { useSession } from '../../stores/session';
 import { CountBadge, DemoBadge } from '../../components/ui/badge';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { EmptyState } from '../../components/ui/empty-state';
+import { Orb } from '../../components/ui/orb';
 import { CommunityIcon } from '../../components/community/CommunityIcon';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { CreateJoinDialog } from '../community/CreateJoinDialog';
@@ -27,8 +28,9 @@ function greetingKey(now: Date): 'morning' | 'afternoon' | 'evening' {
 function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <section className="animate-rise-in">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-2xs font-semibold tracking-[0.1em] text-fg-muted uppercase">{title}</h2>
+      <div className="mb-3 flex items-center gap-3">
+        <h2 className="shrink-0 text-ui font-semibold text-accent-text">{title}</h2>
+        <span aria-hidden className="h-px flex-1 bg-linear-to-r from-line-strong to-transparent" />
         {action}
       </div>
       {children}
@@ -136,12 +138,22 @@ export function HomePage() {
     <SidebarLayout mobileView="content" sidebar={<DmSidebar />} contentLabel={t('shell.nav.home')}>
       <div className="scroll-area flex-1">
         <div className="mx-auto flex max-w-4xl flex-col gap-9 px-4 py-8 md:px-8 md:py-10">
-          <header className="animate-rise-in">
-            <p className="font-mono text-[11px] tracking-[0.14em] text-accent-text uppercase">{today}</p>
-            <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-fg md:text-4xl">
+          <header className="tile relative overflow-hidden p-6 animate-rise-in md:p-8">
+            <div
+              aria-hidden
+              className="absolute inset-y-0 right-0 w-2/5 bg-linear-to-l from-sky-3/70 via-sky-4/30 to-transparent max-sm:hidden"
+            />
+            <div
+              aria-hidden
+              className="absolute -top-20 right-6 size-56 rounded-full bg-[radial-gradient(circle,var(--sun),transparent_62%)] opacity-80 max-md:hidden dark:opacity-35"
+            />
+            <span aria-hidden className="bubble absolute top-6 right-[18%] size-10 max-sm:hidden" />
+            <span aria-hidden className="bubble absolute right-[8%] bottom-5 size-16 max-sm:hidden" />
+            <p className="relative text-xs font-semibold tracking-[0.12em] text-accent-text uppercase">{today}</p>
+            <h1 className="relative mt-1 font-display text-3xl font-semibold tracking-tight text-fg md:text-4xl">
               {t(`home.greeting.${greetingKey(now)}`, { name: firstName })}
             </h1>
-            <p className="mt-1 text-fg-muted">{t('home.subtitle')}</p>
+            <p className="relative mt-1 text-fg-muted">{t('home.subtitle')}</p>
           </header>
 
           {order.length === 0 ? (
@@ -172,7 +184,7 @@ export function HomePage() {
                     <li key={r.channelId}>
                       <Link
                         to={`/c/${r.communityId}/${r.channelId}`}
-                        className="group flex items-center gap-3 rounded-xl border border-line-subtle bg-sidebar/70 p-3 transition-[border-color,transform] duration-[var(--dur-base)] hover:-translate-y-0.5 hover:border-line"
+                        className="tile tile-link group flex items-center gap-3 p-3"
                       >
                         <CommunityIcon name={r.communityName} src={r.iconUrl} size="sm" />
                         <span className="min-w-0 flex-1">
@@ -204,10 +216,7 @@ export function HomePage() {
                   const other = d.participants.find((p) => p.id !== user.id);
                   return (
                     <li key={d.id}>
-                      <Link
-                        to={`/dm/${d.id}`}
-                        className="flex items-center gap-3 rounded-xl border border-line-subtle bg-sidebar/70 p-3 hover:border-line"
-                      >
+                      <Link to={`/dm/${d.id}`} className="tile tile-link flex items-center gap-3 p-3">
                         <UserAvatar name={other?.displayName ?? '?'} src={other?.avatarUrl} size="md" />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-ui font-semibold text-fg">
@@ -256,15 +265,12 @@ export function HomePage() {
                   const u = communityUnread(c, unreads, user.mutedCommunityIds.includes(c.id));
                   return (
                     <li key={id}>
-                      <Link
-                        to={`/c/${c.id}`}
-                        className="flex h-full flex-col items-start gap-3 rounded-xl border border-line-subtle bg-sidebar/70 p-3 transition-[border-color,transform] duration-[var(--dur-base)] hover:-translate-y-0.5 hover:border-line"
-                      >
+                      <Link to={`/c/${c.id}`} className="tile tile-link flex h-full flex-col items-start gap-3 p-3">
                         <span className="relative">
                           <CommunityIcon name={c.name} src={c.iconUrl} size="md" />
                           {u.unread && (
                             <span
-                              className="absolute -top-0.5 -right-0.5 size-3 rounded-full bg-accent ring-2 ring-sidebar"
+                              className="absolute -top-0.5 -right-0.5 size-3 rounded-full bg-accent-text shadow-[0_0_6px_var(--accent-glow)] ring-2 ring-elevated"
                               aria-hidden
                             />
                           )}
@@ -292,18 +298,11 @@ export function HomePage() {
                   <Link
                     to={s.to}
                     className={cn(
-                      'flex items-start gap-3 rounded-xl border p-3 transition-colors',
-                      s.done ? 'border-line-subtle' : 'border-line-subtle bg-sidebar/70 hover:border-line',
+                      'flex items-start gap-3 p-3',
+                      s.done ? 'rounded-xl border border-line-subtle' : 'tile tile-link',
                     )}
                   >
-                    <span
-                      className={cn(
-                        'grid size-9 shrink-0 place-items-center rounded-lg',
-                        s.done ? 'bg-success-soft text-success' : 'bg-accent-soft text-accent-text',
-                      )}
-                    >
-                      {s.done ? <Check className="size-4" /> : <s.icon className="size-4" />}
-                    </span>
+                    <Orb icon={s.done ? Check : s.icon} size="md" tone={s.done ? 'success' : 'accent'} />
                     <span>
                       <span
                         className={cn('block text-ui font-medium', s.done ? 'text-fg-muted line-through' : 'text-fg')}

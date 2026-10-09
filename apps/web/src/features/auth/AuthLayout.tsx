@@ -3,8 +3,9 @@ import { Link } from 'react-router';
 import { t } from '../../i18n';
 import { useSession } from '../../stores/session';
 import { Logo } from '../../components/brand/Logo';
+import { SkyArt } from '../../components/brand/SkyArt';
 
-/** Decorative level-meter bars (pure CSS, paused when reduced motion is requested). */
+/** Decorative level-meter bars (static: decoration never animates in a loop). */
 export function MeterArt({ bars = 28, className }: { bars?: number; className?: string }) {
   return (
     <div aria-hidden className={className}>
@@ -14,8 +15,8 @@ export function MeterArt({ bars = 28, className }: { bars?: number; className?: 
           return (
             <span
               key={i}
-              className="w-full origin-bottom rounded-full bg-gradient-to-t from-accent/25 via-accent/70 to-accent motion-safe:animate-[meter_2.4s_ease-in-out_infinite]"
-              style={{ height: `${h}%`, animationDelay: `${(i % 7) * 140}ms` }}
+              className="w-full rounded-full bg-linear-to-t from-aqua/40 via-accent/80 to-accent-hi"
+              style={{ height: `${h}%` }}
             />
           );
         })}
@@ -24,56 +25,36 @@ export function MeterArt({ bars = 28, className }: { bars?: number; className?: 
   );
 }
 
-/** Decorative mirrored waveform: a smooth envelope of thin bars, like a track overview. */
-export function WaveformArt({ bars = 72, className }: { bars?: number; className?: string }) {
-  return (
-    <div aria-hidden className={className}>
-      <div className="flex h-full items-center gap-[3px]">
-        {Array.from({ length: bars }, (_, i) => {
-          const x = i / (bars - 1);
-          const envelope = Math.sin(Math.PI * x) ** 0.6;
-          const detail = 0.55 + 0.45 * Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.23));
-          const h = Math.max(4, envelope * detail * 100);
-          return (
-            <span
-              key={i}
-              className="w-full min-w-[2px] rounded-full bg-accent/70 motion-safe:animate-[meter_3.2s_ease-in-out_infinite]"
-              style={{ height: `${h}%`, opacity: 0.35 + envelope * 0.65, animationDelay: `${(i % 9) * 160}ms` }}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
+/** Sign-in, sign-up and recovery pages: a glass window floating in the sky. */
 export function AuthLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
   const config = useSession((s) => s.config);
   return (
-    <div className="flex min-h-dvh bg-app">
-      <div className="flex min-w-0 flex-1 flex-col px-5 py-6 sm:px-10">
-        <Link to="/welcome" className="w-fit">
+    <div className="relative flex min-h-dvh flex-col">
+      <SkyArt />
+      <header className="relative mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+        <Link to="/welcome" className="glass inline-flex rounded-2xl bg-elevated px-3 py-2">
           <Logo name={config?.instanceName ?? t('common.appName')} />
         </Link>
-        <main id="main" className="flex flex-1 items-center justify-center py-10">
-          <div className="w-full max-w-sm animate-rise-in">
-            <h1 className="font-display text-3xl font-semibold tracking-tight text-fg text-balance">{title}</h1>
-            {subtitle && <p className="mt-2 text-fg-muted">{subtitle}</p>}
-            <div className="mt-8">{children}</div>
+      </header>
+      <main
+        id="main"
+        className="relative flex flex-1 items-start justify-center px-4 pt-6 pb-10 sm:items-center sm:pt-2"
+      >
+        <div className="glass w-full max-w-[27rem] overflow-hidden rounded-3xl bg-overlay animate-rise-in">
+          <div className="titlebar px-6 pt-6 pb-5 sm:px-8 sm:pt-7">
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-fg text-balance sm:text-3xl">
+              {title}
+            </h1>
+            {subtitle && <p className="mt-1.5 text-fg-muted">{subtitle}</p>}
           </div>
-        </main>
-      </div>
-      <aside className="relative hidden w-[44%] max-w-2xl overflow-hidden border-l border-line-subtle bg-sidebar lg:block">
-        <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_70%_20%,var(--accent-soft),transparent_70%)]" />
-        <div className="absolute inset-x-12 top-1/2 h-40 -translate-y-1/2">
-          <WaveformArt className="h-full" />
+          <div className="px-6 pt-5 pb-7 sm:px-8">{children}</div>
         </div>
-        <div className="absolute inset-x-12 bottom-10">
-          <p className="font-display text-xl font-medium tracking-tight text-fg-2 text-balance">
-            {t('common.tagline')}
-          </p>
-        </div>
-      </aside>
+      </main>
+      <footer className="relative flex justify-center px-4 pb-6">
+        <p className="glass rounded-full bg-elevated px-4 py-1.5 text-center text-sm font-medium text-fg-2 text-balance">
+          {t('common.tagline')}
+        </p>
+      </footer>
     </div>
   );
 }
@@ -81,7 +62,7 @@ export function AuthLayout({ children, title, subtitle }: { children: ReactNode;
 export function FormError({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+    <p role="alert" className="rounded-xl border border-danger/30 bg-danger-soft px-3 py-2.5 text-sm text-danger">
       {message}
     </p>
   );

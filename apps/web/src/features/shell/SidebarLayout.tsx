@@ -33,7 +33,10 @@ export function SidebarLayout({ sidebar, children, mobileView, contentLabel }: S
       <main
         id="main"
         aria-label={contentLabel}
-        className={cn('glass pane min-w-0 flex-1 flex-col bg-main', mobileView === 'content' ? 'flex' : 'hidden md:flex')}
+        className={cn(
+          'glass pane min-w-0 flex-1 flex-col bg-main',
+          mobileView === 'content' ? 'flex' : 'hidden md:flex',
+        )}
       >
         <ConnectionBanner />
         {children}

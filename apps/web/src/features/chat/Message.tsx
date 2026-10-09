@@ -18,7 +18,7 @@ import { memo, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } f
 import { t } from '../../i18n';
 import { errorMessage } from '../../lib/api';
 import { cn } from '../../lib/cn';
-import { formatDateTime, formatTime } from '../../lib/format';
+import { formatDateTime, formatTime, roleColorStyle } from '../../lib/format';
 import { formatMessage, stripFormatting } from '../../lib/markdown';
 import { DemoBadge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -155,10 +155,10 @@ function ReactionBar({ message, canReact }: { message: MessageDTO; canReact: boo
           aria-pressed={r.me}
           aria-label={t('chat.actions.reactionCount', { count: r.count, emoji: r.emoji })}
           className={cn(
-            'inline-flex h-7 items-center gap-1.5 rounded-full border px-2 text-sm transition-[background-color,border-color,transform] duration-[var(--dur-fast)] active:scale-95',
+            'gloss inline-flex h-7 items-center gap-1.5 rounded-full border px-2 text-sm shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--dur-fast)] active:scale-95',
             r.me
-              ? 'border-accent-border bg-accent-soft text-accent-text'
-              : 'border-line bg-elevated/60 text-fg-2 hover:border-line-strong',
+              ? 'border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg shadow-[0_2px_8px_-3px_var(--accent-glow)]'
+              : 'border-glass-edge bg-elevated text-fg-2 hover:border-accent-border',
           )}
         >
           <span className="text-base leading-none">{r.emoji}</span>
@@ -170,7 +170,7 @@ function ReactionBar({ message, canReact }: { message: MessageDTO; canReact: boo
           <button
             type="button"
             aria-label={t('chat.actions.react')}
-            className="grid h-7 w-8 place-items-center rounded-full border border-dashed border-line text-fg-muted transition-colors hover:border-line-strong hover:text-fg"
+            className="grid h-7 w-8 place-items-center rounded-full border border-dashed border-line-strong text-fg-muted transition-colors hover:border-accent-border hover:bg-hover hover:text-fg"
           >
             <SmilePlus className="size-3.5" />
           </button>
@@ -376,7 +376,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
             <ProfilePopover username={author.username} disabled={author.deleted}>
               <button
                 type="button"
-                className="mt-0.5 rounded-full transition-transform active:scale-95"
+                className="mt-0.5 rounded-avatar transition-transform active:scale-95"
                 aria-label={author.displayName}
               >
                 <UserAvatar name={author.displayName} src={author.avatarUrl} size="lg" />
@@ -393,8 +393,8 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
                 <ProfilePopover username={author.username} disabled={author.deleted}>
                   <button
                     type="button"
-                    className="font-semibold text-fg hover:underline"
-                    style={nameColor ? { color: nameColor } : undefined}
+                    className={cn('font-semibold hover:underline', nameColor ? 'role-name' : 'text-fg')}
+                    style={roleColorStyle(nameColor)}
                   >
                     {author.displayName}
                   </button>
@@ -457,7 +457,7 @@ export const Message = memo(function Message({ message, compact, highlighted, ct
         <div
           role="toolbar"
           aria-label={t('chat.actions.menu')}
-          className="absolute -top-4 right-4 z-[var(--z-sticky)] hidden items-center rounded-lg border border-line bg-overlay p-0.5 opacity-0 shadow-md transition-opacity duration-[var(--dur-fast)] group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:flex"
+          className="glass absolute -top-4 right-4 z-[var(--z-sticky)] hidden items-center rounded-full bg-overlay p-0.5 opacity-0 transition-opacity duration-[var(--dur-fast)] group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:flex [&_button]:rounded-full"
         >
           {canReact && (
             <EmojiPicker onPick={(e) => void toggleReaction(message, e)}>

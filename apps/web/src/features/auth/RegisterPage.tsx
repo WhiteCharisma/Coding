@@ -116,7 +116,7 @@ export default function RegisterPage() {
   if (closed) {
     return (
       <AuthLayout title={t('auth.register.title')}>
-        <p className="rounded-xl border border-line bg-elevated p-4 text-fg-2">{t('auth.register.closed')}</p>
+        <p className="tile p-4 text-fg-2">{t('auth.register.closed')}</p>
         <p className="mt-6 text-center text-sm text-fg-muted">
           {t('auth.register.haveAccount')}{' '}
           <Link to="/login" className="font-medium text-accent-text hover:underline">

@@ -4,7 +4,6 @@ import { Bell, CheckCheck } from 'lucide-react';
 import { useState } from 'react';
 import { t } from '../../i18n';
 import { api, errorMessage } from '../../lib/api';
-import { cn } from '../../lib/cn';
 import { useChat } from '../../stores/chat';
 import { Button } from '../../components/ui/button';
 import { EmptyState } from '../../components/ui/empty-state';
@@ -69,12 +68,7 @@ export default function NotificationsPage() {
                 role="tab"
                 aria-selected={filter === x.key}
                 onClick={() => setFilter(x.key)}
-                className={cn(
-                  'shrink-0 rounded-full border px-3 py-1 text-sm transition-colors',
-                  filter === x.key
-                    ? 'border-accent-border bg-accent-soft text-accent-text'
-                    : 'border-line text-fg-2 hover:border-line-strong',
-                )}
+                className="chip px-3 py-1 text-sm"
               >
                 {t(`notifications.filters.${x.key}`)}
               </button>

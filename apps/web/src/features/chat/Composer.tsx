@@ -54,14 +54,14 @@ function UploadChip({ job }: { job: UploadJob }) {
   return (
     <li
       className={cn(
-        'relative flex w-52 items-center gap-2 overflow-hidden rounded-lg border bg-inset px-2 py-1.5',
-        failed ? 'border-danger/50' : 'border-line',
+        'relative flex w-52 items-center gap-2 overflow-hidden rounded-xl border bg-inset px-2 py-1.5 shadow-[inset_0_1px_0_var(--glass-sheen)]',
+        failed ? 'border-danger/50' : 'border-glass-edge',
       )}
       data-testid="upload-chip"
       data-status={job.status}
     >
       {job.localUrl ? (
-        <img src={job.localUrl} alt="" className="size-8 shrink-0 rounded object-cover" draggable={false} />
+        <img src={job.localUrl} alt="" className="size-8 shrink-0 rounded-md object-cover" draggable={false} />
       ) : (
         <Icon className={cn('mx-2 size-4 shrink-0', failed ? 'text-danger' : 'text-accent-text')} />
       )}
@@ -289,7 +289,7 @@ export function Composer({
         <div
           role="listbox"
           aria-label={t('chat.composer.mentionSuggestions')}
-          className="absolute inset-x-4 bottom-full z-[var(--z-popover)] mb-1 overflow-hidden rounded-xl border border-line bg-overlay p-1 shadow-lg animate-pop-in"
+          className="glass absolute inset-x-4 bottom-full z-[var(--z-popover)] mb-1 overflow-hidden rounded-xl bg-overlay p-1 animate-pop-in"
         >
           {matches.map((u, i) => (
             <button
@@ -313,7 +313,7 @@ export function Composer({
           ))}
         </div>
       )}
-      <div className="rounded-xl border border-line bg-elevated shadow-sm transition-[border-color,box-shadow] duration-[var(--dur-fast)] focus-within:border-accent-border focus-within:ring-3 focus-within:ring-accent-soft">
+      <div className="glass rounded-2xl bg-elevated transition-[border-color,box-shadow] duration-[var(--dur-fast)] focus-within:border-accent-border focus-within:shadow-[inset_0_1px_0_var(--glass-sheen),0_0_0_3px_var(--accent-soft),0_8px_24px_-10px_var(--accent-glow)]">
         {replyTo && (
           <div className="flex items-center gap-2 border-b border-line-subtle px-3 py-2 text-xs text-fg-muted">
             <span className="min-w-0 flex-1 truncate">
@@ -355,6 +355,7 @@ export function Composer({
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="rounded-full"
                   aria-label={t('chat.composer.attach')}
                   onClick={() => fileRef.current?.click()}
                   disabled={uploads.length >= LIMITS.attachmentsPerMessage}
@@ -394,7 +395,7 @@ export function Composer({
                 requestAnimationFrame(() => el?.focus());
               }}
             >
-              <Button variant="ghost" size="icon" aria-label={t('chat.composer.emoji')}>
+              <Button variant="ghost" size="icon" className="rounded-full" aria-label={t('chat.composer.emoji')}>
                 <Smile className="size-[18px]" />
               </Button>
             </EmojiPicker>
@@ -402,6 +403,7 @@ export function Composer({
           <Button
             variant={canSubmit ? 'primary' : 'ghost'}
             size="icon"
+            className="rounded-full"
             aria-label={t('chat.composer.send')}
             onClick={submit}
             disabled={!canSubmit}

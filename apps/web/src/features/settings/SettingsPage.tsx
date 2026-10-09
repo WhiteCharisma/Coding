@@ -15,6 +15,7 @@ import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { useSession } from '../../stores/session';
 import { SidebarLayout } from '../shell/SidebarLayout';
+import { useIsDesktop } from '../shell/hooks';
 import { useSignOut } from '../shell/useSignOut';
 import { AccountSection, SessionsSection } from './AccountSection';
 import { AppearanceSection, NotificationsSection, PrivacySection } from './PreferenceSections';
@@ -38,13 +39,15 @@ export default function SettingsPage() {
   const { section } = useParams();
   const user = useSession((s) => s.user);
   const { signOut, dialog: signOutDialog } = useSignOut();
+  // On phones the list is its own page: nothing is "current" there until a section opens.
+  const showCurrent = useIsDesktop() || !!section;
   if (!user) return null;
   if (section && !isSection(section)) return <Navigate to="/settings" replace />;
   const active: SectionKey = isSection(section) ? section : 'profile';
 
   const sidebar = (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-[var(--header-height)] shrink-0 items-center border-b border-line-subtle px-4">
+      <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center px-4">
         <h1 className="font-display text-[15px] font-semibold tracking-tight text-fg">{t('settings.title')}</h1>
       </div>
       <nav aria-label={t('settings.title')} className="scroll-area min-h-0 flex-1 p-2">
@@ -54,13 +57,12 @@ export default function SettingsPage() {
               <li key={key}>
                 <Link
                   to={`/settings/${key}`}
-                  aria-current={active === key ? 'page' : undefined}
-                  className={cn(
-                    'flex h-10 items-center gap-3 rounded-md px-3 text-ui transition-colors duration-[var(--dur-fast)] md:h-9',
-                    active === key ? 'text-fg md:bg-selected' : 'text-fg-2 hover:bg-hover hover:text-fg',
-                  )}
+                  aria-current={showCurrent && active === key ? 'page' : undefined}
+                  className="aero-item flex h-10 items-center gap-3 rounded-lg px-3 text-ui text-fg-2 hover:text-fg md:h-9"
                 >
-                  <Icon className="size-4 text-fg-muted" />
+                  <Icon
+                    className={cn('size-4', showCurrent && active === key ? 'text-accent-text' : 'text-fg-muted')}
+                  />
                   <span className="flex-1">{t(`settings.sections.${key}`)}</span>
                   <ChevronRight className="size-4 text-fg-faint md:hidden" />
                 </Link>
@@ -71,7 +73,7 @@ export default function SettingsPage() {
             <li className="mt-2 border-t border-line-subtle pt-2">
               <Link
                 to="/admin"
-                className="flex h-10 items-center gap-3 rounded-md px-3 text-ui text-fg-2 transition-colors hover:bg-hover hover:text-fg md:h-9"
+                className="aero-item flex h-10 items-center gap-3 rounded-lg px-3 text-ui text-fg-2 hover:text-fg md:h-9"
               >
                 <ShieldCheck className="size-4 text-accent-text" />
                 <span className="flex-1">{t('admin.title')}</span>
@@ -84,7 +86,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={signOut}
-          className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-ui text-danger transition-colors hover:bg-danger-soft md:h-9"
+          className="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-ui text-danger transition-colors hover:bg-danger-soft md:h-9"
         >
           <LogOut className="size-4" /> {t('shell.userMenu.signOut')}
         </button>

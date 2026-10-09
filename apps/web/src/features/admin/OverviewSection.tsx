@@ -49,7 +49,7 @@ function Stat({
   tone?: 'danger';
 }) {
   return (
-    <div className="rounded-xl border border-line-subtle bg-sidebar/60 p-4">
+    <div className="tile p-4">
       <p className="text-xs font-medium tracking-wide text-fg-muted uppercase">{label}</p>
       <p
         className={cn(
@@ -151,7 +151,7 @@ export function OverviewSection({ query }: { query: UseQueryResult<AdminOverview
         />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-line-subtle bg-sidebar/60 p-4">
+        <div className="tile p-4">
           <p className="text-xs font-medium tracking-wide text-fg-muted uppercase">{t('admin.overview.email')}</p>
           <p className={cn('mt-1.5 text-sm', o.email.transport === 'smtp' ? 'text-fg' : 'text-warning')}>
             {o.email.transport === 'smtp'
@@ -161,7 +161,7 @@ export function OverviewSection({ query }: { query: UseQueryResult<AdminOverview
                 : t('admin.overview.emailDisabled')}
           </p>
         </div>
-        <div className="rounded-xl border border-line-subtle bg-sidebar/60 p-4">
+        <div className="tile p-4">
           <p className="text-xs font-medium tracking-wide text-fg-muted uppercase">{t('admin.overview.lastBackup')}</p>
           <p className={cn('mt-1.5 text-sm', o.backups.latest ? 'text-fg' : 'text-warning')}>
             {o.backups.latest

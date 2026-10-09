@@ -81,7 +81,12 @@ export function UserAvatar({ name, src, size = 'md', presence, className, dimmed
         picture
       )}
       {presence && (
-        <span className={cn('absolute grid place-items-center rounded-full bg-elevated p-px shadow-sm', presenceSizes[size])}>
+        <span
+          className={cn(
+            'absolute grid place-items-center rounded-full bg-elevated p-px shadow-sm',
+            presenceSizes[size],
+          )}
+        >
           <PresenceIcon status={presence} className="size-full" />
         </span>
       )}

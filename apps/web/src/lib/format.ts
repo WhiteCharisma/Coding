@@ -100,6 +100,14 @@ export function initials(name: string): string {
   return (first + second).toUpperCase();
 }
 
+/**
+ * Inline style for a name shown in its community role colour (with the `role-name` class):
+ * the colour keeps its hue while app.css clamps its lightness to stay readable on each theme.
+ */
+export function roleColorStyle(color: string | null | undefined): React.CSSProperties | undefined {
+  return color && /^#[0-9a-fA-F]{6}$/.test(color) ? ({ '--role': color } as React.CSSProperties) : undefined;
+}
+
 /** Stable hue (0–360) derived from a string — used for avatar fallbacks. */
 export function hueFor(seed: string): number {
   let h = 0;

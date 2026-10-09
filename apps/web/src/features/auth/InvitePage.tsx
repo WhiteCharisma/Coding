@@ -79,7 +79,7 @@ export default function InvitePage() {
         </div>
       ) : (
         <div className="flex flex-col gap-5" data-testid="invite-preview">
-          <div className="flex items-center gap-4 rounded-2xl border border-line bg-elevated p-4">
+          <div className="flex items-center gap-4 tile rounded-2xl p-4">
             <CommunityIcon name={inv.community.name} src={inv.community.iconUrl} size="lg" />
             <div className="min-w-0">
               <p className="flex items-center gap-2 font-display text-xl font-semibold tracking-tight text-fg">

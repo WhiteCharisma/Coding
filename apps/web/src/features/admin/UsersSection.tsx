@@ -323,7 +323,7 @@ export function UsersSection({ isAdmin, selfId }: { isAdmin: boolean; selfId: st
           ))}
         </Select>
       </div>
-      <div className="rounded-xl border border-line-subtle bg-sidebar/60">
+      <div className="tile">
         {list.isLoading ? (
           <div className="flex flex-col gap-2 p-4">
             {Array.from({ length: 5 }, (_, i) => (

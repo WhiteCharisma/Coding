@@ -204,12 +204,7 @@ function OverviewTab({ community }: { community: CommunityDTO }) {
                 onClick={() =>
                   setTags((cur) => (on ? cur.filter((x) => x !== tag) : cur.length < 5 ? [...cur, tag] : cur))
                 }
-                className={cn(
-                  'rounded-full border px-3 py-1 text-sm transition-colors',
-                  on
-                    ? 'border-accent-border bg-accent-soft text-accent-text'
-                    : 'border-line text-fg-2 hover:border-line-strong',
-                )}
+                className="chip px-3 py-1 text-sm"
               >
                 {t(`common.tags.${tag}`)}
               </button>

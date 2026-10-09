@@ -7,6 +7,7 @@ import { useChat } from '../../stores/chat';
 import { useUi } from '../../stores/ui';
 import { buttonVariants } from '../../components/ui/button';
 import { EmptyState } from '../../components/ui/empty-state';
+import { Orb } from '../../components/ui/orb';
 import { ChannelView } from '../chat/ChannelView';
 import { SidebarLayout } from '../shell/SidebarLayout';
 import { useIsDesktop, useIsWide } from '../shell/hooks';
@@ -125,9 +126,7 @@ export function ChannelPage() {
           roleColor={roleColor}
           beginning={
             <div className="px-4 pt-10 pb-4">
-              <div className="mb-3 grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent-text">
-                <BeginIcon className="size-7" />
-              </div>
+              <Orb icon={BeginIcon} size="xl" className="mb-3" />
               <h2 className="font-display text-2xl font-semibold tracking-tight text-fg">
                 {t('chat.list.beginningTitle', { channel: channel.name })}
               </h2>

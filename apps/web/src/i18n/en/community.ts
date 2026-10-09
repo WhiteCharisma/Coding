@@ -207,8 +207,8 @@ export const community = {
   },
   members: {
     title: 'Members',
-    online: 'Online — {count}',
-    offline: 'Offline — {count}',
+    online: 'Online ({count})',
+    offline: 'Offline ({count})',
   },
   audit: {
     'community.created': 'created the community',

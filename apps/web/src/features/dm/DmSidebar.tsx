@@ -1,5 +1,5 @@
 import type { DmChannelDTO } from '@creator-network/shared';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { t } from '../../i18n';
@@ -10,6 +10,8 @@ import { dmDisplayName, useChat } from '../../stores/chat';
 import { useSession } from '../../stores/session';
 import { CountBadge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Orb } from '../../components/ui/orb';
 import { Tooltip } from '../../components/ui/tooltip';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { NewDmDialog } from './NewDmDialog';
@@ -25,15 +27,10 @@ function DmRow({ dm, active, selfId }: { dm: DmChannelDTO; active: boolean; self
     <Link
       to={`/dm/${dm.id}`}
       aria-current={active ? 'page' : undefined}
-      className={cn(
-        'mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-[var(--dur-fast)]',
-        active ? 'bg-selected' : 'hover:bg-hover',
-      )}
+      className="aero-item mx-2 flex items-center gap-3 rounded-xl px-2 py-2"
     >
       {dm.kind === 'group_dm' ? (
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-elevated text-fg-2">
-          <Users className="size-5" />
-        </span>
+        <Orb icon={Users} size="md" tone="neutral" />
       ) : (
         <UserAvatar name={first?.displayName ?? name} src={first?.avatarUrl} size="lg" presence={presence} />
       )}
@@ -69,17 +66,28 @@ export function DmSidebar() {
   const user = useSession((s) => s.user);
   const dms = useChat((s) => s.dms);
   const [open, setOpen] = useState(false);
-  const list = Object.values(dms).sort(
+  const [query, setQuery] = useState('');
+  const all = Object.values(dms).sort(
     (a, b) => (b.lastMessageAt ?? 0) - (a.lastMessageAt ?? 0) || b.id.localeCompare(a.id),
   );
+  const needle = query.trim().toLowerCase();
+  const list = needle
+    ? all.filter(
+        (dm) =>
+          dmDisplayName(dm, user?.id ?? '')
+            .toLowerCase()
+            .includes(needle) || dm.participants.some((p) => p.username.toLowerCase().includes(needle)),
+      )
+    : all;
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-line-subtle px-4">
+      <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center justify-between px-4">
         <h2 className="font-display text-[15px] font-semibold tracking-tight text-fg">{t('dm.title')}</h2>
         <Tooltip content={t('dm.new')}>
           <Button
-            variant="ghost"
+            variant="secondary"
             size="icon-sm"
+            className="rounded-full"
             aria-label={t('dm.new')}
             onClick={() => setOpen(true)}
             data-testid="new-dm"
@@ -88,8 +96,26 @@ export function DmSidebar() {
           </Button>
         </Tooltip>
       </div>
+      {all.length > 3 && (
+        <div className="relative px-3 pt-3">
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-5.5 mt-1.5 size-4 -translate-y-1/2 text-fg-muted"
+          />
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('dm.filter')}
+            aria-label={t('dm.filter')}
+            className="h-9 rounded-full pl-9"
+          />
+        </div>
+      )}
       <nav aria-label={t('dm.title')} className="scroll-area min-h-0 flex-1 py-2">
-        {list.length === 0 ? (
+        {needle && list.length === 0 ? (
+          <p className="px-5 py-6 text-center text-sm text-fg-muted">{t('dm.noMatch', { query: query.trim() })}</p>
+        ) : list.length === 0 ? (
           <div className="px-5 py-6 text-center">
             <p className="text-sm text-fg-muted">{t('dm.empty')}</p>
             <p className="mt-1 text-xs text-fg-muted">{t('dm.emptyHint')}</p>

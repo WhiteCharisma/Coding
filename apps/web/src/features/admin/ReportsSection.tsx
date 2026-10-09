@@ -106,7 +106,7 @@ function ReportCard({ r, onDone }: { r: ReportDTO; onDone: () => void }) {
   };
 
   return (
-    <li className="rounded-xl border border-line-subtle bg-sidebar/60 p-4" data-testid="report-card">
+    <li className="tile p-4" data-testid="report-card">
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone="danger">
           <Flag className="size-3" /> {tMaybe(`report.reasons.${r.reason}`) ?? r.reason}

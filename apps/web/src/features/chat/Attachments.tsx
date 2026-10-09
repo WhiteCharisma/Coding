@@ -6,7 +6,9 @@ import { seekTo, togglePlay, usePlayer } from '../../lib/audio';
 import { cn } from '../../lib/cn';
 import { formatBytes, formatDuration, hueFor } from '../../lib/format';
 import { localUrlFor, useUploads, type DisplayAttachment } from '../../stores/uploads';
+import { buttonVariants } from '../../components/ui/button';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
+import { Orb } from '../../components/ui/orb';
 
 const downloadUrl = (a: AttachmentDTO) => `${a.url}?download=1`;
 
@@ -55,7 +57,7 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
   };
 
   return (
-    <div className="flex w-full max-w-md items-center gap-3 rounded-xl border border-line bg-elevated/70 p-3 pr-2 shadow-sm">
+    <div className="tile flex w-full max-w-md items-center gap-3 p-3 pr-2">
       <button
         type="button"
         onClick={() => togglePlay(a.url, (a.durationMs ?? 0) / 1000)}
@@ -63,8 +65,8 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
           playing ? t('chat.attachments.pause', { name: title }) : t('chat.attachments.play', { name: title })
         }
         className={cn(
-          'grid size-11 shrink-0 place-items-center rounded-full transition-[transform,background-color] duration-[var(--dur-fast)] active:scale-95',
-          playing ? 'bg-accent text-accent-fg shadow-glow' : 'bg-accent text-accent-fg hover:bg-accent-hover',
+          'gloss sheen-hover grid size-11 shrink-0 place-items-center rounded-full border border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg transition-[transform,box-shadow,filter] duration-[var(--dur-fast)] hover:brightness-105 active:scale-95',
+          playing ? 'shadow-glow' : 'shadow-[0_4px_12px_-6px_var(--accent-glow)]',
         )}
       >
         {playing ? <Pause className="size-5 fill-current" /> : <Play className="ml-0.5 size-5 fill-current" />}
@@ -100,7 +102,7 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
             style={{ width: `${progress * 100}%` }}
           >
             <div className="h-full" style={{ width: progress > 0 ? `${100 / progress}%` : '100%' }}>
-              <Waveform peaks={peaks} className="text-accent" />
+              <Waveform peaks={peaks} className="text-accent-text" />
             </div>
           </div>
         </div>
@@ -114,7 +116,7 @@ export const AudioCard = memo(function AudioCard({ a }: { a: AttachmentDTO }) {
       <a
         href={downloadUrl(a)}
         aria-label={`${t('chat.attachments.download')} ${a.name}`}
-        className="self-start rounded-md p-1.5 text-fg-muted transition-colors hover:bg-hover hover:text-fg"
+        className="self-start rounded-full p-1.5 text-fg-muted transition-colors hover:bg-hover hover:text-fg"
       >
         <Download className="size-4" />
       </a>
@@ -173,7 +175,7 @@ function ImageTile({ a, onOpen, single }: { a: DisplayAttachment; onOpen: () => 
       disabled={!!a.uploadKey}
       aria-label={t('chat.attachments.open')}
       className={cn(
-        'group/img relative block overflow-hidden rounded-lg border border-line-subtle bg-inset',
+        'photo-frame group/img relative block overflow-hidden rounded-xl bg-inset shadow-sm',
         single ? 'max-w-[min(100%,420px)]' : 'aspect-square',
         !loaded && 'skeleton',
       )}
@@ -188,21 +190,23 @@ function ImageTile({ a, onOpen, single }: { a: DisplayAttachment; onOpen: () => 
           : undefined
       }
     >
-      <img
-        ref={img}
-        src={src}
-        alt={t('chat.attachments.imageAlt', { name: a.name })}
-        loading="lazy"
-        decoding="async"
-        width={width ?? undefined}
-        height={height ?? undefined}
-        onLoad={() => setLoaded(true)}
-        className={cn(
-          'size-full object-cover transition-[opacity,transform] duration-[var(--dur-slow)] ease-out group-hover/img:scale-[1.02]',
-          loaded ? 'opacity-100' : 'opacity-0',
-        )}
-        draggable={false}
-      />
+      {src && (
+        <img
+          ref={img}
+          src={src}
+          alt={t('chat.attachments.imageAlt', { name: a.name })}
+          loading="lazy"
+          decoding="async"
+          width={width ?? undefined}
+          height={height ?? undefined}
+          onLoad={() => setLoaded(true)}
+          className={cn(
+            'size-full object-cover transition-[opacity,transform] duration-[var(--dur-slow)] ease-out group-hover/img:scale-[1.02]',
+            loaded ? 'opacity-100' : 'opacity-0',
+          )}
+          draggable={false}
+        />
+      )}
       {a.uploadKey && <UploadProgress uploadKey={a.uploadKey} overlay />}
     </button>
   );
@@ -212,10 +216,8 @@ function ImageTile({ a, onOpen, single }: { a: DisplayAttachment; onOpen: () => 
 function UploadingCard({ a }: { a: DisplayAttachment }) {
   const Icon = a.kind === 'audio' ? FileAudio : a.kind === 'video' ? Film : FileText;
   return (
-    <div className="flex w-full max-w-sm items-center gap-3 rounded-xl border border-line bg-elevated/70 p-3">
-      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-text">
-        <Icon className="size-5" />
-      </span>
+    <div className="tile flex w-full max-w-sm items-center gap-3 p-3">
+      <Orb icon={Icon} size="md" />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-ui font-medium text-fg">{a.name}</span>
         <span className="font-mono text-[11px] text-fg-muted uppercase">
@@ -265,13 +267,8 @@ function FileCard({ a }: { a: AttachmentDTO }) {
           ? FileAudio
           : File;
   return (
-    <a
-      href={downloadUrl(a)}
-      className="flex w-full max-w-sm items-center gap-3 rounded-xl border border-line bg-elevated/70 p-3 transition-colors hover:border-line-strong"
-    >
-      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-text">
-        <Icon className="size-5" />
-      </span>
+    <a href={downloadUrl(a)} className="tile tile-link flex w-full max-w-sm items-center gap-3 p-3">
+      <Orb icon={Icon} size="md" />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-ui font-medium text-fg">{a.name}</span>
         <span className="font-mono text-[11px] text-fg-muted uppercase">
@@ -307,7 +304,7 @@ export const Attachments = memo(function Attachments({ items }: { items: Display
             src={a.url}
             controls
             preload="none"
-            className="max-h-80 w-full max-w-md rounded-lg border border-line-subtle bg-black"
+            className="max-h-80 w-full max-w-md rounded-xl border border-glass-edge bg-black shadow-sm"
           />
         ) : (
           <FileCard key={a.id} a={a} />
@@ -322,11 +319,8 @@ export const Attachments = memo(function Attachments({ items }: { items: Display
           >
             <div className="flex flex-col items-center gap-3">
               <ImageViewer a={open} />
-              <a
-                href={downloadUrl(open)}
-                className="inline-flex items-center gap-2 text-sm font-medium text-accent-text hover:underline"
-              >
-                <Download className="size-4" /> {t('chat.attachments.download')}
+              <a href={downloadUrl(open)} className={buttonVariants({ variant: 'secondary', size: 'sm' })}>
+                <Download /> {t('chat.attachments.download')}
               </a>
             </div>
           </DialogContent>

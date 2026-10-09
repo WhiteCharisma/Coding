@@ -121,6 +121,29 @@ describe.each(Object.entries(themes))('%s theme contrast', (_theme, tokens) => {
     expect(contrast(solid('accent-fg'), over(sheen, solid('accent-hi')))).toBeGreaterThanOrEqual(4.5);
   });
 
+  it.each([
+    ['bg-tile', 'bg-main'],
+    ['bg-tile', 'bg-sidebar'],
+    ['bg-tile', 'bg-elevated'],
+  ])('text is readable on --%s tiles placed on --%s', (tile, pane) => {
+    for (const look of surfaceLooks(pane)) {
+      const surface = over(color(tile), look.rgb);
+      for (const text of ['text', 'text-2', 'text-muted', 'accent-text', 'danger', 'success'])
+        expect(contrast(solid(text), surface), `${text} on ${tile} on ${look.name}`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(solid('text-faint'), surface), `text-faint on ${tile} on ${look.name}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('text stays readable on a selected list item (both ends of its gradient, on the sidebar glass)', () => {
+    for (const band of ['selection-hi', 'selection-lo']) {
+      for (const look of surfaceLooks('bg-sidebar')) {
+        const selected = over(color(band), look.rgb);
+        for (const text of ['text', 'text-2', 'accent-text'])
+          expect(contrast(solid(text), selected), `${text} on ${band} over ${look.name}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
   it.each(['text-faint', 'presence-online-rim', 'presence-idle-rim', 'presence-dnd-rim', 'presence-offline-rim'])(
     '--%s meets the 3:1 minimum for icons and status marks',
     (mark) => {

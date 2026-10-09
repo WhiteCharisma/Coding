@@ -49,13 +49,7 @@ export function ProfilePopover({
             <div className="h-20" style={bannerStyle(p.bannerHue)} />
             <div className="px-4 pb-4">
               <div className="-mt-9 mb-2">
-                <UserAvatar
-                  name={p.displayName}
-                  src={p.avatarUrl}
-                  size="xl"
-                  presence={presence}
-                  framed
-                />
+                <UserAvatar name={p.displayName} src={p.avatarUrl} size="xl" presence={presence} framed />
               </div>
               <div className="flex items-center gap-2">
                 <h3 className="truncate font-display text-lg font-semibold tracking-tight text-fg">{p.displayName}</h3>

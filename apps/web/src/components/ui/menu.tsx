@@ -21,7 +21,7 @@ export function MenuContent({ className, sideOffset = 6, ...props }: ComponentPr
 }
 
 const itemBase =
-  'relative flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-ui text-fg-2 outline-none transition-[background-color,color,box-shadow] duration-[var(--dur-fast)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-selected data-[highlighted]:text-fg data-[highlighted]:shadow-[inset_0_0_0_1px_var(--accent-border)] [&_svg]:size-4 [&_svg]:text-fg-muted data-[highlighted]:[&_svg]:text-accent-text';
+  'aero-item relative flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-ui text-fg-2 outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:text-fg-muted data-[highlighted]:[&_svg]:text-accent-text';
 
 export function MenuItem({ className, danger, ...props }: ComponentProps<typeof M.Item> & { danger?: boolean }) {
   return (
@@ -29,7 +29,7 @@ export function MenuItem({ className, danger, ...props }: ComponentProps<typeof 
       className={cn(
         itemBase,
         danger &&
-          'text-danger data-[highlighted]:bg-danger-soft data-[highlighted]:text-danger [&_svg]:text-danger data-[highlighted]:[&_svg]:text-danger',
+          'text-danger data-[highlighted]:bg-danger-soft data-[highlighted]:bg-none data-[highlighted]:text-danger data-[highlighted]:shadow-[inset_0_0_0_1px_var(--danger-soft)] [&_svg]:text-danger data-[highlighted]:[&_svg]:text-danger',
         className,
       )}
       {...props}

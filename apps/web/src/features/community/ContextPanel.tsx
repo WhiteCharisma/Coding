@@ -1,11 +1,11 @@
 import type { CommunityDTO, MemberDTO, MessageDTO, RoleDTO, UserSummary } from '@creator-network/shared';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, Paperclip, X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { ChevronDown, Crown, Paperclip, X } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
 import { t } from '../../i18n';
 import { api } from '../../lib/api';
 import { cn } from '../../lib/cn';
-import { formatDateTime } from '../../lib/format';
+import { formatDateTime, roleColorStyle } from '../../lib/format';
 import { stripFormatting } from '../../lib/markdown';
 import { useChat } from '../../stores/chat';
 import { useMessages } from '../../stores/messages';
@@ -24,7 +24,7 @@ function MemberRow({ user, color, isOwner }: { user: UserSummary; color: string 
       <ProfilePopover username={user.username} side="left" disabled={user.deleted}>
         <button
           type="button"
-          className="group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-hover"
+          className="aero-item group flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left"
         >
           <UserAvatar
             name={user.displayName}
@@ -36,8 +36,11 @@ function MemberRow({ user, color, isOwner }: { user: UserSummary; color: string 
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1.5">
               <span
-                className={cn('truncate text-ui font-medium', status === 'offline' ? 'text-fg-muted' : 'text-fg-2')}
-                style={color ? { color } : undefined}
+                className={cn(
+                  'truncate text-ui font-medium',
+                  color ? 'role-name' : status === 'offline' ? 'text-fg-muted' : 'text-fg-2',
+                )}
+                style={roleColorStyle(color)}
               >
                 {user.displayName}
               </span>
@@ -83,7 +86,7 @@ export function MembersPanel({ community, members }: { community: CommunityDTO; 
   for (const role of hoisted) {
     const list = online.filter((m) => !placed.has(m.user.id) && m.roleIds.includes(role.id));
     list.forEach((m) => placed.add(m.user.id));
-    if (list.length) sections.push({ title: `${role.name} — ${list.length}`, list });
+    if (list.length) sections.push({ title: `${role.name} (${list.length})`, list });
   }
   const rest = online.filter((m) => !placed.has(m.user.id));
   if (rest.length) sections.push({ title: t('community.members.online', { count: rest.length }), list: rest });
@@ -91,18 +94,42 @@ export function MembersPanel({ community, members }: { community: CommunityDTO; 
     sections.push({ title: t('community.members.offline', { count: offline.length }), list: offline });
 
   return (
-    <div className="flex flex-col gap-4 p-3">
+    <div className="flex flex-col gap-3 p-3">
       {sections.map((s) => (
-        <section key={s.title}>
-          <h3 className="mb-1 px-2 text-2xs font-semibold tracking-[0.08em] text-fg-muted uppercase">{s.title}</h3>
-          <ul className="flex flex-col">
-            {s.list.map((m) => (
-              <MemberRow key={m.user.id} user={m.user} color={colorOf(m)} isOwner={m.user.id === community.ownerId} />
-            ))}
-          </ul>
-        </section>
+        <MemberGroup key={s.title} title={s.title}>
+          {s.list.map((m) => (
+            <MemberRow key={m.user.id} user={m.user} color={colorOf(m)} isOwner={m.user.id === community.ownerId} />
+          ))}
+        </MemberGroup>
       ))}
     </div>
+  );
+}
+
+/** A contact-list group ("Online (3)") that folds away with its chevron. */
+function MemberGroup({ title, children }: { title: string; children: ReactNode }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <section>
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+          className="flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs font-semibold text-fg-2 hover:text-fg"
+        >
+          <ChevronDown
+            aria-hidden
+            className={cn(
+              'size-3.5 text-fg-muted transition-transform duration-[var(--dur-fast)]',
+              !open && '-rotate-90',
+            )}
+          />
+          {title}
+        </button>
+      </h3>
+      {open && <ul className="mt-0.5 flex flex-col gap-px">{children}</ul>}
+    </section>
   );
 }
 
@@ -121,7 +148,7 @@ export function PinsPanel({ channelId }: { channelId: string }) {
   return (
     <ul className="flex flex-col gap-2 p-3">
       {pins.data.map((m) => (
-        <li key={m.id} className="rounded-lg border border-line-subtle bg-elevated/60 p-3">
+        <li key={m.id} className="tile p-3">
           <div className="flex items-center gap-2">
             <UserAvatar name={m.author?.displayName ?? '?'} src={m.author?.avatarUrl} size="sm" />
             <span className="truncate text-sm font-semibold text-fg">
@@ -169,9 +196,9 @@ export function ContextPanel({
     return (
       <aside
         aria-label={title}
-        className="flex w-[var(--context-width)] shrink-0 flex-col border-l border-line-subtle bg-sidebar animate-fade-in"
+        className="flex w-[var(--context-width)] shrink-0 flex-col border-l border-line-subtle bg-hover animate-fade-in"
       >
-        <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-line-subtle px-4">
+        <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center justify-between px-4">
           <h2 className="font-display text-sm font-semibold text-fg">{title}</h2>
           <Button variant="ghost" size="icon-sm" aria-label={t('shell.closePanel')} onClick={onClose}>
             <X />
@@ -183,7 +210,7 @@ export function ContextPanel({
   }
   return (
     <Sheet open={panel !== null} onOpenChange={(o) => !o && onClose()} side="right" title={title}>
-      <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-line-subtle px-4">
+      <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center justify-between px-4">
         <h2 className="font-display text-sm font-semibold text-fg">{title}</h2>
         <Button variant="ghost" size="icon-sm" aria-label={t('shell.closePanel')} onClick={onClose}>
           <X />

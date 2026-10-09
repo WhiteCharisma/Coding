@@ -41,10 +41,7 @@ export default function CommunitiesPage() {
               const u = communityUnread(c, unreads, muted.has(c.id));
               return (
                 <li key={id}>
-                  <Link
-                    to={`/c/${c.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-line-subtle bg-sidebar/60 p-3 transition-colors hover:border-line"
-                  >
+                  <Link to={`/c/${c.id}`} className="tile tile-link flex items-center gap-3 p-3">
                     <CommunityIcon name={c.name} src={c.iconUrl} size="md" />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2 font-semibold text-fg">
