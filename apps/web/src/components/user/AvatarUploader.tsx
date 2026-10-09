@@ -51,12 +51,12 @@ export function AvatarUploader({ hint }: { hint?: string }) {
       <button
         type="button"
         onClick={() => input.current?.click()}
-        className="group relative rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="group relative rounded-avatar focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         aria-label={t('settings.profile.avatar')}
         disabled={busy}
       >
         <UserAvatar name={user.displayName} src={user.avatarUrl} size="2xl" />
-        <span className="absolute inset-0 grid place-items-center rounded-full bg-black/45 text-white opacity-0 transition-opacity duration-[var(--dur-fast)] group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="absolute inset-0 grid place-items-center rounded-avatar bg-black/45 text-white opacity-0 transition-opacity duration-[var(--dur-fast)] group-hover:opacity-100 group-focus-visible:opacity-100">
           {busy ? <Spinner /> : <Camera className="size-6" />}
         </span>
       </button>

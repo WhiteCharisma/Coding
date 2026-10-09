@@ -94,8 +94,8 @@ export function AppearanceSection() {
           value={theme}
           onChange={ui.setTheme}
           options={[
-            { value: 'dark', label: t('settings.appearance.dark') },
             { value: 'light', label: t('settings.appearance.light') },
+            { value: 'dark', label: t('settings.appearance.dark') },
             { value: 'system', label: t('settings.appearance.system') },
           ]}
         />

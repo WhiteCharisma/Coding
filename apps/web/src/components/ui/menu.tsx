@@ -10,7 +10,7 @@ export const MenuSub = M.Sub;
 export const MenuRadioGroup = M.RadioGroup;
 
 const surface =
-  'z-[var(--z-popover)] min-w-[12rem] overflow-hidden rounded-lg border border-line bg-overlay p-1 text-fg shadow-lg data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in';
+  'glass z-[var(--z-popover)] min-w-[12rem] overflow-hidden rounded-xl bg-overlay p-1 text-fg data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in';
 
 export function MenuContent({ className, sideOffset = 6, ...props }: ComponentProps<typeof M.Content>) {
   return (
@@ -21,7 +21,7 @@ export function MenuContent({ className, sideOffset = 6, ...props }: ComponentPr
 }
 
 const itemBase =
-  'relative flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-1.5 text-ui text-fg-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-active data-[highlighted]:text-fg [&_svg]:size-4 [&_svg]:text-fg-muted data-[highlighted]:[&_svg]:text-fg';
+  'relative flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-ui text-fg-2 outline-none transition-[background-color,color,box-shadow] duration-[var(--dur-fast)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-selected data-[highlighted]:text-fg data-[highlighted]:shadow-[inset_0_0_0_1px_var(--accent-border)] [&_svg]:size-4 [&_svg]:text-fg-muted data-[highlighted]:[&_svg]:text-accent-text';
 
 export function MenuItem({ className, danger, ...props }: ComponentProps<typeof M.Item> & { danger?: boolean }) {
   return (

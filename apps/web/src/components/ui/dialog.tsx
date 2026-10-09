@@ -34,20 +34,20 @@ export function DialogContent({
 }: DialogContentProps) {
   return (
     <D.Portal>
-      <D.Overlay className="fixed inset-0 z-[var(--z-modal)] bg-scrim data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
+      <D.Overlay className="fixed inset-0 z-[var(--z-modal)] bg-scrim backdrop-blur-[3px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
       <D.Content
         onOpenAutoFocus={onOpenAutoFocus}
         className={cn(
-          'fixed z-[var(--z-modal)] flex max-h-[min(90dvh,860px)] w-full flex-col overflow-hidden border border-line bg-elevated text-fg shadow-lg focus:outline-none',
+          'glass fixed z-[var(--z-modal)] flex max-h-[min(90dvh,860px)] w-full flex-col overflow-hidden bg-overlay text-fg shadow-lg focus:outline-none',
           'inset-x-0 bottom-0 rounded-t-2xl data-[state=closed]:animate-sheet-out data-[state=open]:animate-sheet-in',
-          'sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:data-[state=closed]:animate-pop-out sm:data-[state=open]:animate-pop-in',
+          'sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:data-[state=closed]:animate-pop-out sm:data-[state=open]:animate-pop-in',
           sizes[size],
           className,
         )}
       >
-        <div className={cn('flex items-start gap-4 px-5 pt-5 pb-3', hideTitle && 'sr-only')}>
+        <div className={cn('titlebar flex items-start gap-4 px-5 pt-4 pb-3', hideTitle && 'sr-only')}>
           <div className="min-w-0 flex-1">
-            <D.Title className="font-display text-lg font-semibold tracking-tight text-fg">{title}</D.Title>
+            <D.Title className="font-display text-xl font-semibold text-fg">{title}</D.Title>
             {description ? (
               <D.Description className="mt-1 text-sm text-fg-muted">{description}</D.Description>
             ) : (
@@ -61,9 +61,9 @@ export function DialogContent({
             <X className="size-4" />
           </D.Close>
         </div>
-        <div className="scroll-area min-h-0 flex-1 px-5 pb-5">{children}</div>
+        <div className="scroll-area min-h-0 flex-1 px-5 pt-3 pb-5">{children}</div>
         {footer && (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-sidebar/60 px-5 py-3 safe-bottom">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line-subtle bg-inset/60 px-5 py-3 safe-bottom">
             {footer}
           </div>
         )}
@@ -93,10 +93,10 @@ export function Sheet({ open, onOpenChange, side = 'left', title, children, clas
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
-        <D.Overlay className="fixed inset-0 z-[var(--z-drawer)] bg-scrim data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
+        <D.Overlay className="fixed inset-0 z-[var(--z-drawer)] bg-scrim backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
         <D.Content
           className={cn(
-            'fixed z-[var(--z-drawer)] flex flex-col overflow-hidden bg-sidebar shadow-lg focus:outline-none',
+            'glass fixed z-[var(--z-drawer)] flex flex-col overflow-hidden bg-overlay focus:outline-none',
             position,
             className,
           )}

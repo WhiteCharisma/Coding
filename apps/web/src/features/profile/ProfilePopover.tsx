@@ -54,7 +54,7 @@ export function ProfilePopover({
                   src={p.avatarUrl}
                   size="xl"
                   presence={presence}
-                  className="rounded-full ring-4 ring-overlay"
+                  framed
                 />
               </div>
               <div className="flex items-center gap-2">

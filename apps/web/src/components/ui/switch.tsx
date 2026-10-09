@@ -24,9 +24,10 @@ export function Switch({ checked, onCheckedChange, label, description, disabled,
         checked={checked}
         onCheckedChange={onCheckedChange}
         disabled={disabled}
-        className="relative mt-0.5 inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-line-strong bg-inset transition-colors duration-[var(--dur-fast)] data-[state=checked]:border-accent data-[state=checked]:bg-accent disabled:opacity-50"
+        className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-line-strong bg-inset shadow-[inset_0_1px_3px_var(--border)] transition-[background-color,border-color] duration-[var(--dur-fast)] data-[state=checked]:border-accent-border data-[state=checked]:bg-linear-to-b data-[state=checked]:from-accent-lo data-[state=checked]:to-accent-hi disabled:opacity-50"
       >
-        <S.Thumb className="block size-4.5 translate-x-0.5 rounded-full bg-fg-2 shadow-sm transition-transform duration-[var(--dur-base)] ease-spring data-[state=checked]:translate-x-[18px] data-[state=checked]:bg-accent-fg" />
+        {/* A pearl knob: the same in both themes, outlined so it stands out on the light track. */}
+        <S.Thumb className="block size-5 translate-x-0.5 rounded-full border border-line-strong bg-[radial-gradient(circle_at_35%_30%,var(--knob-hi),var(--knob)_60%)] shadow-md transition-transform duration-[var(--dur-base)] ease-spring data-[state=checked]:translate-x-[20px]" />
       </S.Root>
     </div>
   );

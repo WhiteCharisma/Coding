@@ -16,7 +16,8 @@ export function AppShell() {
   const location = useLocation();
   const conversation = isConversation(location.pathname);
   return (
-    <div className="flex h-dvh overflow-hidden bg-app">
+    // Windows of glass floating in the sky: on tablets and desktops they are separated by a strip of sky.
+    <div className="flex h-dvh overflow-hidden md:gap-[var(--pane-gap)] md:p-[var(--pane-gap)]">
       <a
         href="#main"
         className="sr-only z-[var(--z-toast)] rounded-md bg-accent px-3 py-2 text-accent-fg focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -26,15 +27,15 @@ export function AppShell() {
       <NavRail />
       <div
         className={cn(
-          'flex min-w-0 flex-1 flex-col',
+          'flex min-w-0 flex-1 flex-col md:gap-[var(--pane-gap)]',
           !conversation && 'pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom))] md:pb-0',
         )}
       >
         <VerifyBanner />
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 md:gap-[var(--pane-gap)]">
           <Suspense
             fallback={
-              <div className="flex-1 bg-main">
+              <div className="glass pane flex-1 bg-main">
                 <MessageSkeleton />
               </div>
             }

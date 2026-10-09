@@ -58,7 +58,7 @@ export function Toaster() {
             key={item.id}
             role={item.tone === 'error' ? 'alert' : 'status'}
             className={cn(
-              'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-line bg-overlay px-3.5 py-3 text-ui text-fg shadow-lg',
+              'glass pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-overlay px-3.5 py-3 text-ui text-fg',
               item.leaving ? 'animate-pop-out' : 'animate-rise-in',
             )}
           >

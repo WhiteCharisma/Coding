@@ -6,16 +6,18 @@ import { Spinner } from './spinner';
 
 // Pattern adapted from shadcn/ui (MIT); styles are specific to this design system.
 export const buttonVariants = cva(
-  'relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-[background-color,color,border-color,box-shadow,transform,opacity] duration-[var(--dur-fast)] ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4',
+  'relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-[background-color,color,border-color,box-shadow,transform,filter,opacity] duration-[var(--dur-fast)] ease-out active:scale-[0.97] active:duration-[var(--dur-instant)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4',
   {
     variants: {
       variant: {
+        // Glossy Aero button: luminous gradient, a highlight on the upper half, a light sweep on hover.
         primary:
-          'bg-accent text-accent-fg shadow-sm hover:bg-accent-hover active:bg-accent-press disabled:bg-overlay disabled:text-fg-muted disabled:opacity-100 disabled:shadow-none',
-        secondary: 'border border-line bg-elevated text-fg hover:border-line-strong hover:bg-overlay',
+          'gloss sheen-hover border border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg shadow-[inset_0_1px_0_var(--glass-sheen),0_6px_16px_-8px_var(--accent-glow)] hover:brightness-[1.04] hover:shadow-[inset_0_1px_0_var(--glass-sheen),0_8px_22px_-6px_var(--accent-glow)] active:brightness-[0.96] disabled:border-line disabled:from-inset disabled:to-inset disabled:text-fg-muted disabled:opacity-100 disabled:shadow-none',
+        secondary:
+          'gloss border border-glass-edge bg-elevated text-fg shadow-sm hover:border-accent-border hover:shadow-md',
         ghost: 'text-fg-2 hover:bg-hover hover:text-fg',
         outline: 'border border-line-strong text-fg hover:bg-hover',
-        danger: 'bg-danger text-danger-fg hover:bg-danger-hover',
+        danger: 'gloss border border-danger/40 bg-danger text-danger-fg shadow-sm hover:bg-danger-hover',
         'danger-ghost': 'text-danger hover:bg-danger-soft',
         link: 'h-auto px-0 text-accent-text underline-offset-4 hover:underline active:scale-100',
       },

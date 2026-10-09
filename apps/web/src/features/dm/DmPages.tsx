@@ -74,7 +74,7 @@ export function DmPage() {
           beginning={
             <div className="px-4 pt-10 pb-4">
               {dm.kind === 'dm' && first ? (
-                <UserAvatar name={first.displayName} src={first.avatarUrl} size="xl" />
+                <UserAvatar name={first.displayName} src={first.avatarUrl} size="xl" framed />
               ) : (
                 <span className="grid size-16 place-items-center rounded-full bg-elevated">
                   <Users className="size-7 text-fg-2" />

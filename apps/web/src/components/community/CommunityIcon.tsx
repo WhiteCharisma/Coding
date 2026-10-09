@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { cn } from '../../lib/cn';
 import { hueFor, initials } from '../../lib/format';
 
+// Communities are glossy bubbles (people are framed squares, see UserAvatar).
 const sizes = {
-  sm: 'size-8 text-xs rounded-lg',
-  md: 'size-12 text-base rounded-2xl',
-  lg: 'size-16 text-xl rounded-2xl',
-  xl: 'size-20 text-2xl rounded-3xl',
+  sm: 'size-8 text-xs',
+  md: 'size-12 text-base',
+  lg: 'size-16 text-xl',
+  xl: 'size-20 text-2xl',
 };
 
 export function CommunityIcon({
@@ -26,11 +27,13 @@ export function CommunityIcon({
     <span
       aria-hidden
       className={cn(
-        'grid shrink-0 place-items-center overflow-hidden font-display font-semibold text-white/95 select-none',
+        'gloss grid shrink-0 place-items-center overflow-hidden rounded-full font-display font-semibold text-white select-none emboss',
         sizes[size],
         className,
       )}
-      style={{ background: `linear-gradient(145deg, oklch(0.5 0.1 ${hue}), oklch(0.32 0.06 ${(hue + 50) % 360}))` }}
+      style={{
+        background: `radial-gradient(circle at 35% 28%, oklch(0.78 0.11 ${hue}), oklch(0.5 0.13 ${(hue + 30) % 360}) 70%, oklch(0.4 0.12 ${(hue + 50) % 360}))`,
+      }}
     >
       {src && !failed ? (
         <img

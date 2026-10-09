@@ -84,10 +84,10 @@ export default function ProfilePage() {
                 src={p.avatarUrl}
                 size="2xl"
                 presence={presence}
-                className="rounded-full ring-6 ring-main"
+                framed
               />
             ) : (
-              <Skeleton className="size-24 rounded-full" />
+              <Skeleton className="size-24 rounded-avatar" />
             )}
             {p && (
               <div className="flex gap-2 pb-1">

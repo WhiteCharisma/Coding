@@ -12,14 +12,14 @@ import { CommunityIcon } from '../../components/community/CommunityIcon';
 import { CreateJoinDialog } from '../community/CreateJoinDialog';
 import { UserMenu } from './UserMenu';
 
-/** The left edge "pill" that signals active / unread state, like a channel strip LED. */
+/** A glowing capsule at the dock's edge: tall for the open item, a dot for unread activity. */
 function Indicator({ active, unread }: { active: boolean; unread: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        'absolute top-1/2 -left-3 w-1 -translate-y-1/2 rounded-r-full bg-fg transition-[height,opacity,background-color] duration-[var(--dur-base)] ease-out',
-        active ? 'h-8 bg-accent opacity-100' : unread ? 'h-2 opacity-100' : 'h-4 opacity-0 group-hover:opacity-60',
+        'absolute top-1/2 -left-[13px] w-1.5 -translate-y-1/2 rounded-full bg-linear-to-b from-aqua to-accent-lo shadow-[0_0_8px_var(--accent-glow)] transition-[height,opacity] duration-[var(--dur-base)] ease-out',
+        active ? 'h-8 opacity-100' : unread ? 'h-2 opacity-100' : 'h-4 opacity-0 group-hover:opacity-60',
       )}
     />
   );
@@ -42,10 +42,10 @@ function RailItem({ to, onClick, label, active, unread = false, badge = 0, child
       <Indicator active={active} unread={unread} />
       <span
         className={cn(
-          'grid size-12 place-items-center overflow-hidden rounded-2xl transition-[border-radius,background-color,color] duration-[var(--dur-base)] ease-out',
+          'gloss sheen-hover grid size-12 place-items-center overflow-hidden rounded-full border transition-[transform,box-shadow,background-color,color] duration-[var(--dur-base)] ease-out group-active:scale-95',
           active
-            ? 'rounded-xl bg-accent text-accent-fg'
-            : 'bg-sidebar text-fg-2 group-hover:rounded-xl group-hover:bg-elevated group-hover:text-fg',
+            ? 'border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg shadow-glow'
+            : 'border-glass-edge bg-elevated/75 text-fg-2 shadow-sm group-hover:-translate-y-0.5 group-hover:text-fg group-hover:shadow-md',
         )}
       >
         {children}
@@ -91,7 +91,7 @@ export function NavRail() {
   return (
     <nav
       aria-label={t('shell.nav.primary')}
-      className="z-[var(--z-rail)] hidden w-[var(--rail-width)] shrink-0 flex-col items-center bg-rail py-3 md:flex"
+      className="glass pane z-[var(--z-rail)] hidden w-[var(--rail-width)] shrink-0 flex-col items-center bg-rail py-3 md:flex"
     >
       <div className="flex flex-col items-center gap-2">
         <RailItem to="/home" label={t('shell.nav.home')} active={path === '/home'}>
@@ -119,7 +119,7 @@ export function NavRail() {
           <Search className="size-5" />
         </RailItem>
       </div>
-      <div className="my-3 h-px w-8 shrink-0 bg-line" />
+      <div className="my-3 h-px w-9 shrink-0 bg-linear-to-r from-transparent via-line-strong to-transparent" />
       <ul
         aria-label={t('shell.nav.yourCommunities')}
         className="no-scrollbar flex min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto px-3 pt-1 pb-2"
@@ -132,12 +132,7 @@ export function NavRail() {
           return (
             <li key={id}>
               <RailItem to={`/c/${c.id}`} label={c.name} active={active} unread={state.unread} badge={state.mentions}>
-                <CommunityIcon
-                  name={c.name}
-                  src={c.iconUrl}
-                  size="md"
-                  className={cn('rounded-[inherit]', active && 'ring-2 ring-accent')}
-                />
+                <CommunityIcon name={c.name} src={c.iconUrl} size="md" />
               </RailItem>
             </li>
           );

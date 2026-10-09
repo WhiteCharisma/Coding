@@ -83,8 +83,8 @@ export const settings = {
   appearance: {
     title: 'Appearance',
     theme: 'Theme',
-    dark: 'Dark',
-    light: 'Light',
+    dark: 'Twilight',
+    light: 'Daylight',
     system: 'Match system',
     density: 'Message density',
     comfortable: 'Comfortable',

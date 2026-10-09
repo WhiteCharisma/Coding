@@ -18,8 +18,8 @@ export function TabsTrigger({ className, ...props }: ComponentProps<typeof T.Tri
   return (
     <T.Trigger
       className={cn(
-        'relative shrink-0 px-3 pt-2 pb-2.5 text-ui font-medium text-fg-muted transition-colors hover:text-fg data-[state=active]:text-fg',
-        'after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-accent after:opacity-0 after:transition-opacity data-[state=active]:after:opacity-100',
+        'relative shrink-0 px-3 pt-2 pb-2.5 text-ui font-semibold text-fg-muted transition-colors hover:text-fg data-[state=active]:text-accent-text',
+        'after:absolute after:inset-x-2 after:-bottom-px after:h-[3px] after:rounded-full after:bg-linear-to-r after:from-aqua after:to-accent-lo after:opacity-0 after:shadow-[0_0_8px_var(--accent-glow)] after:transition-opacity data-[state=active]:after:opacity-100',
         className,
       )}
       {...props}

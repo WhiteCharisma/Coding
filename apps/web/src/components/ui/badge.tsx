@@ -68,8 +68,10 @@ export function CountBadge({
     <span
       aria-label={label}
       className={cn(
-        'inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1.5 font-mono text-[10.5px] leading-none font-bold tabular-nums',
-        tone === 'danger' ? 'bg-danger text-danger-fg' : 'bg-accent text-accent-fg',
+        'gloss inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full border px-1.5 text-[11px] leading-none font-bold tabular-nums shadow-sm',
+        tone === 'danger'
+          ? 'border-danger/40 bg-danger text-danger-fg'
+          : 'border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg',
         className,
       )}
     >

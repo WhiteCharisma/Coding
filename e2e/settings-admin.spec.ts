@@ -37,15 +37,16 @@ test.describe('settings', () => {
   test('theme, density and motion preferences apply immediately and persist', async ({ page, context }) => {
     await signUp(context);
     await page.goto('/settings/appearance');
-    await page.getByRole('radio', { name: 'Light' }).click();
+    const html = page.locator('html');
+    await expect(html).toHaveAttribute('data-theme', 'light'); // Daylight is the default look
+    await page.getByRole('radio', { name: 'Twilight' }).click();
     await page.getByRole('radio', { name: 'Compact' }).click();
     await page.getByRole('radio', { name: 'Reduce motion' }).click();
-    const html = page.locator('html');
-    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(html).toHaveAttribute('data-theme', 'dark');
     await expect(html).toHaveAttribute('data-density', 'compact');
     await expect(html).toHaveAttribute('data-motion', 'reduced');
     await page.reload();
-    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(html).toHaveAttribute('data-theme', 'dark');
     await expect(html).toHaveAttribute('data-motion', 'reduced');
   });
 

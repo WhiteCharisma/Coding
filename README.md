@@ -28,8 +28,9 @@ one modest Linux server with no paid services.
   creator profiles with disciplines and links, notifications.
 - **Moderation and admin:** reports with content snapshots, warnings, suspensions, audit log,
   instance settings, registration codes, health and resource overview, backups.
-- **Design:** dark-first "studio" theme with one amber accent, light theme, compact density,
-  reduced-motion support, keyboard and screen-reader basics, phone layout.
+- **Design:** "Aero" — glass panes over a bright sky, glossy controls, sky-blue and aqua accents;
+  Daylight and Twilight themes, compact density, reduced-motion support, keyboard and
+  screen-reader basics, phone layout.
 
 Not included: marketplace and virtual credits (design notes only, see [Roadmap](docs/ROADMAP.md)),
 push/email notifications, end-to-end encryption. HTTPS protects traffic in transit; it is not

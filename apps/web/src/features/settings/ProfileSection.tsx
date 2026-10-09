@@ -91,7 +91,8 @@ export function ProfileSection({ user }: { user: SelfUser }) {
             name={form.displayName || user.displayName}
             src={user.avatarUrl}
             size="xl"
-            className="-mt-8 rounded-full ring-4 ring-sidebar"
+            framed
+            className="-mt-8"
           />
           <div className="min-w-0 pb-1">
             <p className="truncate font-semibold text-fg">{form.displayName || user.displayName}</p>

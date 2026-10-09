@@ -2,8 +2,9 @@ import { ChevronDown } from 'lucide-react';
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
 import { cn } from '../../lib/cn';
 
+// Frosted field: a slightly sunken well that brightens and glows softly when focused.
 const fieldBase =
-  'w-full rounded-md border border-line bg-inset px-3 text-ui text-fg placeholder:text-fg-muted transition-[border-color,box-shadow] duration-[var(--dur-fast)] hover:border-line-strong focus-visible:border-accent-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-soft disabled:opacity-60 aria-[invalid=true]:border-danger';
+  'w-full rounded-md border border-line bg-inset px-3 text-ui text-fg shadow-[inset_0_1px_2px_var(--border-subtle)] placeholder:text-fg-muted transition-[border-color,box-shadow,background-color] duration-[var(--dur-fast)] hover:border-line-strong focus-visible:border-accent-border focus-visible:bg-elevated focus-visible:shadow-[inset_0_1px_2px_var(--border-subtle),0_0_0_4px_var(--accent-soft)] focus-visible:outline-none disabled:opacity-60 aria-[invalid=true]:border-danger';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
   { className, ...props },

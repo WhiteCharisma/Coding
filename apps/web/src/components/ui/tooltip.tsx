@@ -24,7 +24,7 @@ export function Tooltip({ content, children, side = 'top', className, disabled }
           sideOffset={8}
           collisionPadding={8}
           className={cn(
-            'z-[var(--z-tooltip)] max-w-xs rounded-md bg-fg px-2.5 py-1.5 text-xs font-medium text-main shadow-md data-[state=closed]:animate-fade-out data-[state=delayed-open]:animate-pop-in',
+            'glass z-[var(--z-tooltip)] max-w-xs rounded-lg bg-overlay px-2.5 py-1.5 text-xs font-semibold text-fg data-[state=closed]:animate-fade-out data-[state=delayed-open]:animate-pop-in',
             className,
           )}
         >

@@ -24,10 +24,10 @@ function write(key: string, value: string): void {
 
 export function applyTheme(theme: Theme): void {
   const resolved =
-    theme === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : theme;
+    theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
   document.documentElement.setAttribute('data-theme', resolved);
   const meta = document.querySelector('meta[name="theme-color"]');
-  meta?.setAttribute('content', resolved === 'light' ? '#ece7df' : '#1b1916');
+  meta?.setAttribute('content', resolved === 'light' ? '#7cc0f0' : '#0d1f45');
 }
 
 interface UiState {
@@ -48,7 +48,7 @@ interface UiState {
 }
 
 export const useUi = create<UiState>((set, get) => ({
-  theme: read<Theme>('cn.theme', 'dark', ['dark', 'light', 'system']),
+  theme: read<Theme>('cn.theme', 'light', ['dark', 'light', 'system']),
   density: read<Density>('cn.density', 'comfortable', ['comfortable', 'compact']),
   motion: read<MotionPref>('cn.motion', 'full', ['full', 'reduced']),
   contextPanel:

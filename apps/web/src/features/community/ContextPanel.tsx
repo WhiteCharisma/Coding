@@ -59,7 +59,7 @@ export function MembersPanel({ community, members }: { community: CommunityDTO; 
       <div className="flex flex-col gap-3 p-4">
         {Array.from({ length: 8 }, (_, i) => (
           <div key={i} className="flex items-center gap-2.5">
-            <Skeleton className="size-9 rounded-full" />
+            <Skeleton className="size-9 rounded-avatar" />
             <Skeleton className="h-3.5 w-28" />
           </div>
         ))}

@@ -23,7 +23,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn('inline-flex rounded-lg border border-line bg-inset p-1', className)}
+      className={cn('inline-flex rounded-xl border border-line bg-inset p-1 shadow-[inset_0_1px_2px_var(--border-subtle)]', className)}
     >
       {options.map((o) => (
         <button
@@ -33,8 +33,10 @@ export function Segmented<T extends string>({
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            'rounded-md px-3 py-1.5 text-sm font-medium transition-[background-color,color] duration-[var(--dur-fast)]',
-            value === o.value ? 'bg-elevated text-fg shadow-sm' : 'text-fg-muted hover:text-fg',
+            'rounded-lg px-3 py-1.5 text-sm font-semibold transition-[background-color,color,box-shadow] duration-[var(--dur-fast)]',
+            value === o.value
+              ? 'gloss border border-accent-border bg-linear-to-b from-accent-hi to-accent-lo text-accent-fg shadow-sm'
+              : 'border border-transparent text-fg-muted hover:text-fg',
           )}
         >
           {o.label}

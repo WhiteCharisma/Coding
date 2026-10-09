@@ -30,7 +30,7 @@ export function MobileNav() {
   return (
     <nav
       aria-label={t('shell.nav.primary')}
-      className="safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-rail)] border-t border-line-subtle bg-rail/95 backdrop-blur-sm md:hidden"
+      className="glass safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-rail)] border-x-0 border-b-0 bg-overlay md:hidden"
     >
       <ul className="mx-auto flex h-[var(--mobile-nav-height)] max-w-lg items-stretch justify-around">
         {items.map(({ to, label, icon: Icon, badge }) => (
@@ -39,12 +39,12 @@ export function MobileNav() {
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'relative flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors',
+                  'group relative flex h-full flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors',
                   isActive ? 'text-accent-text' : 'text-fg-muted active:text-fg',
                 )
               }
             >
-              <span className="relative">
+              <span className="relative grid h-8 w-12 place-items-center rounded-full transition-colors group-aria-[current=page]:bg-accent-soft">
                 <Icon className="size-[22px]" />
                 {badge > 0 && (
                   <CountBadge count={badge} tone="danger" className="absolute -top-1.5 -right-2.5 ring-2 ring-rail" />

@@ -85,7 +85,12 @@ Update this file in the same commit as the work it describes.
   - added: retry-safe uploads (X-Upload-Key), Server-Timing, GPS/XMP/IPTC removal (lossless)
   - verified: Docker image builds with sharp; previews work through Caddy; after-measurements
     in docs/PERFORMANCE.md (viewer 2.99 s → 1.18 s, 11.9 MB → 43 KB; sender sees files in ~0.25 s)
-- [ ] Aero design system and full-screen redesign
+- [x] Aero design system (docs/DESIGN.md): sky scenes, glass panes, gloss, Daylight/Twilight
+  - tokens rewritten; contrast test composites translucent glass over the sky (worst case)
+  - Source Sans 3 (OFL) replaces Inter/Bricolage; original glossy logo; glossy primitives
+  - shell: floating glass panes, bubble dock rail, glass mobile nav; presence orbs with rims;
+    framed (rounded-square) display pictures with presence-coloured mounts on profiles
+- [ ] Redesign every screen on the new system (headers, lists, chat, composer, auth, settings…)
 - [ ] Motion system and reaction animations
 - [ ] Interface sounds with independent volume settings
 - [ ] WebRTC voice with verified audio quality

@@ -3,7 +3,9 @@ import tokensCss from './tokens.css?raw';
 
 /**
  * WCAG 2 contrast, computed from the design tokens themselves (docs/DESIGN.md → Accessibility).
- * Translucent washes are composited in gamma-encoded sRGB, as browsers do.
+ * Glass surfaces are translucent: each one is composited over every colour of the sky behind it
+ * (and soft washes over the result), in gamma-encoded sRGB as browsers do, and the worst case
+ * must pass.
  */
 
 type Rgb = [number, number, number];
@@ -39,6 +41,13 @@ function contrast(x: Rgb, y: Rgb): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+/** Paints a (possibly translucent) colour over an opaque linear-sRGB background. */
+function over(top: Oklch, below: Rgb): Rgb {
+  const t = toLinearSrgb(top).map(encode);
+  const b = below.map(encode);
+  return t.map((v, i) => decode(v * top.alpha + b[i]! * (1 - top.alpha))) as Rgb;
+}
+
 function parseTokens(block: string): Map<string, Oklch> {
   const tokens = new Map<string, Oklch>();
   const re = /--([\w-]+):\s*oklch\(([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?\)/g;
@@ -48,11 +57,14 @@ function parseTokens(block: string): Map<string, Oklch> {
   return tokens;
 }
 
-const [darkBlock = '', afterDark = ''] = tokensCss.split(":root[data-theme='light']");
-const lightBlock = afterDark.split(':root {')[0] ?? '';
-const themes = { dark: parseTokens(darkBlock), light: parseTokens(lightBlock) };
+const [lightBlock = '', afterLight = ''] = tokensCss.split(":root[data-theme='dark']");
+const darkBlock = afterLight.split(':root {')[0] ?? '';
+const themes = { light: parseTokens(lightBlock), dark: parseTokens(darkBlock) };
 
-const SURFACES = ['bg-app', 'bg-rail', 'bg-sidebar', 'bg-main', 'bg-elevated', 'bg-overlay', 'bg-inset'];
+const SKY = ['sky-1', 'sky-2', 'sky-3', 'sky-4'];
+/** Surfaces that carry text (the rail only carries icons and badges). */
+const TEXT_SURFACES = ['bg-app', 'bg-sidebar', 'bg-main', 'bg-elevated', 'bg-overlay', 'bg-inset'];
+const ICON_SURFACES = [...TEXT_SURFACES, 'bg-rail'];
 const SEMANTIC_TEXT: Record<string, string> = {
   danger: 'danger-soft',
   success: 'success-soft',
@@ -62,6 +74,8 @@ const SEMANTIC_TEXT: Record<string, string> = {
 };
 const FILLS: [fg: string, bg: string][] = [
   ['accent-fg', 'accent'],
+  ['accent-fg', 'accent-hi'],
+  ['accent-fg', 'accent-lo'],
   ['accent-fg', 'accent-hover'],
   ['danger-fg', 'danger'],
   ['danger-fg', 'danger-hover'],
@@ -75,21 +89,25 @@ describe.each(Object.entries(themes))('%s theme contrast', (_theme, tokens) => {
     return token;
   };
   const solid = (name: string) => toLinearSrgb(color(name));
-  const over = (wash: string, surface: string): Rgb => {
-    const top = toLinearSrgb(color(wash)).map(encode);
-    const below = solid(surface).map(encode);
-    const a = color(wash).alpha;
-    return top.map((v, i) => decode(v * a + below[i]! * (1 - a))) as Rgb;
-  };
+  /** Every way a surface can look: composited over each colour of the sky. */
+  const surfaceLooks = (surface: string) =>
+    SKY.map((sky) => ({ name: `${surface} over ${sky}`, rgb: over(color(surface), solid(sky)) }));
 
-  it.each(['text', 'text-2', 'text-muted'])('--%s is readable (≥ 4.5:1) on every surface', (text) => {
-    for (const surface of SURFACES) expect(contrast(solid(text), solid(surface)), surface).toBeGreaterThanOrEqual(4.5);
+  it.each(['text', 'text-2', 'text-muted'])('--%s is readable (≥ 4.5:1) on every glass surface', (text) => {
+    for (const surface of TEXT_SURFACES) {
+      for (const look of surfaceLooks(surface))
+        expect(contrast(solid(text), look.rgb), look.name).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it.each(Object.entries(SEMANTIC_TEXT))('--%s is readable on every surface and on its own soft wash', (text, wash) => {
-    for (const surface of SURFACES) {
-      expect(contrast(solid(text), solid(surface)), surface).toBeGreaterThanOrEqual(4.5);
-      expect(contrast(solid(text), over(wash, surface)), `${wash} over ${surface}`).toBeGreaterThanOrEqual(4.5);
+    for (const surface of TEXT_SURFACES) {
+      for (const look of surfaceLooks(surface)) {
+        expect(contrast(solid(text), look.rgb), look.name).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(solid(text), over(color(wash), look.rgb)), `${wash} on ${look.name}`).toBeGreaterThanOrEqual(
+          4.5,
+        );
+      }
     }
   });
 
@@ -97,7 +115,19 @@ describe.each(Object.entries(themes))('%s theme contrast', (_theme, tokens) => {
     expect(contrast(solid(fg), solid(bg))).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each(['text-faint', 'presence-offline'])('--%s meets the 3:1 minimum for icons and status marks', (mark) => {
-    for (const surface of SURFACES) expect(contrast(solid(mark), solid(surface)), surface).toBeGreaterThanOrEqual(3);
+  it('text on a glossy button stays readable under the top highlight', () => {
+    // Buttons get a sheen over their upper part; text overlaps its lower edge (≈ 30 % of it).
+    const sheen = { ...color('glass-sheen'), alpha: color('glass-sheen').alpha * 0.3 };
+    expect(contrast(solid('accent-fg'), over(sheen, solid('accent-hi')))).toBeGreaterThanOrEqual(4.5);
   });
+
+  it.each(['text-faint', 'presence-online-rim', 'presence-idle-rim', 'presence-dnd-rim', 'presence-offline-rim'])(
+    '--%s meets the 3:1 minimum for icons and status marks',
+    (mark) => {
+      for (const surface of ICON_SURFACES) {
+        for (const look of surfaceLooks(surface))
+          expect(contrast(solid(mark), look.rgb), look.name).toBeGreaterThanOrEqual(3);
+      }
+    },
+  );
 });

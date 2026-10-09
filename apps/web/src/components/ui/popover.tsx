@@ -14,7 +14,7 @@ export function PopoverContent({ className, sideOffset = 8, ...props }: Componen
         sideOffset={sideOffset}
         collisionPadding={10}
         className={cn(
-          'z-[var(--z-popover)] rounded-xl border border-line bg-overlay text-fg shadow-lg outline-none data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in',
+          'glass z-[var(--z-popover)] rounded-2xl bg-overlay text-fg outline-none data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in',
           className,
         )}
         {...props}

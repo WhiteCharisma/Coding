@@ -24,7 +24,7 @@ export function SidebarLayout({ sidebar, children, mobileView, contentLabel }: S
     <>
       <aside
         className={cn(
-          'w-full shrink-0 flex-col bg-sidebar md:flex md:w-[var(--sidebar-width)] md:border-r md:border-line-subtle',
+          'glass pane w-full shrink-0 flex-col bg-sidebar md:flex md:w-[var(--sidebar-width)]',
           mobileView === 'sidebar' ? 'flex' : 'hidden',
         )}
       >
@@ -33,7 +33,7 @@ export function SidebarLayout({ sidebar, children, mobileView, contentLabel }: S
       <main
         id="main"
         aria-label={contentLabel}
-        className={cn('min-w-0 flex-1 flex-col bg-main', mobileView === 'content' ? 'flex' : 'hidden md:flex')}
+        className={cn('glass pane min-w-0 flex-1 flex-col bg-main', mobileView === 'content' ? 'flex' : 'hidden md:flex')}
       >
         <ConnectionBanner />
         {children}
@@ -63,7 +63,7 @@ export function PageLayout({
   className?: string;
 }) {
   return (
-    <main id="main" aria-label={label} className={cn('flex min-w-0 flex-1 flex-col bg-main', className)}>
+    <main id="main" aria-label={label} className={cn('glass pane flex min-w-0 flex-1 flex-col bg-main', className)}>
       <ConnectionBanner />
       {children}
     </main>
