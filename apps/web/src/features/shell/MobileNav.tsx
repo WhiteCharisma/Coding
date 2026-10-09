@@ -1,0 +1,49 @@
+import { Bell, Home, LayoutGrid, MessageCircle, UserRound } from 'lucide-react';
+import { NavLink } from 'react-router';
+import { t } from '../../i18n';
+import { cn } from '../../lib/cn';
+import { communityUnread, useChat } from '../../stores/chat';
+import { useSession } from '../../stores/session';
+import { CountBadge } from '../../components/ui/badge';
+
+export function MobileNav() {
+  const user = useSession((s) => s.user);
+  const unreads = useChat((s) => s.unreads);
+  const dms = useChat((s) => s.dms);
+  const communities = useChat((s) => s.communities);
+  const notifications = useChat((s) => s.unreadNotifications);
+  const dmMentions = Object.keys(dms).reduce((sum, id) => sum + (unreads[id]?.mentions ?? 0), 0);
+  const muted = new Set(user?.mutedCommunityIds ?? []);
+  const communityMentions = Object.values(communities).reduce((sum, c) => sum + communityUnread(c, unreads, muted.has(c.id)).mentions, 0);
+
+  const items = [
+    { to: '/home', label: t('shell.nav.home'), icon: Home, badge: 0 },
+    { to: '/communities', label: t('shell.nav.communities'), icon: LayoutGrid, badge: communityMentions },
+    { to: '/dm', label: t('shell.nav.messagesShort'), icon: MessageCircle, badge: dmMentions },
+    { to: '/notifications', label: t('shell.nav.notifications'), icon: Bell, badge: notifications },
+    { to: user ? `/u/${user.username}` : '/settings', label: t('shell.nav.you'), icon: UserRound, badge: 0 },
+  ];
+
+  return (
+    <nav aria-label={t('shell.nav.primary')} className="safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-rail)] border-t border-line-subtle bg-rail/95 backdrop-blur-sm md:hidden">
+      <ul className="mx-auto flex h-[var(--mobile-nav-height)] max-w-lg items-stretch justify-around">
+        {items.map(({ to, label, icon: Icon, badge }) => (
+          <li key={to} className="flex-1">
+            <NavLink
+              to={to}
+              className={({ isActive }) =>
+                cn('relative flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors', isActive ? 'text-accent-text' : 'text-fg-muted active:text-fg')
+              }
+            >
+              <span className="relative">
+                <Icon className="size-[22px]" />
+                {badge > 0 && <CountBadge count={badge} tone="danger" className="absolute -top-1.5 -right-2.5 ring-2 ring-rail" />}
+              </span>
+              {label}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}

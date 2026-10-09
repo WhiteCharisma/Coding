@@ -1,0 +1,159 @@
+/*
+ * Creator Network design tokens.
+ *
+ * Identity: warm charcoal & graphite surfaces (like a dimly lit studio) with a
+ * single "signal amber" accent (VU-meter / tube glow). Every component uses
+ * these variables — never raw colours. See docs/DESIGN.md.
+ *
+ * Surface levels (dark → light): app/rail → sidebar → main → elevated → overlay.
+ */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg-app: oklch(0.145 0.005 60);
+  --bg-rail: oklch(0.142 0.005 60);
+  --bg-sidebar: oklch(0.172 0.006 60);
+  --bg-main: oklch(0.195 0.006 62);
+  --bg-elevated: oklch(0.232 0.007 62);
+  --bg-overlay: oklch(0.262 0.008 62);
+  --bg-inset: oklch(0.162 0.005 60);
+  --bg-hover: oklch(0.98 0.01 80 / 0.05);
+  --bg-active: oklch(0.98 0.01 80 / 0.09);
+  --bg-selected: oklch(0.8 0.135 70 / 0.13);
+  --scrim: oklch(0.08 0.004 60 / 0.62);
+
+  /* Borders */
+  --border-subtle: oklch(0.98 0.01 80 / 0.065);
+  --border: oklch(0.98 0.01 80 / 0.11);
+  --border-strong: oklch(0.98 0.01 80 / 0.18);
+
+  /* Text (all ≥ 4.5:1 on --bg-main except --text-faint, used for large/decorative text only) */
+  --text: oklch(0.945 0.008 80);
+  --text-2: oklch(0.82 0.012 78);
+  --text-muted: oklch(0.69 0.012 72);
+  --text-faint: oklch(0.56 0.01 70);
+
+  /* Accent — signal amber */
+  --accent: oklch(0.8 0.135 70);
+  --accent-hover: oklch(0.84 0.125 74);
+  --accent-press: oklch(0.75 0.135 66);
+  --accent-fg: oklch(0.21 0.035 60);
+  --accent-text: oklch(0.83 0.12 74);
+  --accent-soft: oklch(0.8 0.135 70 / 0.13);
+  --accent-border: oklch(0.8 0.135 70 / 0.38);
+
+  /* Semantic */
+  --success: oklch(0.76 0.13 155);
+  --success-soft: oklch(0.76 0.13 155 / 0.14);
+  --warning: oklch(0.85 0.13 95);
+  --warning-soft: oklch(0.85 0.13 95 / 0.14);
+  --danger: oklch(0.69 0.17 25);
+  --danger-hover: oklch(0.73 0.16 25);
+  --danger-soft: oklch(0.69 0.17 25 / 0.15);
+  --info: oklch(0.77 0.08 235);
+  --info-soft: oklch(0.77 0.08 235 / 0.14);
+
+  /* Presence (paired with distinct shapes, never colour alone) */
+  --presence-online: var(--success);
+  --presence-idle: var(--warning);
+  --presence-dnd: var(--danger);
+  --presence-offline: oklch(0.58 0.01 70);
+
+  /* Messages */
+  --mention-bg: oklch(0.8 0.135 70 / 0.085);
+  --mention-bar: oklch(0.8 0.135 70 / 0.75);
+  --code-bg: oklch(0.13 0.005 60);
+
+  /* Focus */
+  --ring: oklch(0.83 0.12 74);
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.35);
+  --shadow-md: 0 6px 16px -4px oklch(0 0 0 / 0.45), 0 1px 3px oklch(0 0 0 / 0.3);
+  --shadow-lg: 0 24px 48px -12px oklch(0 0 0 / 0.6), 0 2px 8px oklch(0 0 0 / 0.35);
+  --shadow-glow: 0 0 0 1px var(--accent-border), 0 8px 24px -8px oklch(0.8 0.135 70 / 0.35);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-app: oklch(0.918 0.009 78);
+  --bg-rail: oklch(0.9 0.01 76);
+  --bg-sidebar: oklch(0.952 0.007 80);
+  --bg-main: oklch(0.984 0.004 85);
+  --bg-elevated: oklch(1 0 0);
+  --bg-overlay: oklch(0.975 0.005 82);
+  --bg-inset: oklch(0.95 0.006 80);
+  --bg-hover: oklch(0.3 0.02 60 / 0.055);
+  --bg-active: oklch(0.3 0.02 60 / 0.095);
+  --bg-selected: oklch(0.72 0.15 65 / 0.16);
+  --scrim: oklch(0.2 0.01 60 / 0.4);
+
+  --border-subtle: oklch(0.3 0.02 60 / 0.075);
+  --border: oklch(0.3 0.02 60 / 0.13);
+  --border-strong: oklch(0.3 0.02 60 / 0.22);
+
+  --text: oklch(0.22 0.012 60);
+  --text-2: oklch(0.35 0.014 60);
+  --text-muted: oklch(0.47 0.014 62);
+  --text-faint: oklch(0.6 0.01 65);
+
+  --accent: oklch(0.77 0.15 68);
+  --accent-hover: oklch(0.73 0.15 64);
+  --accent-press: oklch(0.69 0.15 60);
+  --accent-fg: oklch(0.19 0.03 60);
+  --accent-text: oklch(0.5 0.13 56);
+  --accent-soft: oklch(0.77 0.15 68 / 0.16);
+  --accent-border: oklch(0.6 0.14 60 / 0.45);
+
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.55 0.13 155 / 0.12);
+  --warning: oklch(0.62 0.13 85);
+  --warning-soft: oklch(0.75 0.13 85 / 0.18);
+  --danger: oklch(0.55 0.19 27);
+  --danger-hover: oklch(0.5 0.19 27);
+  --danger-soft: oklch(0.55 0.19 27 / 0.1);
+  --info: oklch(0.5 0.1 240);
+  --info-soft: oklch(0.5 0.1 240 / 0.1);
+
+  --presence-offline: oklch(0.62 0.01 70);
+  --mention-bg: oklch(0.77 0.15 68 / 0.12);
+  --mention-bar: oklch(0.65 0.15 62);
+  --code-bg: oklch(0.94 0.008 80);
+  --ring: oklch(0.6 0.15 60);
+
+  --shadow-sm: 0 1px 2px oklch(0.3 0.02 60 / 0.12);
+  --shadow-md: 0 6px 16px -4px oklch(0.3 0.02 60 / 0.18), 0 1px 3px oklch(0.3 0.02 60 / 0.1);
+  --shadow-lg: 0 24px 48px -12px oklch(0.3 0.02 60 / 0.25), 0 2px 8px oklch(0.3 0.02 60 / 0.1);
+}
+
+:root {
+  /* Layout */
+  --rail-width: 72px;
+  --sidebar-width: 264px;
+  --context-width: 300px;
+  --header-height: 52px;
+  --mobile-nav-height: 60px;
+
+  /* Motion */
+  --dur-instant: 80ms;
+  --dur-fast: 140ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* Layers */
+  --z-sticky: 10;
+  --z-rail: 20;
+  --z-drawer: 40;
+  --z-popover: 50;
+  --z-modal: 60;
+  --z-toast: 70;
+  --z-tooltip: 80;
+}
