@@ -3,7 +3,18 @@ import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { useUi } from '../../stores/ui';
 import { Sheet } from '../../components/ui/dialog';
+import { GlassPane } from '../../components/ui/glass-pane';
 import { ConnectionBanner } from './ConnectionBanner';
+
+/** The glass header of a pane that has none of its own: the place's name, glowing on the glass. */
+export function PaneTitle({ title, icon }: { title?: string; icon?: ReactNode }) {
+  return (
+    <div className="pane-head max-md:hidden">
+      {icon}
+      {title && <p className="truncate font-display text-[15px] font-semibold tracking-tight text-fg">{title}</p>}
+    </div>
+  );
+}
 
 interface SidebarLayoutProps {
   sidebar: ReactNode;
@@ -11,33 +22,43 @@ interface SidebarLayoutProps {
   /** On phones, show the sidebar as the page (index routes) or the content (conversation routes). */
   mobileView: 'sidebar' | 'content';
   contentLabel?: string;
+  /** The conversation's own header (it sits on the glass); otherwise `contentLabel` is shown there. */
+  header?: ReactNode;
+  /** A pane on the right of the content (members, pins) on wide screens. */
+  aside?: ReactNode;
 }
 
 /**
- * Desktop: [sidebar | content]. Phones: one of them full-screen; inside a
- * conversation the sidebar opens as a drawer (useUi.mobileSidebarOpen).
+ * Desktop: [sidebar | content | aside], each a glass pane. Phones: one of them full-screen;
+ * inside a conversation the sidebar opens as a drawer (useUi.mobileSidebarOpen).
  */
-export function SidebarLayout({ sidebar, children, mobileView, contentLabel }: SidebarLayoutProps) {
+export function SidebarLayout({ sidebar, children, mobileView, contentLabel, header, aside }: SidebarLayoutProps) {
   const open = useUi((s) => s.mobileSidebarOpen);
   const setOpen = useUi((s) => s.setMobileSidebarOpen);
   return (
     <>
-      <aside
+      <GlassPane
+        as="aside"
         className={cn(
-          'aero-navpane w-full shrink-0 flex-col md:flex md:w-[var(--sidebar-width)]',
+          'w-full shrink-0 md:flex md:w-[var(--sidebar-width)]',
           mobileView === 'sidebar' ? 'flex' : 'hidden',
         )}
       >
         {sidebar}
-      </aside>
-      <main
+      </GlassPane>
+      <GlassPane
+        as="main"
+        surface="main"
         id="main"
         aria-label={contentLabel}
-        className={cn('min-w-0 flex-1 flex-col bg-main', mobileView === 'content' ? 'flex' : 'hidden md:flex')}
+        shine={contentLabel ?? ''}
+        className={cn('min-w-0 flex-1', mobileView === 'content' ? 'flex' : 'hidden md:flex')}
       >
+        {header ?? <PaneTitle title={contentLabel} />}
         <ConnectionBanner />
         {children}
-      </main>
+      </GlassPane>
+      {aside}
       {mobileView === 'content' && (
         <Sheet open={open} onOpenChange={setOpen} side="left" title={t('shell.openSidebar')} className="md:hidden">
           <div
@@ -52,20 +73,30 @@ export function SidebarLayout({ sidebar, children, mobileView, contentLabel }: S
   );
 }
 
-/** Full-width page (settings, search, notifications…). */
+/** Full-width page (settings, search, notifications…): one glass pane with the page's name on top. */
 export function PageLayout({
   children,
   label,
+  icon,
   className,
 }: {
   children: ReactNode;
   label?: string;
+  icon?: ReactNode;
   className?: string;
 }) {
   return (
-    <main id="main" aria-label={label} className={cn('flex min-w-0 flex-1 flex-col bg-main', className)}>
+    <GlassPane
+      as="main"
+      surface="main"
+      id="main"
+      aria-label={label}
+      shine={label ?? ''}
+      className={cn('min-w-0 flex-1', className)}
+    >
+      <PaneTitle title={label} icon={icon} />
       <ConnectionBanner />
       {children}
-    </main>
+    </GlassPane>
   );
 }

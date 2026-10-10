@@ -1,12 +1,12 @@
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useDesktop } from '../../stores/desktop';
+import { useScene } from '../../stores/scene';
 import { mount } from '../../test/render';
 import { Wallpaper } from './Wallpaper';
 
 const cleanups: (() => void)[] = [];
-const render = (covered = false) => {
-  const view = mount(<Wallpaper covered={covered} />);
+const render = () => {
+  const view = mount(<Wallpaper />);
   cleanups.push(view.unmount);
   return () => view.host.querySelector('.wallpaper')?.hasAttribute('data-paused');
 };
@@ -14,7 +14,7 @@ const render = (covered = false) => {
 beforeEach(() => {
   vi.useFakeTimers();
   vi.spyOn(document, 'hasFocus').mockReturnValue(true);
-  useDesktop.setState({ modals: 0 });
+  useScene.setState({ modals: 0 });
 });
 afterEach(() => {
   while (cleanups.length) cleanups.pop()?.();
@@ -52,16 +52,15 @@ describe('when the wallpaper moves', () => {
     input.remove();
   });
 
-  it('rests behind a dialog, under a maximised window and while the browser is in the background', () => {
+  it('rests behind a dialog and while the browser is in the background', () => {
     const paused = render();
-    act(() => useDesktop.getState().modalOpened());
+    act(() => useScene.getState().modalOpened());
     expect(paused()).toBe(true);
-    act(() => useDesktop.getState().modalClosed());
+    act(() => useScene.getState().modalClosed());
     expect(paused()).toBe(false);
     act(() => window.dispatchEvent(new Event('blur')));
     expect(paused()).toBe(true);
     act(() => window.dispatchEvent(new Event('focus')));
     expect(paused()).toBe(false);
-    expect(render(true)()).toBe(true);
   });
 });

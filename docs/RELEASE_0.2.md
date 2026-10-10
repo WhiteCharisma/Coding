@@ -7,21 +7,24 @@ the owner's decision (see [What needs your approval](#what-needs-your-approval))
 
 ## What changes for people
 
-- **New look**: a Windows Vista–style desktop with real Aero Glass ([DESIGN.md](DESIGN.md#aero-glass-windows-vista)).
-  On computers and tablets the app is a glass window (title, Minimise / Maximise / Close,
-  address bar with Back/Forward and a breadcrumb) on an animated Frutiger Aero wallpaper, with a
-  black-glass taskbar (Start menu, communities, notification area, clock, Show desktop) and
-  gadgets on wide screens. Settings → Appearance → **Window colour**: twelve glass colours, the
-  colour intensity and _Enable transparency_. Phones keep a full-screen layout. _Daylight_ and
-  _Twilight_ themes; every screen was redesigned.
+- **New look**: Windows Vista–style Aero Glass inside the chat ([DESIGN.md](DESIGN.md#aero-glass-windows-vista)).
+  On computers and tablets every part of the app — channel list, conversation, members — is a
+  glass pane with a glowing glass header and frame, the message box sits on glass at the foot of
+  the conversation, and a smoky-glass rail with a glossy orb holds the navigation (resting on a
+  community shows what is new there); behind it all moves an animated Frutiger Aero wallpaper.
+  Settings → Appearance → **Window colour**: twelve glass colours, the colour intensity and
+  _Enable transparency_. Phones keep a full-screen layout. _Daylight_ and _Twilight_ themes;
+  every screen was redesigned.
 - **Chat spacing fixed**: no more large gaps between messages (root causes and tests in
   [TASKS.md](TASKS.md#release-02--frutiger-aero-upgrade-branch-featurefrutiger-aero-premium-upgrade)).
-- **Animations**: windows open, minimise and maximise; the Start menu rises; taskbar buttons glow
-  and flash orange on a mention; toasts pop up as balloons; the wallpaper moves while you are
-  there (it holds still while you scroll or type, behind dialogs and after a minute without
-  input). New messages, reactions (pop + glints), sending, editing, deleting, menus and photo
-  zoom. Settings → Appearance → Motion: _Full motion_, _Calm_ (still wallpaper, no decorative
-  effects) or _Reduce motion_; the operating system's "reduce motion" always wins.
+- **Animations**: the rail and the panes rise into place when the app opens; a light sweeps
+  across a pane's glass when it shows a new place; the members pane slides in; rail buttons glow
+  in their community's colour and flash orange on a mention; dialogs open as glass windows and
+  toasts pop up as balloons; the wallpaper moves while you are there (it holds still while you
+  scroll or type, behind dialogs and after a minute without input). New messages, reactions
+  (pop + glints), sending, editing, deleting, menus and photo zoom. Settings → Appearance →
+  Motion: _Full motion_, _Calm_ (still wallpaper, no decorative effects) or _Reduce motion_; the
+  operating system's "reduce motion" always wins.
 - **Sounds**: ten original interface sounds (synthesised in the browser, no audio files).
   Interface and notification sounds have separate switches and volumes (Settings →
   Notifications); silent until the first click or key press, and in Do not disturb.

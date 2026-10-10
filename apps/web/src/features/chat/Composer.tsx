@@ -318,7 +318,8 @@ export function Composer({
           ))}
         </div>
       )}
-      <div className="glass rounded-2xl bg-elevated transition-[border-color,box-shadow] duration-[var(--dur-fast)] focus-within:border-accent-border focus-within:shadow-[inset_0_1px_0_var(--glass-sheen),0_0_0_3px_var(--accent-soft),0_8px_24px_-10px_var(--accent-glow)]">
+      {/* From 768 px it sits on the pane's glass foot: opaque, without a blur of its own. */}
+      <div className="glass rounded-2xl bg-elevated transition-[border-color,box-shadow] md:bg-main md:backdrop-filter-none duration-[var(--dur-fast)] focus-within:border-accent-border focus-within:shadow-[inset_0_1px_0_var(--glass-sheen),0_0_0_3px_var(--accent-soft),0_8px_24px_-10px_var(--accent-glow)]">
         {replyTo && (
           <div className="flex items-center gap-2 border-b border-line-subtle px-3 py-2 text-xs text-fg-muted">
             <span className="min-w-0 flex-1 truncate">
@@ -418,10 +419,12 @@ export function Composer({
           </Button>
         </div>
       </div>
-      <div className="mt-1 hidden h-4 items-center justify-between px-1 text-[11px] text-fg-muted md:flex">
+      <div className="on-glass mt-1 hidden h-4 items-center justify-between px-1 text-[11px] text-fg-muted md:flex">
         <span>{t('chat.composer.hintDesktop')}</span>
         {overLimit > -200 && (
-          <span className={cn('font-mono', overLimit > 0 ? 'text-danger' : 'text-fg-muted')}>
+          <span
+            className={cn('font-mono', overLimit > 0 ? 'rounded-full bg-main px-1.5 text-danger' : 'text-fg-muted')}
+          >
             {overLimit > 0 ? t('chat.composer.tooLong', { count: overLimit }) : `${value.length}/${LIMITS.messageMax}`}
           </span>
         )}

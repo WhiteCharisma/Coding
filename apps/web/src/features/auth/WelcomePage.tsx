@@ -8,7 +8,7 @@ import { LogoMark } from '../../components/brand/Logo';
 import { buttonVariants } from '../../components/ui/button';
 import { GlassWindow } from '../../components/ui/glass-window';
 import { Orb } from '../../components/ui/orb';
-import { PublicDesktop } from '../shell/Wallpaper';
+import { PublicBackdrop } from '../shell/Wallpaper';
 import { MeterArt } from './AuthLayout';
 
 const FEATURES = [
@@ -61,15 +61,15 @@ function PreviewArt() {
             </div>
           </div>
         </div>
-        <div className="aero-dark-glass relative -mt-4 ml-auto w-[78%] rotate-[3deg] rounded-[9px] p-3 shadow-[0_0_0_1px_var(--frame-edge),inset_0_1px_0_var(--taskbar-edge),var(--shadow-lg)]">
+        <div className="dock-glass relative -mt-4 ml-auto w-[78%] rotate-[3deg] rounded-[9px] p-3 shadow-[0_0_0_1px_var(--frame-edge),inset_0_1px_0_var(--dock-edge),var(--shadow-lg)]">
           <div className="flex items-center gap-2.5">
             <span className="relative">
               <span className="avatar-frame block size-8 rounded-avatar bg-linear-to-br from-[oklch(0.75_0.1_190)] to-[oklch(0.45_0.09_240)]" />
-              <span className="absolute -right-1 -bottom-1 size-3.5 rounded-full border-2 border-[var(--gadget-lo)] bg-[var(--presence-online)]" />
+              <span className="absolute -right-1 -bottom-1 size-3.5 rounded-full border-2 border-[var(--dock-lo)] bg-[var(--presence-online)]" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="h-2.5 w-20 rounded-full bg-[var(--taskbar-text)] opacity-80" />
-              <div className="mt-1.5 h-2 w-28 rounded-full bg-[var(--taskbar-text-muted)] opacity-60" />
+              <div className="h-2.5 w-20 rounded-full bg-[var(--dock-text)] opacity-80" />
+              <div className="mt-1.5 h-2 w-28 rounded-full bg-[var(--dock-text-muted)] opacity-60" />
             </div>
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function WelcomePage() {
   return (
     <LazyMotion features={domAnimation} strict>
       <div className="relative min-h-dvh">
-        <PublicDesktop />
+        <PublicBackdrop />
         <main id="main" className="relative mx-auto max-w-6xl px-4 pt-4 pb-16 sm:px-6 lg:pt-8">
           <GlassWindow instant title={name} icon={<LogoMark className="size-4" />}>
             <div className="grid lg:grid-cols-[1.15fr_1fr]">

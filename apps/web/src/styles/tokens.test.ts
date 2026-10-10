@@ -164,7 +164,7 @@ describe.each(Object.entries(themes))('%s theme contrast', (_theme, tokens) => {
 });
 
 /*
- * Vista glass (styles/vista.css). Text on glass is checked over both extremes of the wallpaper
+ * Vista glass (styles/vista.css). Text on glass is checked over both extremes of the scene
  * behind it (--wallpaper-bright / --wallpaper-dark), with the reflection streaks on top.
  */
 describe.each(Object.entries(themes))('%s theme: Vista glass', (theme, tokens) => {
@@ -187,33 +187,54 @@ describe.each(Object.entries(themes))('%s theme: Vista glass', (theme, tokens) =
    */
   const HALO = 0.4;
 
-  it('window titles stay readable on the glass in every window colour, intensity and wallpaper', () => {
-    const glow = color('glass-title-glow');
-    const halo = { ...glow, alpha: glow.alpha * HALO };
-    const alphas = [num('frame-a-min'), num('frame-a-max'), 1 /* transparency off */];
+  // Pane headers print the title in --text and secondary text in the --glass-text-* colours
+  // (styles/vista.css swaps them in), all with the same halo.
+  it.each(['glass-title', 'text', 'glass-text-2', 'glass-text-muted'])(
+    '--%s stays readable on the glass in every window colour, intensity and scene',
+    (text) => {
+      const glow = color('glass-title-glow');
+      const halo = { ...glow, alpha: glow.alpha * HALO };
+      const alphas = [num('frame-a-min'), num('frame-a-max'), 1 /* transparency off */];
+      for (const [name, { h, c }] of Object.entries(WINDOW_COLORS)) {
+        for (const alpha of alphas) {
+          for (const wallpaper of WALLPAPER) {
+            const glass = over(color('streak'), over({ l: num('frame-l'), c, h, alpha }, solid(wallpaper)));
+            const where = `${name} glass at ${alpha} over ${wallpaper}`;
+            expect(contrast(solid(text), over(halo, glass)), where).toBeGreaterThanOrEqual(4.5);
+          }
+        }
+      }
+    },
+  );
+
+  it('text in the message box stays readable on the glass foot of a conversation', () => {
+    // The composer (--bg-elevated) and the read-only notice (--bg-inset) are translucent.
+    const alphas = [num('frame-a-min'), num('frame-a-max'), 1];
     for (const [name, { h, c }] of Object.entries(WINDOW_COLORS)) {
       for (const alpha of alphas) {
         for (const wallpaper of WALLPAPER) {
           const glass = over(color('streak'), over({ l: num('frame-l'), c, h, alpha }, solid(wallpaper)));
-          const where = `${name} glass at ${alpha} over ${wallpaper}`;
-          expect(contrast(solid('glass-title'), over(halo, glass)), where).toBeGreaterThanOrEqual(4.5);
+          for (const box of ['bg-elevated', 'bg-inset']) {
+            for (const text of ['text', 'text-muted']) {
+              const where = `${text} on ${box} over ${name} glass at ${alpha} over ${wallpaper}`;
+              expect(contrast(solid(text), over(color(box), glass)), where).toBeGreaterThanOrEqual(4.5);
+            }
+          }
         }
       }
     }
   });
 
-  it('taskbar, Start menu and gadget text stays readable on black glass', () => {
-    // The lightest part of each black glass, over the wallpaper or over a window (Start menu).
-    for (const tint of ['taskbar-hi', 'gadget-hi']) {
-      for (const behind of [...WALLPAPER, 'bg-main']) {
-        const glass = over(color('streak'), over(color(tint), solid(behind)));
-        for (const text of ['taskbar-text', 'taskbar-text-muted'])
-          expect(contrast(solid(text), glass), `${text} on ${tint} over ${behind}`).toBeGreaterThanOrEqual(4.5);
-      }
+  it('text stays readable on smoky glass (rail previews, phone tab bar)', () => {
+    // The lightest part of the smoky glass, over the scene or over a pane (previews).
+    for (const behind of [...WALLPAPER, 'bg-main']) {
+      const glass = over(color('streak'), over(color('dock-hi'), solid(behind)));
+      for (const text of ['dock-text', 'dock-text-muted'])
+        expect(contrast(solid(text), glass), `${text} on dock-hi over ${behind}`).toBeGreaterThanOrEqual(4.5);
     }
   });
 
-  it('text stays readable on the command bar and information bars of a window', () => {
+  it('text stays readable on the opaque header bars (phones, drawers) and information bars', () => {
     for (const band of ['command-hi', 'command-mid', 'command-lo']) {
       for (const text of ['text', 'text-2', 'text-muted', 'accent-text'])
         expect(contrast(solid(text), solid(band)), `${text} on ${band}`).toBeGreaterThanOrEqual(4.5);
@@ -224,11 +245,11 @@ describe.each(Object.entries(themes))('%s theme: Vista glass', (theme, tokens) =
     }
   });
 
-  it('taskbar icons stay visible while a button flashes for attention', () => {
+  it('rail icons stay visible while a button flashes for attention', () => {
     for (const band of ['attention-hi', 'attention-mid', 'attention-lo']) {
       for (const behind of WALLPAPER) {
-        const button = over(color(band), over(color('taskbar-hi'), solid(behind)));
-        expect(contrast(solid('taskbar-text'), button), `${band} over ${behind}`).toBeGreaterThanOrEqual(3);
+        const button = over(color(band), over(color('dock-hi'), solid(behind)));
+        expect(contrast(solid('dock-text'), button), `${band} over ${behind}`).toBeGreaterThanOrEqual(3);
       }
     }
   });

@@ -9,9 +9,9 @@
  * Surfaces are partly transparent: their contrast is checked (tokens.test.ts) after
  * compositing them over the darkest and the lightest colour of the sky behind them.
  *
- * Vista Aero Glass (styles/vista.css): windows have real glass frames (blur + tint + reflection
- * streaks) around an opaque content area, a black-glass taskbar and glass gadgets. The frame's
- * hue and strength are the person's "window colour" (Settings → Appearance).
+ * Vista Aero Glass (styles/vista.css): the app's panes have real glass headers and frames (blur +
+ * tint + reflection streaks) around an opaque content area, and the navigation rail is smoky
+ * glass. The glass's hue and strength are the person's "window colour" (Settings → Appearance).
  */
 
 :root,
@@ -135,35 +135,35 @@
   /* Title text on glass: near black on a soft white glow (readable over any glass colour) */
   --glass-title: oklch(0.16 0.03 250);
   --glass-title-glow: oklch(1 0 0 / 0.95);
-  /* Command bar: the glossy toolbar at the top of a window's content */
+  /* Secondary text in a glass header (a topic, toolbar buttons): close to the title's contrast */
+  --glass-text-2: oklch(0.36 0.06 250);
+  --glass-text-muted: oklch(0.4 0.05 248);
+  /* Command bar: the glossy header of a pane on phones and in drawers, and information bars */
   --command-hi: oklch(0.995 0.006 220);
   --command-mid: oklch(0.955 0.022 222);
   --command-lo: oklch(0.905 0.04 226);
   --command-edge: oklch(0.76 0.05 234);
-  /* Taskbar: black glass with a bright top edge */
-  --taskbar-hi: oklch(0.24 0.04 240 / 0.86);
-  --taskbar-lo: oklch(0.08 0.02 250 / 0.9);
-  --taskbar-text: oklch(0.985 0.004 220);
-  --taskbar-text-muted: oklch(0.92 0.02 225);
-  --taskbar-edge: oklch(1 0 0 / 0.38);
-  /* Caption buttons (minimise, maximise: clear glass; close: red glass) and their glows */
-  /* A taskbar button asking for attention (a mention): Vista's orange flash. */
+  /* Smoky glass (navigation rail, phone tab bar, previews) with a bright edge */
+  --dock-hi: oklch(0.24 0.04 240 / 0.86);
+  --dock-lo: oklch(0.08 0.02 250 / 0.9);
+  --dock-text: oklch(0.985 0.004 220);
+  --dock-text-muted: oklch(0.92 0.02 225);
+  --dock-edge: oklch(1 0 0 / 0.38);
+  /* A rail button asking for attention (a mention): Vista's orange flash. */
   --attention-hi: oklch(0.66 0.15 68 / 0.92);
   --attention-mid: oklch(0.58 0.16 55 / 0.9);
   --attention-lo: oklch(0.5 0.16 45 / 0.9);
+  /* Dialog close button (red glass), and the blue glow of glass buttons in a pane header */
   --caption-close: oklch(0.56 0.19 27);
   --caption-close-hi: oklch(0.8 0.12 32);
   --caption-glow: oklch(0.82 0.13 215 / 0.95);
   --caption-close-glow: oklch(0.68 0.22 28 / 0.95);
-  /* Start orb and the round back/forward buttons */
+  /* The glossy orb (top of the rail, onboarding steps) */
   --orb-hi: oklch(0.93 0.07 200);
   --orb-mid: oklch(0.6 0.15 232);
   --orb-lo: oklch(0.3 0.1 252);
   --orb-glow: oklch(0.84 0.14 200 / 0.9);
-  /* Gadgets (dark glass cards on the desktop) */
-  --gadget-hi: oklch(0.25 0.04 240 / 0.86);
-  --gadget-lo: oklch(0.1 0.02 250 / 0.82);
-  /* Wallpaper scene (decorative): hills, lake, light swooshes */
+  /* The scene behind the app (decorative): hills, light swooshes, aurora */
   --wp-grass-hi: oklch(0.86 0.17 132);
   --wp-grass-lo: oklch(0.6 0.16 146);
   --wp-grass-far: oklch(0.8 0.12 150);
@@ -288,15 +288,17 @@
   --streak: oklch(1 0 0 / 0.09);
   --glass-title: oklch(0.98 0.008 220);
   --glass-title-glow: oklch(0.1 0.03 255 / 0.92);
+  --glass-text-2: oklch(0.95 0.015 225);
+  --glass-text-muted: oklch(0.94 0.02 225);
   --command-hi: oklch(0.36 0.05 244);
   --command-mid: oklch(0.29 0.05 247);
   --command-lo: oklch(0.245 0.05 250);
   --command-edge: oklch(0.13 0.04 256);
-  --taskbar-hi: oklch(0.25 0.05 245 / 0.8);
-  --taskbar-lo: oklch(0.05 0.02 258 / 0.9);
-  --taskbar-text: oklch(0.97 0.01 220);
-  --taskbar-text-muted: oklch(0.92 0.03 225);
-  --taskbar-edge: oklch(0.9 0.05 215 / 0.32);
+  --dock-hi: oklch(0.25 0.05 245 / 0.8);
+  --dock-lo: oklch(0.05 0.02 258 / 0.9);
+  --dock-text: oklch(0.97 0.01 220);
+  --dock-text-muted: oklch(0.92 0.03 225);
+  --dock-edge: oklch(0.9 0.05 215 / 0.32);
   --attention-hi: oklch(0.66 0.15 68 / 0.92);
   --attention-mid: oklch(0.58 0.16 55 / 0.9);
   --attention-lo: oklch(0.5 0.16 45 / 0.9);
@@ -308,8 +310,6 @@
   --orb-mid: oklch(0.52 0.14 235);
   --orb-lo: oklch(0.24 0.09 255);
   --orb-glow: oklch(0.8 0.14 200 / 0.85);
-  --gadget-hi: oklch(0.25 0.05 245 / 0.8);
-  --gadget-lo: oklch(0.07 0.02 258 / 0.82);
   --wp-grass-hi: oklch(0.42 0.1 168);
   --wp-grass-lo: oklch(0.2 0.06 195);
   --wp-grass-far: oklch(0.3 0.07 205);
@@ -334,9 +334,9 @@
   --context-width: 296px;
   --header-height: 54px;
   --mobile-nav-height: 62px;
-  --taskbar-height: 42px;
-  --gadgets-width: 214px;
-  --desktop-gap: 12px;
+  --rail-width: 64px;
+  --pane-gap: 8px;
+  --pane-radius: 10px;
 
   /* Motion */
   --dur-instant: 80ms;

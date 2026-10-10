@@ -104,17 +104,32 @@ export function ChannelPage() {
       mobileView="content"
       sidebar={<CommunitySidebar community={community} />}
       contentLabel={`#${channel.name}`}
+      header={
+        <ChannelHeader
+          title={channel.name}
+          topic={channel.topic}
+          icon={iconKind}
+          backTo={`/c/${communityId}`}
+          activePanel={panel}
+          onTogglePanel={toggle}
+          searchTo={`/search?communityId=${communityId}`}
+          extra={canSend ? <VoiceJoinButton channelId={channel.id} name={`#${channel.name}`} /> : undefined}
+        />
+      }
+      aside={
+        <ContextPanel
+          panel={panel}
+          title={panel === 'pins' ? t('chat.pins.title') : t('community.members.title')}
+          onClose={close}
+        >
+          {panel === 'pins' ? (
+            <PinsPanel channelId={channel.id} />
+          ) : (
+            <MembersPanel community={community} members={members.data} />
+          )}
+        </ContextPanel>
+      }
     >
-      <ChannelHeader
-        title={channel.name}
-        topic={channel.topic}
-        icon={iconKind}
-        backTo={`/c/${communityId}`}
-        activePanel={panel}
-        onTogglePanel={toggle}
-        searchTo={`/search?communityId=${communityId}`}
-        extra={canSend ? <VoiceJoinButton channelId={channel.id} name={`#${channel.name}`} /> : undefined}
-      />
       <div className="flex min-h-0 flex-1">
         <ChannelView
           key={channel.id}
@@ -137,17 +152,6 @@ export function ChannelPage() {
             </div>
           }
         />
-        <ContextPanel
-          panel={panel}
-          title={panel === 'pins' ? t('chat.pins.title') : t('community.members.title')}
-          onClose={close}
-        >
-          {panel === 'pins' ? (
-            <PinsPanel channelId={channel.id} />
-          ) : (
-            <MembersPanel community={community} members={members.data} />
-          )}
-        </ContextPanel>
       </div>
     </SidebarLayout>
   );

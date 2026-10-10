@@ -17,7 +17,7 @@ interface GlassWindowProps {
 }
 
 /**
- * A window standing on the desktop outside the app (sign-in, welcome, onboarding): Aero glass
+ * A glass window for the pages outside the chat (sign-in, welcome, onboarding): Aero glass
  * all around with the title on the glass and an opaque content area, like a Vista dialog. It has
  * no caption buttons — there is nothing to minimise or close on these pages.
  */

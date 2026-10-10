@@ -11,6 +11,7 @@ import { useChat } from '../../stores/chat';
 import { EMPTY_CHANNEL, useMessages } from '../../stores/messages';
 import { useSession } from '../../stores/session';
 import { useUi } from '../../stores/ui';
+import { PaneFoot } from '../../components/ui/glass-pane';
 import { Composer } from './Composer';
 import type { MessageContext } from './Message';
 import { MessageList } from './MessageList';
@@ -164,18 +165,20 @@ export function ChannelView({
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <VoiceRoomStrip channelId={channelId} />
       <MessageList channelId={channelId} ctx={ctx} beginning={beginning} />
-      <TypingIndicator channelId={channelId} />
-      <Composer
-        channelId={channelId}
-        placeholder={placeholder}
-        canSend={canSend}
-        canAttach={canAttach}
-        disabledReason={disabledReason}
-        replyTo={replyTo}
-        onCancelReply={() => setReplyTo(null)}
-        onEditLast={onEditLast}
-        mentionCandidates={mentionCandidates}
-      />
+      <PaneFoot>
+        <TypingIndicator channelId={channelId} />
+        <Composer
+          channelId={channelId}
+          placeholder={placeholder}
+          canSend={canSend}
+          canAttach={canAttach}
+          disabledReason={disabledReason}
+          replyTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+          onEditLast={onEditLast}
+          mentionCandidates={mentionCandidates}
+        />
+      </PaneFoot>
     </div>
   );
 }

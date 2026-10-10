@@ -1,9 +1,9 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { useDesktop } from '../../stores/desktop';
+import { useScene } from '../../stores/scene';
 import { SkyArt } from '../../components/brand/SkyArt';
 
 /**
- * The desktop behind the windows: a Frutiger Aero scene that is always in gentle motion.
+ * The scene behind the app's glass: a Frutiger Aero landscape in gentle motion.
  * Daylight: sun rays turning, clouds drifting, ribbons of light, green hills, glossy bubbles
  * rising, sparkles. Twilight: aurora curtains, twinkling stars, glowing
  * bubbles. Everything moves with transform/opacity only, pauses while the browser window is in
@@ -203,17 +203,16 @@ const isTyping = (target: EventTarget | null) =>
  * Keeping a scene in motion means redrawing the screen for every frame: cheap with graphics
  * acceleration, about one processor core without it (docs/PERFORMANCE.md), and every frame
  * competes with what you are doing. So it only moves while someone can enjoy it — not while the
- * browser is in the background, a maximised window covers it (`covered`), a dialog is open,
- * you are scrolling or typing (your eyes are elsewhere, and the list must stay smooth), or
- * nobody has touched anything for a minute.
+ * browser is in the background, a dialog is open, you are scrolling or typing (your eyes are
+ * elsewhere, and the list must stay smooth), or nobody has touched anything for a minute.
  * (A CSS `:root:has(dialog)` rule did the dialog part for free, but made every change anywhere
  * on the page restyle the whole document: sending a message took twice as long.)
  */
-export function Wallpaper({ covered = false }: { covered?: boolean }) {
+export function Wallpaper() {
   const [background, setBackground] = useState(() => !document.hasFocus());
   const [idle, setIdle] = useState(false);
   const [busy, setBusy] = useState(false);
-  const modal = useDesktop((s) => s.modals > 0);
+  const modal = useScene((s) => s.modals > 0);
   useEffect(() => {
     const focus = () => setBackground(false);
     const blur = () => setBackground(true);
@@ -264,7 +263,7 @@ export function Wallpaper({ covered = false }: { covered?: boolean }) {
       window.clearTimeout(start);
     };
   }, []);
-  const paused = background || idle || busy || covered || modal;
+  const paused = background || idle || busy || modal;
   return (
     <div aria-hidden className="wallpaper max-md:hidden" data-paused={paused || undefined}>
       <div className="wp-day">
@@ -314,8 +313,8 @@ export function Wallpaper({ covered = false }: { covered?: boolean }) {
   );
 }
 
-/** The desktop behind the pages outside the app: the wallpaper, or a still sky on phones. */
-export function PublicDesktop() {
+/** Behind the pages outside the app (sign-in, welcome…): the scene, or a still sky on phones. */
+export function PublicBackdrop() {
   return (
     <>
       <Wallpaper />

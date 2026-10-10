@@ -5,7 +5,7 @@ import { LogoMark } from '../components/brand/Logo';
 import { buttonVariants } from '../components/ui/button';
 import { EmptyState } from '../components/ui/empty-state';
 import { GlassWindow } from '../components/ui/glass-window';
-import { PublicDesktop } from '../features/shell/Wallpaper';
+import { PublicBackdrop } from '../features/shell/Wallpaper';
 
 export function FullscreenSpinner() {
   return (
@@ -20,7 +20,7 @@ export function FullscreenSpinner() {
 export function NotFoundPage() {
   return (
     <main id="main" className="relative grid min-h-dvh place-items-center p-4">
-      <PublicDesktop />
+      <PublicBackdrop />
       <GlassWindow title={t('common.appName')} icon={<LogoMark className="size-4" />} className="w-full max-w-md">
         <EmptyState
           icon={Compass}

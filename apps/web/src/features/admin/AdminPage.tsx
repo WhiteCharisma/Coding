@@ -64,7 +64,7 @@ export default function AdminPage() {
 
   const sidebar = (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center px-4">
+      <div className="pane-head px-4">
         <h1 className="font-display text-[15px] font-semibold tracking-tight text-fg">{t('admin.title')}</h1>
       </div>
       <nav aria-label={t('admin.title')} className="scroll-area min-h-0 flex-1 p-2">

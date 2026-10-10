@@ -33,7 +33,7 @@ export function ChannelHeader({
   const setDrawer = useUi((s) => s.setMobileSidebarOpen);
   const Icon = icon === 'hash' ? Hash : icon === 'lock' ? Lock : icon === 'megaphone' ? Megaphone : null;
   return (
-    <header className="aero-commandbar flex h-[var(--header-height)] shrink-0 items-center gap-1 px-2 md:h-11 md:gap-2 md:px-3">
+    <header className="pane-head gap-1 px-2 md:gap-2 md:px-3">
       <Link
         to={backTo}
         aria-label={t('common.actions.back')}

@@ -4,7 +4,7 @@ import { t } from '../../i18n';
 import { useSession } from '../../stores/session';
 import { Logo, LogoMark } from '../../components/brand/Logo';
 import { GlassWindow } from '../../components/ui/glass-window';
-import { PublicDesktop } from '../shell/Wallpaper';
+import { PublicBackdrop } from '../shell/Wallpaper';
 
 /** Decorative level-meter bars (static: decoration never animates in a loop). */
 export function MeterArt({ bars = 28, className }: { bars?: number; className?: string }) {
@@ -32,7 +32,7 @@ export function AuthLayout({ children, title, subtitle }: { children: ReactNode;
   const name = config?.instanceName ?? t('common.appName');
   return (
     <div className="relative flex min-h-dvh flex-col">
-      <PublicDesktop />
+      <PublicBackdrop />
       <header className="relative mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
         <Link to="/welcome" className="aero-glass glass-chip inline-flex px-3 py-1.5">
           <Logo name={name} />

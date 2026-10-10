@@ -27,7 +27,7 @@ import { AvatarUploader } from '../../components/user/AvatarUploader';
 import { DisciplinePicker } from '../../components/user/DisciplinePicker';
 import { CreateCommunityForm, JoinWithInvite } from '../community/CreateJoinDialog';
 import { CommunityCard, useExplore } from '../explore/ExplorePage';
-import { PublicDesktop } from '../shell/Wallpaper';
+import { PublicBackdrop } from '../shell/Wallpaper';
 
 const STEPS = ['profile', 'disciplines', 'community', 'tour'] as const;
 type Step = (typeof STEPS)[number];
@@ -237,7 +237,7 @@ export default function OnboardingPage() {
   return (
     <LazyMotion features={domAnimation} strict>
       <div className="relative flex min-h-dvh flex-col">
-        <PublicDesktop />
+        <PublicBackdrop />
         <main id="main" className="relative mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-10 sm:px-6 sm:pt-8">
           <GlassWindow
             title={config?.instanceName ?? t('common.appName')}

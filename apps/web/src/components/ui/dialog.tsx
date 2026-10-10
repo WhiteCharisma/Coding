@@ -3,7 +3,7 @@ import { Dialog as D } from 'radix-ui';
 import { useEffect, type ReactNode } from 'react';
 import { t } from '../../i18n';
 import { cn } from '../../lib/cn';
-import { useDesktop } from '../../stores/desktop';
+import { useScene } from '../../stores/scene';
 
 export const Dialog = D.Root;
 export const DialogTrigger = D.Trigger;
@@ -28,8 +28,8 @@ const sizes = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-xl', xl: 'max-w-3xl' 
  */
 function ModalPresence() {
   useEffect(() => {
-    useDesktop.getState().modalOpened();
-    return () => useDesktop.getState().modalClosed();
+    useScene.getState().modalOpened();
+    return () => useScene.getState().modalClosed();
   }, []);
   return null;
 }

@@ -52,7 +52,7 @@ export function Toaster() {
     <div
       aria-live="polite"
       aria-relevant="additions"
-      className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--mobile-nav-height)+12px)] z-[var(--z-toast)] flex flex-col items-center gap-2 px-4 md:right-3 md:bottom-[calc(var(--taskbar-height)+14px)] md:left-auto md:items-end md:px-0"
+      className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--mobile-nav-height)+12px)] z-[var(--z-toast)] flex flex-col items-center gap-2 px-4 md:right-5 md:bottom-5 md:left-auto md:items-end md:px-0"
     >
       {items.map((item) => {
         const Icon = icons[item.tone];
@@ -60,7 +60,7 @@ export function Toaster() {
           <div
             key={item.id}
             role={item.tone === 'error' ? 'alert' : 'status'}
-            // Balloon tips rise from the notification area, as on Windows.
+            // Vista balloon tips, popping up at the bottom right.
             className={cn(
               'balloon pointer-events-auto flex w-full max-w-sm origin-bottom-right items-start gap-3 px-3.5 py-3 text-ui',
               item.leaving ? 'animate-pop-out' : 'animate-[balloon-in_340ms_var(--ease-spring)_both]',

@@ -42,16 +42,6 @@ export function formatTime(t: number): string {
   return dateFormat('time', { hour: '2-digit', minute: '2-digit' }).format(t);
 }
 
-/** The taskbar clock's date: "09/10/2026" (numeric, in the reader's order). */
-export function formatNumericDate(t: number): string {
-  return dateFormat('numericDate', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(t);
-}
-
-/** "Friday 9 October 2026". */
-export function formatLongDate(t: number): string {
-  return dateFormat('longDate', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(t);
-}
-
 export function formatDateTime(t: number): string {
   return dateFormat('dateTime', { dateStyle: 'medium', timeStyle: 'short' }).format(t);
 }

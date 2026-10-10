@@ -107,7 +107,7 @@ export const settings = {
     motionHint:
       'Calm keeps quick transitions but turns off decorative effects (the moving wallpaper, light sweeps, sparkles, bounces). Reduce motion removes nearly all animation. Your system’s reduced-motion setting is always respected.',
     windowColor: 'Window colour',
-    windowColorHint: 'The colour of the glass around windows, dialogs and the Start menu.',
+    windowColorHint: 'The colour of the glass across the app: pane headers and frames, the message box and dialogs.',
     colorName: {
       sky: 'Sky',
       sea: 'Sea',

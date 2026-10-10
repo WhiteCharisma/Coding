@@ -1,12 +1,20 @@
 /*
- * Vista Aero Glass — the desktop around the app (docs/DESIGN.md → Aero Glass).
+ * Vista Aero Glass in the chat (docs/DESIGN.md → Aero Glass).
  *
- * Real glass (backdrop blur + saturation + tint + reflection streaks) is used where glass shows
- * in Windows Vista: window frames and title areas, the taskbar, the Start menu, dialogs and
- * gadgets. A window's content is opaque, as in Vista, so whatever changes inside a window (new
- * messages, scrolling) never has to be re-blurred: the glass strips sit around the content,
- * not behind it.
+ * Real glass (backdrop blur + saturation + window-colour tint + reflection streaks) where Vista
+ * put glass: the header and frame of each pane, the smoky navigation rail, dialogs, menus and
+ * the phone tab bar. What you read sits on opaque surfaces under the glass header, as in a Vista
+ * window, so new messages and scrolling never have to be re-blurred: the glass strips sit around
+ * the content, not behind it.
  */
+
+/* Height of a pane's glass foot (components/ui/glass-pane.tsx → PaneFoot). Not inherited, so
+   when the composer grows only the pane itself is restyled, not every message in it. */
+@property --pane-foot {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
 
 :root {
   /* Window colour: stores/ui.ts (and public/theme-init.js) write hue, chroma and strength. */
@@ -17,7 +25,7 @@
   --frame-tint: oklch(var(--frame-l) var(--frame-c) var(--frame-h) / var(--frame-a));
   --frame-solid: oklch(var(--frame-l) var(--frame-c) var(--frame-h));
   --frame-blur: 14px;
-  /* Diagonal reflections across the glass, fixed to the screen like a sheet over the desktop. */
+  /* Diagonal reflections across the glass, fixed to the screen: every pane catches the same light. */
   --glass-streaks: linear-gradient(
     104deg,
     transparent 0 5%,
@@ -50,17 +58,24 @@
     -webkit-backdrop-filter: blur(var(--frame-blur)) saturate(1.8) brightness(1.04);
     backdrop-filter: blur(var(--frame-blur)) saturate(1.8) brightness(1.04);
   }
-  :root[data-transparency='off'] :is(.aero-glass, .aero-dark-glass, .taskbar-glass, .gadget, .glass) {
+  /* Smoky black glass (navigation rail, phone tab bar, previews), like Vista's taskbar. */
+  .dock-glass {
+    color: var(--dock-text);
+    background-image:
+      var(--glass-streaks),
+      linear-gradient(
+        180deg,
+        var(--dock-hi),
+        color-mix(in oklab, var(--dock-hi) 50%, var(--dock-lo)) 48%,
+        var(--dock-lo) 52%
+      );
+    background-attachment: fixed, scroll;
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+    backdrop-filter: blur(12px) saturate(1.5);
+  }
+  :root[data-transparency='off'] :is(.aero-glass, .dock-glass, .glass) {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-  }
-  /* Black glass (taskbar, Start menu's right column, gadgets): a smoky tint over the blur. */
-  .aero-dark-glass {
-    background-color: transparent;
-    background-image: var(--glass-streaks), linear-gradient(180deg, var(--gadget-hi), var(--gadget-lo));
-    background-attachment: fixed, scroll;
-    -webkit-backdrop-filter: blur(12px) saturate(1.6);
-    backdrop-filter: blur(12px) saturate(1.6);
   }
   /* Text printed on glass: a soft halo behind it keeps it readable over any colour. */
   .glass-text {
@@ -71,90 +86,167 @@
       0 0 14px var(--glass-title-glow);
   }
 
-  /* ---------------------------------------------------------------- window */
-  .aero-window {
-    --frame-top: 66px;
-    --frame-side: 7px;
-    --frame-bottom: 7px;
-    --window-radius: 9px;
+  /* ---------------------------------------------------------------- panes */
+  /*
+   * A pane (components/ui/glass-pane.tsx) is a small Aero window: glass along the top, where its
+   * header sits, and a thin glass frame around an opaque content area. On phones it is the
+   * whole screen and has no glass.
+   */
+  .glass-pane {
+    --pane-surface: var(--bg-sidebar);
     position: relative;
     isolation: isolate;
     display: flex;
-    flex-direction: column;
     min-width: 0;
     min-height: 0;
-    padding: var(--frame-top) var(--frame-side) var(--frame-bottom);
-    border-radius: var(--window-radius);
-    box-shadow:
-      0 0 0 1px var(--frame-edge),
-      var(--frame-shadow);
+    flex-direction: column;
+    background-color: var(--pane-surface);
+    color: var(--text);
   }
-  .aero-window[data-maximized] {
-    --frame-side: 0px;
-    --frame-bottom: 0px;
-    --window-radius: 0px;
-    box-shadow: 0 1px 0 var(--frame-edge);
+  .glass-pane-main {
+    --pane-surface: var(--bg-main);
   }
-  /* The glass: four strips around the content, so only the frame is ever blurred. */
-  .aero-frame {
-    position: absolute;
-    z-index: -1;
-    pointer-events: none;
-  }
-  .aero-frame-top {
-    inset: 0 0 auto;
-    height: var(--frame-top);
-    border-radius: var(--window-radius) var(--window-radius) 0 0;
-    box-shadow:
-      inset 0 1px 0 var(--frame-highlight),
-      inset 1px 0 0 var(--frame-highlight),
-      inset -1px 0 0 var(--frame-highlight);
-  }
-  /* The upper half of the title area catches more light. */
-  .aero-frame-top::after {
-    content: '';
-    position: absolute;
-    inset: 1px 1px 52% 1px;
-    border-radius: inherit;
-    background: linear-gradient(180deg, oklch(1 0 0 / 0.32), oklch(1 0 0 / 0.04));
-  }
-  .aero-frame-left,
-  .aero-frame-right {
-    top: var(--frame-top);
-    bottom: var(--frame-bottom);
-    width: var(--frame-side);
-  }
-  .aero-frame-left {
-    left: 0;
-    box-shadow: inset 1px 0 0 var(--frame-highlight);
-  }
-  .aero-frame-right {
-    right: 0;
-    box-shadow: inset -1px 0 0 var(--frame-highlight);
-  }
-  .aero-frame-bottom {
-    inset: auto 0 0;
-    height: var(--frame-bottom);
-    border-radius: 0 0 var(--window-radius) var(--window-radius);
-    box-shadow:
-      inset 0 -1px 0 var(--frame-highlight),
-      inset 1px 0 0 var(--frame-highlight),
-      inset -1px 0 0 var(--frame-highlight);
-  }
-  .aero-window[data-maximized] :is(.aero-frame-left, .aero-frame-right, .aero-frame-bottom) {
+  .pane-frame,
+  .pane-shine,
+  .pane-foot-glass {
     display: none;
   }
-  /* One light sweep across the title area when a window opens or comes back. */
-  .aero-shine {
-    position: absolute;
-    inset: 0 0 auto;
-    height: var(--frame-top);
-    overflow: hidden;
-    border-radius: var(--window-radius) var(--window-radius) 0 0;
-    pointer-events: none;
-    z-index: -1;
+  /* The header (the pane's first child): an opaque bar on phones and in drawers… */
+  .pane-head {
+    position: relative;
+    display: flex;
+    height: var(--header-height);
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    background-image: linear-gradient(
+      180deg,
+      var(--command-hi),
+      var(--command-mid) 50%,
+      color-mix(in oklab, var(--command-mid) 70%, var(--command-lo)) 50%,
+      var(--command-lo)
+    );
+    border-bottom: 1px solid var(--command-edge);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.55);
   }
-  .aero-shine::before,
+  @media (min-width: 768px) {
+    .glass-pane {
+      --pane-head: 48px;
+      --pane-edge: 6px;
+      padding: var(--pane-head) var(--pane-edge) var(--pane-edge);
+      border-radius: var(--pane-radius);
+      /* The opaque surface fills the content box down to the glass foot, if there is one. */
+      background: linear-gradient(var(--pane-surface), var(--pane-surface)) 0 0 / 100% calc(100% - var(--pane-foot))
+        no-repeat content-box;
+      box-shadow:
+        0 0 0 1px var(--frame-edge),
+        var(--frame-shadow);
+    }
+    /* …and on glass from 768 px: it rises into the glass strip and its text glows. */
+    .glass-pane .pane-head {
+      height: var(--pane-head);
+      margin-top: calc(-1 * var(--pane-head));
+      background: none;
+      border-bottom: 0;
+      box-shadow: none;
+    }
+    /* Text on the glass: secondary text keeps close to the title's contrast (tokens.test.ts). */
+    .glass-pane :is(.pane-head, .on-glass) {
+      --text-2: var(--glass-text-2);
+      --text-muted: var(--glass-text-muted);
+      text-shadow:
+        0 0 4px var(--glass-title-glow),
+        0 0 8px var(--glass-title-glow),
+        0 0 14px var(--glass-title-glow);
+    }
+    .glass-pane .pane-head svg {
+      filter: drop-shadow(0 0 3px var(--glass-title-glow));
+    }
+    /* The glass foot (the message box): glass of its exact height behind it. */
+    .glass-pane .pane-foot {
+      position: relative;
+      isolation: isolate;
+    }
+    .glass-pane .pane-foot-glass {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      display: block;
+      pointer-events: none;
+    }
+    /* The glass: four strips around the content, so only the frame is ever blurred. */
+    .pane-frame {
+      position: absolute;
+      z-index: -1;
+      display: block;
+      pointer-events: none;
+    }
+    .pane-frame-top {
+      inset: 0 0 auto;
+      height: var(--pane-head);
+      border-radius: var(--pane-radius) var(--pane-radius) 0 0;
+      box-shadow:
+        inset 0 1px 0 var(--frame-highlight),
+        inset 1px 0 0 var(--frame-highlight),
+        inset -1px 0 0 var(--frame-highlight);
+    }
+    /* The upper half of the glass catches more light. */
+    .pane-frame-top::after {
+      content: '';
+      position: absolute;
+      inset: 1px 1px 52% 1px;
+      border-radius: inherit;
+      background: linear-gradient(180deg, oklch(1 0 0 / 0.3), oklch(1 0 0 / 0.04));
+    }
+    .pane-frame-left,
+    .pane-frame-right {
+      top: var(--pane-head);
+      bottom: var(--pane-edge);
+      width: var(--pane-edge);
+    }
+    .pane-frame-left {
+      left: 0;
+      box-shadow: inset 1px 0 0 var(--frame-highlight);
+    }
+    .pane-frame-right {
+      right: 0;
+      box-shadow: inset -1px 0 0 var(--frame-highlight);
+    }
+    .pane-frame-bottom {
+      inset: auto 0 0;
+      height: var(--pane-edge);
+      border-radius: 0 0 var(--pane-radius) var(--pane-radius);
+      box-shadow:
+        inset 0 -1px 0 var(--frame-highlight),
+        inset 1px 0 0 var(--frame-highlight),
+        inset -1px 0 0 var(--frame-highlight);
+    }
+    /* The content's edge, set into the glass. */
+    .glass-pane::after {
+      --pane-foot: inherit;
+      content: '';
+      position: absolute;
+      inset: var(--pane-head) var(--pane-edge) calc(var(--pane-edge) + var(--pane-foot));
+      border-radius: 2px;
+      box-shadow: 0 0 0 1px var(--frame-edge);
+      pointer-events: none;
+    }
+    /* A light sweeps once across the glass when the pane shows a new place. */
+    .pane-shine {
+      position: absolute;
+      inset: 0 0 auto;
+      z-index: -1;
+      display: block;
+      height: var(--pane-head);
+      overflow: hidden;
+      border-radius: var(--pane-radius) var(--pane-radius) 0 0;
+      pointer-events: none;
+    }
+    .pane-shine::before {
+      animation: title-shine 1100ms var(--ease-out) 120ms 1 both;
+    }
+  }
+  .pane-shine::before,
   .glass-window-shine::before {
     content: '';
     position: absolute;
@@ -164,124 +256,332 @@
     transform: skewX(-20deg);
     opacity: 0;
   }
-  .aero-window[data-anim] .aero-shine::before {
-    animation: title-shine 1100ms var(--ease-out) 200ms 1 both;
-  }
 
-  .aero-titlebar {
-    position: absolute;
-    inset: 0 0 auto;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 150px 0 10px;
-    user-select: none;
-  }
-  .aero-title {
-    position: relative;
-    min-width: 0;
-    overflow: hidden;
-    font-size: 0.8125rem;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  /* Caption buttons hang from the top edge: two clear glass buttons and a red close button. */
-  .caption-buttons {
-    position: absolute;
-    top: 0;
-    right: 7px;
-    display: flex;
-    height: 20px;
-    z-index: 2;
-  }
-  .caption-btn {
-    position: relative;
-    display: grid;
-    width: 27px;
-    height: 20px;
-    place-items: center;
-    color: oklch(1 0 0);
-    background: linear-gradient(
-      180deg,
-      oklch(1 0 0 / 0.4),
-      oklch(1 0 0 / 0.16) 50%,
-      oklch(1 0 0 / 0.04) 50%,
-      oklch(1 0 0 / 0.22)
-    );
-    box-shadow:
-      inset 0 -1px 0 oklch(1 0 0 / 0.35),
-      inset 1px 0 0 oklch(1 0 0 / 0.25),
-      0 0 0 1px var(--frame-edge);
+  /* Toolbar buttons in a header: glossy when pointed at, with a blue glow on the glass. */
+  .command-btn {
+    border: 1px solid transparent;
+    border-radius: 4px;
     transition:
       background-color var(--dur-fast) var(--ease-out),
-      filter var(--dur-fast) var(--ease-out);
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
   }
-  .caption-btn:first-child {
-    border-bottom-left-radius: 5px;
+  @media (hover: hover) {
+    .command-btn:hover:not(:disabled) {
+      border-color: var(--selection-border);
+      background-image: linear-gradient(180deg, oklch(1 0 0 / 0.75), oklch(1 0 0 / 0.25) 50%, transparent 51%);
+      box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.45);
+    }
   }
-  .caption-btn:last-child {
-    border-bottom-right-radius: 5px;
+  .command-btn:is([aria-pressed='true'], [data-state='open']) {
+    border-color: var(--selection-border);
+    background-image: linear-gradient(180deg, var(--selection-lo), var(--selection-hi));
+    box-shadow: inset 0 1px 3px var(--glass-edge-low);
   }
-  .caption-btn svg {
-    width: 11px;
-    height: 11px;
-    stroke-width: 2.6;
-    filter: drop-shadow(0 0 1px oklch(0 0 0 / 0.95)) drop-shadow(0 1px 1px oklch(0 0 0 / 0.5));
+  @media (min-width: 768px) and (hover: hover) {
+    .glass-pane .pane-head .command-btn:hover:not(:disabled) {
+      border-color: oklch(1 0 0 / 0.6);
+      background-image: linear-gradient(
+        180deg,
+        oklch(1 0 0 / 0.55),
+        oklch(1 0 0 / 0.18) 50%,
+        oklch(1 0 0 / 0.06) 51%,
+        oklch(1 0 0 / 0.22)
+      );
+      box-shadow:
+        0 0 0 1px var(--frame-edge),
+        0 0 12px 1px var(--caption-glow);
+    }
   }
-  /* The glow rises from the bottom edge and fades in, as on Vista. */
-  .caption-btn::after {
+
+  /* Information bars (email reminder, voice call): above the panes, a glossy strip. */
+  .aero-infobar {
+    background-image: linear-gradient(180deg, var(--command-hi), var(--command-lo));
+    border-bottom: 1px solid var(--command-edge);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5);
+  }
+  .aero-infobar[data-tone='call'] {
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--success-soft) 60%, var(--command-hi)),
+      color-mix(in oklab, var(--success-soft) 80%, var(--command-lo))
+    );
+  }
+  @media (min-width: 768px) {
+    .aero-infobar {
+      border-bottom: 0;
+      border-radius: var(--pane-radius);
+      box-shadow:
+        0 0 0 1px var(--frame-edge),
+        inset 0 1px 0 oklch(1 0 0 / 0.5),
+        var(--shadow-sm);
+    }
+  }
+
+  /* When the app opens, the rail slides in and the panes rise into place one after another
+     (transforms only: fading a pane would switch off the blur of its glass meanwhile). */
+  @media (min-width: 768px) {
+    [data-entering] .rail {
+      animation: rail-enter 560ms var(--ease-out) both;
+    }
+    [data-entering] .glass-pane {
+      animation: pane-enter 620ms var(--ease-out) 60ms both;
+    }
+    [data-entering] main.glass-pane {
+      animation-delay: 140ms;
+    }
+    [data-entering] main.glass-pane ~ .glass-pane {
+      animation-delay: 220ms;
+    }
+  }
+
+  /* ---------------------------------------------------------------- navigation rail */
+  /* A column of smoky glass, the glossy orb on top, the light falling from the left. */
+  .rail {
+    position: relative;
+    z-index: var(--z-rail);
+    display: flex;
+    width: var(--rail-width);
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 0 8px;
+    border-radius: var(--pane-radius);
+    background-image:
+      var(--glass-streaks),
+      linear-gradient(
+        90deg,
+        var(--dock-hi),
+        color-mix(in oklab, var(--dock-hi) 50%, var(--dock-lo)) 48%,
+        var(--dock-lo) 52%
+      );
+    box-shadow:
+      inset 1px 0 0 var(--dock-edge),
+      inset 0 1px 0 var(--dock-edge),
+      0 0 0 1px oklch(0 0 0 / 0.55),
+      var(--frame-shadow);
+  }
+  /* The orb (home): a glossy sphere that glows when pointed at or when you are home. */
+  .rail-orb {
+    position: relative;
+    display: grid;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 9999px;
+    background:
+      radial-gradient(circle at 50% 118%, var(--orb-glow) 0 26%, transparent 58%),
+      radial-gradient(circle at 50% 36%, var(--orb-hi), var(--orb-mid) 56%, var(--orb-lo));
+    box-shadow:
+      0 0 0 1px oklch(0 0 0 / 0.65),
+      inset 0 0 0 1px oklch(1 0 0 / 0.35),
+      0 3px 8px oklch(0 0 0 / 0.5);
+    transition:
+      transform var(--dur-instant) var(--ease-out),
+      filter var(--dur-base) var(--ease-out);
+  }
+  .rail-orb::before {
+    content: '';
+    position: absolute;
+    inset: 3px 6px 52%;
+    border-radius: 9999px 9999px 45% 45%;
+    background: linear-gradient(180deg, oklch(1 0 0 / 0.78), oklch(1 0 0 / 0.08));
+    pointer-events: none;
+  }
+  .rail-orb::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    background: radial-gradient(circle, transparent 52%, var(--orb-glow) 62%, transparent 74%);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+    pointer-events: none;
+  }
+  .rail-orb:hover::after {
+    opacity: 1;
+  }
+  .rail-orb[aria-current='page']::after {
+    opacity: 0.75;
+  }
+  .rail-orb:active {
+    transform: scale(0.95);
+  }
+  .rail-orb > svg {
+    position: relative;
+    filter: drop-shadow(0 0 4px oklch(1 0 0 / 0.65)) drop-shadow(0 1px 1px oklch(0 0 0 / 0.5));
+  }
+  .rail-sep {
+    width: 34px;
+    height: 1px;
+    margin: 4px 0;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.3), transparent);
+    box-shadow: 0 1px 0 oklch(0 0 0 / 0.45);
+  }
+  .rail-list {
+    display: flex;
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+  .rail-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding-top: 8px;
+    border-top: 1px solid oklch(0 0 0 / 0.45);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.12);
+  }
+  /* Rail buttons (Windows 7 taskbar): glass on hover, a coloured glow that follows the pointer. */
+  .dock-btn {
+    --hot: var(--orb-glow);
+    position: relative;
+    display: grid;
+    width: 46px;
+    height: 42px;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 6px;
+    color: var(--dock-text);
+    isolation: isolate;
+    transition: transform var(--dur-instant) var(--ease-out);
+  }
+  .dock-btn-sm {
+    width: 40px;
+    height: 34px;
+  }
+  .dock-btn::before {
     content: '';
     position: absolute;
     inset: 0;
+    z-index: -1;
     border-radius: inherit;
-    background: radial-gradient(ellipse 85% 95% at 50% 100%, var(--caption-glow), transparent 72%);
+    background: radial-gradient(circle 30px at var(--x, 50%) var(--y, 50%), var(--hot), transparent 75%);
     opacity: 0;
-    transition: opacity 240ms var(--ease-out);
-    pointer-events: none;
+    transition: opacity 180ms var(--ease-out);
   }
-  .caption-btn:hover:not(:disabled)::after {
-    opacity: 1;
-  }
-  .caption-btn:active:not(:disabled) {
-    filter: brightness(0.82);
-  }
-  .caption-btn:disabled {
-    opacity: 0.45;
-    cursor: default;
-  }
-  .caption-close {
-    width: 44px;
+  .dock-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    border: 1px solid oklch(1 0 0 / 0.38);
     background: linear-gradient(
       180deg,
-      var(--caption-close-hi),
-      var(--caption-close) 50%,
-      color-mix(in oklab, var(--caption-close) 82%, black) 50%,
-      color-mix(in oklab, var(--caption-close) 80%, white)
+      oklch(1 0 0 / 0.3),
+      oklch(1 0 0 / 0.1) 50%,
+      oklch(1 0 0 / 0.02) 50%,
+      oklch(1 0 0 / 0.1)
     );
-  }
-  .caption-close::after {
-    background: radial-gradient(ellipse 85% 95% at 50% 100%, var(--caption-close-glow), transparent 72%);
-  }
-  .caption-close:hover:not(:disabled) {
     box-shadow:
-      inset 0 -1px 0 oklch(1 0 0 / 0.35),
-      0 0 0 1px var(--frame-edge),
-      0 0 14px 1px var(--caption-close-glow);
+      0 0 0 1px oklch(0 0 0 / 0.45),
+      inset 0 1px 0 oklch(1 0 0 / 0.35);
+    opacity: 0;
+    transition: opacity 180ms var(--ease-out);
+  }
+  @media (hover: hover) {
+    .dock-btn:hover::before,
+    .dock-btn:hover::after {
+      opacity: 1;
+    }
+  }
+  .dock-btn[aria-current='page']::after,
+  .dock-btn[data-state='open']::after {
+    opacity: 1;
+  }
+  .dock-btn[aria-current='page']::before {
+    opacity: 0.55;
+  }
+  .dock-btn:active {
+    transform: scale(0.94);
+  }
+  .dock-btn > svg {
+    width: 21px;
+    height: 21px;
+    filter: drop-shadow(0 1px 1px oklch(0 0 0 / 0.6));
+  }
+  .dock-btn-sm > svg {
+    width: 18px;
+    height: 18px;
+  }
+  /* A mention: the button flashes orange a few times, then stays lit until you go there. */
+  .dock-attention {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      var(--attention-hi),
+      var(--attention-mid) 50%,
+      var(--attention-lo) 51%,
+      var(--attention-mid)
+    );
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 0.35),
+      0 0 0 1px oklch(0 0 0 / 0.45);
+    animation: dock-attention 620ms var(--ease-in-out) 7 alternate both;
+  }
+  /* Unread activity: a small glowing bar at the rail's edge. */
+  .dock-unread {
+    position: absolute;
+    top: 50%;
+    left: -7px;
+    width: 4px;
+    height: 16px;
+    border-radius: 9999px;
+    background: var(--aqua);
+    box-shadow: 0 0 6px 1px var(--aqua);
+    transform: translateY(-50%);
+  }
+  /* The preview over a rail button (smoky glass, like Vista's window thumbnails). */
+  .dock-thumb {
+    border-radius: 6px;
+    box-shadow:
+      0 0 0 1px oklch(0 0 0 / 0.7),
+      inset 0 0 0 1px oklch(1 0 0 / 0.3),
+      var(--shadow-lg);
+  }
+  .dock-thumb-view {
+    border-radius: 3px;
+    background-color: var(--bg-main);
+    box-shadow:
+      0 0 0 1px oklch(0 0 0 / 0.5),
+      inset 0 1px 0 oklch(1 0 0 / 0.5);
+  }
+  /* Phone tab bar: smoky glass along the bottom, icons glow when current. */
+  .tab-bar {
+    box-shadow:
+      inset 0 1px 0 var(--dock-edge),
+      0 -1px 0 oklch(0 0 0 / 0.55);
+  }
+  .tab-item {
+    color: var(--dock-text-muted);
+    text-shadow: 0 1px 1px oklch(0 0 0 / 0.6);
+  }
+  .tab-item[aria-current='page'] {
+    color: var(--dock-text);
+  }
+  .tab-item[aria-current='page'] .tab-icon {
+    background: radial-gradient(ellipse at 50% 100%, var(--orb-glow), transparent 70%);
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 0.3),
+      inset 0 1px 0 oklch(1 0 0 / 0.35);
   }
 
-  /* Address row: round back/forward orbs, the breadcrumb field and the search field. */
-  .aero-addressbar {
-    position: absolute;
-    top: 31px;
-    left: 8px;
-    right: 8px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  /* ---------------------------------------------------------------- round glass buttons */
+  /* The wizard's Back button (onboarding), like Vista's navigation orbs. */
   .nav-orb {
     position: relative;
     display: grid;
@@ -331,562 +631,71 @@
     opacity: 0.5;
     cursor: default;
   }
-  /* A white field set into the glass (breadcrumb and search). */
-  .glass-field {
-    display: flex;
-    height: 25px;
-    min-width: 0;
-    align-items: center;
-    border-radius: 3px;
-    border: 1px solid oklch(0.25 0.04 250 / 0.55);
-    background: color-mix(in oklab, var(--bg-main) 88%, transparent);
-    box-shadow:
-      inset 0 1px 2px oklch(0 0 0 / 0.16),
-      0 1px 0 oklch(1 0 0 / 0.35);
-    color: var(--text);
-  }
-  .glass-field:focus-within {
-    border-color: var(--accent-border);
-    background: var(--bg-main);
-  }
-  .crumb {
-    display: inline-flex;
-    height: 100%;
-    max-width: 18rem;
-    flex-shrink: 1;
-    align-items: center;
-    gap: 5px;
-    padding: 0 6px;
-    min-width: 0;
-    border: 1px solid transparent;
-    border-radius: 2px;
-    font-size: 0.8125rem;
-    white-space: nowrap;
-  }
-  .crumb-arrow {
-    display: grid;
-    height: 100%;
-    width: 16px;
-    flex-shrink: 0;
-    place-items: center;
-    border: 1px solid transparent;
-    border-radius: 2px;
-    color: var(--text-2);
-  }
-  .crumb-arrow svg {
-    width: 12px;
-    height: 12px;
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-  .crumb-arrow[data-state='open'] svg {
-    transform: rotate(90deg);
-  }
-  :is(.crumb, .crumb-arrow):is(:hover, [data-state='open']) {
-    border-color: var(--selection-border);
-    background-image: linear-gradient(180deg, var(--selection-hi), var(--selection-lo));
-  }
-
-  .aero-client {
-    position: relative;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-    overflow: hidden;
-    border-radius: 2px;
-    background-color: var(--bg-main);
-    box-shadow:
-      0 0 0 1px var(--frame-edge),
-      0 0 0 2px color-mix(in oklab, var(--frame-highlight) 60%, transparent);
-  }
-  .aero-window[data-maximized] .aero-client {
-    border-radius: 0;
-    box-shadow: 0 -1px 0 var(--frame-edge);
-  }
-
-  /* ---------------------------------------------------------------- window content */
-  /* Command bar: the glossy toolbar at the top of a window's content (Windows 7 Explorer). */
-  .aero-commandbar {
-    background-image: linear-gradient(
-      180deg,
-      var(--command-hi),
-      var(--command-mid) 50%,
-      color-mix(in oklab, var(--command-mid) 70%, var(--command-lo)) 50%,
-      var(--command-lo)
-    );
-    border-bottom: 1px solid var(--command-edge);
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.55);
-  }
-  .command-btn {
-    border: 1px solid transparent;
-    border-radius: 3px;
-    transition:
-      background-color var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out),
-      box-shadow var(--dur-fast) var(--ease-out);
-  }
-  @media (hover: hover) {
-    .command-btn:hover:not(:disabled) {
-      border-color: var(--selection-border);
-      background-image: linear-gradient(180deg, oklch(1 0 0 / 0.75), oklch(1 0 0 / 0.25) 50%, transparent 51%);
-      box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.45);
-    }
-  }
-  .command-btn:is([aria-pressed='true'], [data-state='open']) {
-    border-color: var(--selection-border);
-    background-image: linear-gradient(180deg, var(--selection-lo), var(--selection-hi));
-    box-shadow: inset 0 1px 3px var(--glass-edge-low);
-  }
-  /* Navigation pane (left) and details pane (right) beside the content. */
-  .aero-navpane {
-    background-color: var(--bg-sidebar);
-    border-right: 1px solid var(--command-edge);
-  }
-  .aero-detailspane {
-    background-color: var(--bg-sidebar);
-    border-left: 1px solid var(--command-edge);
-  }
-  /* Information bar across the top of the content (voice call, email reminder). */
-  .aero-infobar {
-    background-image: linear-gradient(180deg, var(--command-hi), var(--command-lo));
-    border-bottom: 1px solid var(--command-edge);
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5);
-  }
-  .aero-infobar[data-tone='call'] {
-    background-image: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--success-soft) 60%, var(--command-hi)),
-      color-mix(in oklab, var(--success-soft) 80%, var(--command-lo))
-    );
-  }
-
-  /* ---------------------------------------------------------------- taskbar */
-  .taskbar {
-    position: relative;
-    z-index: var(--z-rail);
-    display: flex;
-    height: var(--taskbar-height);
-    flex-shrink: 0;
-    align-items: center;
-    gap: 2px;
-    padding-left: 6px;
-  }
-  /* Black glass with a bright top edge (taskbar, phone tab bar). */
-  .taskbar-glass {
-    color: var(--taskbar-text);
-    background-image:
-      var(--glass-streaks),
-      linear-gradient(
-        180deg,
-        var(--taskbar-hi),
-        color-mix(in oklab, var(--taskbar-hi) 50%, var(--taskbar-lo)) 48%,
-        var(--taskbar-lo) 52%
-      );
-    background-attachment: fixed, scroll;
-    -webkit-backdrop-filter: blur(12px) saturate(1.5);
-    backdrop-filter: blur(12px) saturate(1.5);
-    box-shadow:
-      inset 0 1px 0 var(--taskbar-edge),
-      0 -1px 0 oklch(0 0 0 / 0.55);
-  }
-  /* The Start orb: a glossy sphere that rises above the taskbar and glows when pointed at. */
-  .start-orb {
+  /* The close button of a dialog: red glass hanging from the top edge, glowing when pointed at. */
+  .caption-btn {
     position: relative;
     display: grid;
-    width: 48px;
-    height: 48px;
-    margin: -8px 6px 0 0;
-    flex-shrink: 0;
-    place-items: center;
-    border-radius: 9999px;
-    background:
-      radial-gradient(circle at 50% 118%, var(--orb-glow) 0 26%, transparent 58%),
-      radial-gradient(circle at 50% 36%, var(--orb-hi), var(--orb-mid) 56%, var(--orb-lo));
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.65),
-      inset 0 0 0 1px oklch(1 0 0 / 0.35),
-      0 3px 8px oklch(0 0 0 / 0.5);
-    transition:
-      transform var(--dur-instant) var(--ease-out),
-      filter var(--dur-base) var(--ease-out);
-  }
-  .start-orb::before {
-    content: '';
-    position: absolute;
-    inset: 3px 6px 52%;
-    border-radius: 9999px 9999px 45% 45%;
-    background: linear-gradient(180deg, oklch(1 0 0 / 0.78), oklch(1 0 0 / 0.08));
-    pointer-events: none;
-  }
-  .start-orb::after {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: inherit;
-    background: radial-gradient(circle, transparent 52%, var(--orb-glow) 62%, transparent 74%);
-    opacity: 0;
-    transition: opacity 300ms var(--ease-out);
-    pointer-events: none;
-  }
-  .start-orb:hover::after,
-  .start-orb[data-state='open']::after {
-    opacity: 1;
-  }
-  .start-orb[data-state='open'] {
-    filter: brightness(0.86) saturate(1.2);
-  }
-  .start-orb:active {
-    transform: scale(0.95);
-  }
-  .start-orb > svg {
-    position: relative;
-    filter: drop-shadow(0 0 4px oklch(1 0 0 / 0.65)) drop-shadow(0 1px 1px oklch(0 0 0 / 0.5));
-  }
-
-  /* Taskbar buttons (Windows 7): glass on hover, a coloured glow that follows the pointer. */
-  .taskbar-btn {
-    --hot: var(--orb-glow);
-    position: relative;
-    display: grid;
-    width: 50px;
-    height: 36px;
-    flex-shrink: 0;
-    place-items: center;
-    border-radius: 4px;
-    color: var(--taskbar-text);
-    isolation: isolate;
-    transition: transform var(--dur-instant) var(--ease-out);
-  }
-  .taskbar-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: radial-gradient(circle 34px at var(--x, 50%) 110%, var(--hot), transparent 75%);
-    opacity: 0;
-    transition: opacity 180ms var(--ease-out);
-  }
-  .taskbar-btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    border: 1px solid oklch(1 0 0 / 0.38);
-    background: linear-gradient(
-      180deg,
-      oklch(1 0 0 / 0.3),
-      oklch(1 0 0 / 0.1) 50%,
-      oklch(1 0 0 / 0.02) 50%,
-      oklch(1 0 0 / 0.1)
-    );
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.45),
-      inset 0 1px 0 oklch(1 0 0 / 0.35);
-    opacity: 0;
-    transition: opacity 180ms var(--ease-out);
-  }
-  @media (hover: hover) {
-    .taskbar-btn:hover::before,
-    .taskbar-btn:hover::after {
-      opacity: 1;
-    }
-  }
-  .taskbar-btn[aria-current='page']::after,
-  .taskbar-btn[data-state='open']::after {
-    opacity: 1;
-  }
-  .taskbar-btn[aria-current='page']::before {
-    opacity: 0.55;
-  }
-  .taskbar-btn:active {
-    transform: scale(0.94);
-  }
-  .taskbar-btn > svg {
-    width: 20px;
+    width: 27px;
     height: 20px;
-    filter: drop-shadow(0 1px 1px oklch(0 0 0 / 0.6));
-  }
-  /* A mention: the button flashes orange a few times, then stays lit until you go there. */
-  .taskbar-attention {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
+    place-items: center;
+    color: oklch(1 0 0);
     background: linear-gradient(
       180deg,
-      var(--attention-hi),
-      var(--attention-mid) 50%,
-      var(--attention-lo) 51%,
-      var(--attention-mid)
+      oklch(1 0 0 / 0.4),
+      oklch(1 0 0 / 0.16) 50%,
+      oklch(1 0 0 / 0.04) 50%,
+      oklch(1 0 0 / 0.22)
     );
+    border-radius: 0 0 5px 5px;
     box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.35),
-      0 0 0 1px oklch(0 0 0 / 0.45);
-    animation: taskbar-attention 620ms var(--ease-in-out) 7 alternate both;
-  }
-  /* The preview over a taskbar button (black glass, like Vista's window thumbnails). */
-  .taskbar-thumb {
-    border-radius: 6px;
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.7),
-      inset 0 0 0 1px oklch(1 0 0 / 0.3),
-      var(--shadow-lg);
-  }
-  .taskbar-thumb-view {
-    border-radius: 3px;
-    background-color: var(--bg-main);
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.5),
-      inset 0 1px 0 oklch(1 0 0 / 0.5);
-  }
-  /* Unread activity: a small glowing bar under the button. */
-  .taskbar-unread {
-    position: absolute;
-    bottom: 1px;
-    left: 50%;
-    width: 16px;
-    height: 3px;
-    border-radius: 9999px;
-    background: var(--aqua);
-    box-shadow: 0 0 6px 1px var(--aqua);
-    transform: translateX(-50%);
-  }
-  .taskbar-sep {
-    width: 1px;
-    height: 26px;
-    margin: 0 5px;
-    flex-shrink: 0;
-    background: linear-gradient(180deg, transparent, oklch(1 0 0 / 0.28), transparent);
-    box-shadow: 1px 0 0 oklch(0 0 0 / 0.45);
-  }
-  /* Phone tab bar: icons glow when current. */
-  .tab-item {
-    color: var(--taskbar-text-muted);
-    text-shadow: 0 1px 1px oklch(0 0 0 / 0.6);
-  }
-  .tab-item[aria-current='page'] {
-    color: var(--taskbar-text);
-  }
-  .tab-item[aria-current='page'] .tab-icon {
-    background: radial-gradient(ellipse at 50% 100%, var(--orb-glow), transparent 70%);
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.3),
-      inset 0 1px 0 oklch(1 0 0 / 0.35);
-  }
-  /* Notification area. */
-  .tray {
-    display: flex;
-    height: 100%;
-    align-items: center;
-    gap: 1px;
-    padding: 0 4px 0 8px;
-    margin-left: auto;
-    background: linear-gradient(90deg, transparent, oklch(0 0 0 / 0.25) 12px);
-    box-shadow: inset 1px 0 0 oklch(1 0 0 / 0.12);
-  }
-  .tray-btn {
-    display: grid;
-    min-width: 30px;
-    height: 32px;
-    place-items: center;
-    padding: 0 5px;
-    border-radius: 3px;
-    border: 1px solid transparent;
-    color: var(--taskbar-text);
+      inset 0 -1px 0 oklch(1 0 0 / 0.35),
+      inset 1px 0 0 oklch(1 0 0 / 0.25),
+      0 0 0 1px var(--frame-edge);
     transition:
       background-color var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out);
+      filter var(--dur-fast) var(--ease-out);
   }
-  .tray-btn:hover,
-  .tray-btn[data-state='open'] {
-    border-color: oklch(1 0 0 / 0.28);
-    background-color: oklch(1 0 0 / 0.1);
+  .caption-btn svg {
+    width: 11px;
+    height: 11px;
+    stroke-width: 2.6;
+    filter: drop-shadow(0 0 1px oklch(0 0 0 / 0.95)) drop-shadow(0 1px 1px oklch(0 0 0 / 0.5));
   }
-  .tray-btn > svg {
-    width: 17px;
-    height: 17px;
-    filter: drop-shadow(0 1px 1px oklch(0 0 0 / 0.6));
+  /* The glow rises from the bottom edge and fades in, as on Vista. */
+  .caption-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(ellipse 85% 95% at 50% 100%, var(--caption-glow), transparent 72%);
+    opacity: 0;
+    transition: opacity 240ms var(--ease-out);
+    pointer-events: none;
   }
-  .taskbar-clock {
-    line-height: 1.05;
-    text-align: center;
-    font-size: 0.75rem;
-    font-variant-numeric: tabular-nums;
-    text-shadow: 0 1px 1px oklch(0 0 0 / 0.6);
+  .caption-btn:hover:not(:disabled)::after {
+    opacity: 1;
   }
-  /* Windows 7's "Show desktop" sliver at the far right. */
-  .show-desktop {
-    width: 14px;
-    height: 100%;
-    margin-left: 4px;
-    border-left: 1px solid oklch(1 0 0 / 0.22);
-    background: linear-gradient(180deg, oklch(1 0 0 / 0.16), oklch(1 0 0 / 0.04));
-    box-shadow: inset 1px 0 0 oklch(0 0 0 / 0.4);
-    transition: background-color var(--dur-fast) var(--ease-out);
+  .caption-btn:active:not(:disabled) {
+    filter: brightness(0.82);
   }
-  .show-desktop:hover,
-  .show-desktop[aria-pressed='true'] {
-    background-color: oklch(1 0 0 / 0.22);
-  }
-
-  /* ---------------------------------------------------------------- Start menu */
-  /* Smoky black glass like the taskbar, with a white column of places set into it. */
-  .start-menu {
-    display: grid;
-    width: min(500px, calc(100vw - 16px));
-    grid-template-columns: minmax(0, 1fr) 190px;
-    gap: 0;
-    padding: 6px;
-    border-radius: 8px;
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.7),
-      inset 0 0 0 1px oklch(1 0 0 / 0.35),
-      var(--shadow-lg);
-  }
-  [data-state='open'] > .start-menu {
-    animation: fade-in 220ms var(--ease-out) both;
-  }
-  [data-state='closed'] > .start-menu {
-    animation: fade-out 140ms var(--ease-in) both;
-  }
-  .start-menu-left {
-    display: flex;
-    min-height: 420px;
-    flex-direction: column;
-    border-radius: 4px;
-    background-color: var(--bg-main);
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.55),
-      inset 0 0 0 1px oklch(1 0 0 / 0.6);
-    color: var(--text);
-  }
-  .start-menu-right {
-    display: flex;
-    flex-direction: column;
-    padding: 4px 4px 0 10px;
-  }
-  .start-link {
-    display: flex;
-    min-height: 32px;
-    align-items: center;
-    gap: 9px;
-    padding: 3px 8px;
-    border: 1px solid transparent;
-    border-radius: 3px;
-    font-size: 0.8125rem;
-  }
-  .start-menu-left .start-link:is(:hover, :focus-visible) {
-    border-color: var(--selection-border);
-    background-image: linear-gradient(180deg, var(--selection-hi), var(--selection-lo));
-    outline: none;
-    box-shadow: none;
-  }
-  .start-menu-right .start-link {
-    min-height: 30px;
-    font-weight: 600;
-    text-shadow: 0 1px 2px oklch(0 0 0 / 0.7);
-  }
-  .start-menu-right .start-link:is(:hover, :focus-visible) {
-    border-color: oklch(1 0 0 / 0.3);
-    background-image: linear-gradient(180deg, oklch(1 0 0 / 0.26), oklch(1 0 0 / 0.08) 50%, oklch(1 0 0 / 0.02) 51%);
-    box-shadow: 0 0 0 1px oklch(0 0 0 / 0.4);
-    outline: none;
-  }
-  .start-picture {
-    position: relative;
-    display: grid;
-    width: 58px;
-    height: 58px;
-    margin: -26px auto 6px;
-    place-items: center;
-    border-radius: 7px;
-    background: linear-gradient(180deg, oklch(1 0 0 / 0.95), oklch(0.85 0.03 230));
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.6),
-      0 4px 10px oklch(0 0 0 / 0.45);
-  }
-  /* The orange "power" button of the Vista Start menu, here: sign out. */
-  .start-power {
-    display: inline-flex;
-    height: 28px;
-    align-items: center;
-    gap: 6px;
-    padding: 0 12px;
-    border-radius: 4px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: oklch(1 0 0);
-    text-shadow: 0 1px 1px oklch(0.3 0.12 40 / 0.8);
+  .caption-close {
+    width: 44px;
     background: linear-gradient(
       180deg,
-      oklch(0.85 0.13 70),
-      oklch(0.7 0.17 50) 50%,
-      oklch(0.6 0.18 42) 50%,
-      oklch(0.72 0.16 52)
+      var(--caption-close-hi),
+      var(--caption-close) 50%,
+      color-mix(in oklab, var(--caption-close) 82%, black) 50%,
+      color-mix(in oklab, var(--caption-close) 80%, white)
     );
+  }
+  .caption-close::after {
+    background: radial-gradient(ellipse 85% 95% at 50% 100%, var(--caption-close-glow), transparent 72%);
+  }
+  .caption-close:hover:not(:disabled) {
     box-shadow:
-      0 0 0 1px oklch(0.25 0.08 40 / 0.85),
-      inset 0 1px 0 oklch(1 0 0 / 0.55);
-    transition: filter var(--dur-fast) var(--ease-out);
-  }
-  .start-power:hover {
-    filter: brightness(1.08) saturate(1.1);
-    box-shadow:
-      0 0 0 1px oklch(0.25 0.08 40 / 0.85),
-      inset 0 1px 0 oklch(1 0 0 / 0.55),
-      0 0 12px oklch(0.75 0.17 55 / 0.8);
-  }
-
-  /* ---------------------------------------------------------------- gadgets */
-  .gadget {
-    border-radius: 9px;
-    color: var(--taskbar-text);
-    box-shadow:
-      0 0 0 1px oklch(0 0 0 / 0.5),
-      inset 0 1px 0 oklch(1 0 0 / 0.28),
-      inset 0 0 0 1px oklch(1 0 0 / 0.08),
-      0 8px 22px -6px oklch(0 0 0 / 0.45);
-  }
-  .gadget-title {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--taskbar-text-muted);
-    text-shadow: 0 1px 1px oklch(0 0 0 / 0.7);
-  }
-  .gadget-text {
-    text-shadow: 0 1px 2px oklch(0 0 0 / 0.75);
-  }
-  .gadget-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border-radius: 5px;
-    border: 1px solid oklch(1 0 0 / 0.22);
-    background: linear-gradient(180deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.06) 50%, oklch(1 0 0 / 0.02) 51%);
-    color: var(--taskbar-text);
-    text-shadow: 0 1px 1px oklch(0 0 0 / 0.6);
-    box-shadow: 0 0 0 1px oklch(0 0 0 / 0.35);
-    transition: background-color var(--dur-fast) var(--ease-out);
-  }
-  .gadget-btn:hover {
-    background-color: oklch(1 0 0 / 0.14);
-  }
-  .gadget-btn[aria-pressed='true'],
-  .gadget-btn-danger {
-    background-color: color-mix(in oklab, var(--caption-close) 85%, transparent);
-  }
-  .gadget-btn > svg {
-    width: 16px;
-    height: 16px;
-  }
-  .gadget-row:hover {
-    background-color: oklch(1 0 0 / 0.1);
+      inset 0 -1px 0 oklch(1 0 0 / 0.35),
+      0 0 0 1px var(--frame-edge),
+      0 0 14px 1px var(--caption-close-glow);
   }
 
   /* ---------------------------------------------------------------- window colour settings */
@@ -951,7 +760,7 @@
       inset 0 0 0 1px color-mix(in oklab, var(--frame-highlight) 50%, transparent),
       var(--frame-shadow);
   }
-  /* Outside the app: a window standing on the desktop (components/ui/glass-window.tsx). */
+  /* Outside the chat (sign-in, welcome, onboarding): a glass window (components/ui/glass-window.tsx). */
   .glass-window {
     position: relative;
     animation: glass-window-in 460ms var(--ease-out) both;
@@ -971,7 +780,7 @@
   .glass-window-shine::before {
     animation: title-shine 1200ms var(--ease-out) 380ms 1 both;
   }
-  /* A small piece of glass on the desktop: the logo and the tagline of the public pages. */
+  /* A small piece of glass: the logo and the tagline of the public pages. */
   .glass-chip {
     border-radius: 8px;
     box-shadow:
@@ -997,7 +806,7 @@
     color: var(--text);
     box-shadow: 0 3px 8px -2px oklch(0 0 0 / 0.35);
   }
-  /* Notifications rise from the tray as balloon tips with a tail pointing at it. */
+  /* Notifications pop up as Vista balloon tips. */
   .balloon {
     position: relative;
     border-radius: 7px;
@@ -1007,20 +816,6 @@
     box-shadow:
       inset 0 1px 0 oklch(1 0 0 / 0.6),
       0 10px 26px -8px oklch(0 0 0 / 0.45);
-  }
-  @media (min-width: 768px) {
-    .balloon:last-child::after {
-      content: '';
-      position: absolute;
-      right: 34px;
-      bottom: -8px;
-      width: 14px;
-      height: 14px;
-      border-right: 1px solid oklch(0.35 0.04 245 / 0.55);
-      border-bottom: 1px solid oklch(0.35 0.04 245 / 0.55);
-      background: var(--command-mid);
-      transform: rotate(45deg);
-    }
   }
 
   /* The default button of a dialog breathes slowly, as on Vista (decorative: not under Calm). */
@@ -1044,51 +839,10 @@
   }
 }
 
-/* ---------------------------------------------------------------- window states */
-/* Opening and coming back: the window grows into place (transform only, so the glass keeps its
-   blur), its parts fade in; maximising settles with a small zoom; minimising shrinks it into the
-   taskbar, after which it is hidden (and inert). Desktop only: on phones the content is the screen. */
-@media (min-width: 768px) {
-  .aero-window[data-anim='open'],
-  .aero-window[data-anim='restore'] {
-    transform-origin: 50% 100%;
-    animation: window-in 380ms var(--ease-out) both;
-  }
-  .aero-window[data-anim='open'] > :not(.aero-shine),
-  .aero-window[data-anim='restore'] > :not(.aero-shine) {
-    animation: window-part-in 260ms var(--ease-out) both;
-  }
-  .aero-window[data-anim='maximize'] {
-    animation: window-maximize 260ms var(--ease-out) both;
-  }
-  .aero-window[data-minimized] {
-    transform-origin: 50% 100%;
-    animation: window-minimize 300ms var(--ease-in) both;
-    visibility: hidden;
-    transition: visibility 0s linear 300ms;
-  }
-}
-
-/* Phones: no desktop — the window's content fills the screen. */
-@media (max-width: 767.98px) {
-  .aero-window {
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  .aero-window > :is(.aero-frame, .aero-shine, .aero-titlebar, .caption-buttons, .aero-addressbar) {
-    display: none;
-  }
-  .aero-window .aero-client {
-    border-radius: 0;
-    box-shadow: none;
-  }
-}
-
 /* ---------------------------------------------------------------- wallpaper */
 /* The sky under the scene: three gradients on a layer of their own, so they are painted once and
-   never again when something in the window changes (with the twelve of --sky-frost painted
-   with the window, opening a long channel took 0.2 s longer). */
+   never again when something in the app changes (with the twelve of --sky-frost painted
+   with the app, opening a long channel took 0.2 s longer). */
 .wallpaper {
   position: fixed;
   inset: 0;
@@ -1237,8 +991,8 @@
     will-change: auto;
   }
 }
-:root[data-motion='calm'] :is(.default-pulse, .aero-shine, .glass-window-shine)::before,
-:root[data-motion='calm'] .taskbar-attention {
+:root[data-motion='calm'] :is(.default-pulse, .pane-shine, .glass-window-shine)::before,
+:root[data-motion='calm'] :is(.dock-attention, [data-entering] .rail, [data-entering] .glass-pane) {
   animation: none;
 }
 
@@ -1256,32 +1010,24 @@
     transform: translateX(620%) skewX(-20deg);
   }
 }
-/* A window opens: it grows from slightly smaller (no fade, which would hide the blur). */
-@keyframes window-in {
-  from {
-    transform: translateY(14px) scale(0.955);
-  }
-}
-@keyframes window-part-in {
-  from {
-    opacity: 0;
-  }
-}
-/* Minimise: the window shrinks down into the taskbar. */
-@keyframes window-minimize {
-  to {
-    opacity: 0;
-    transform: translateY(46%) scale(0.18);
-  }
-}
-@keyframes window-maximize {
-  from {
-    transform: scale(0.975);
-  }
-}
-@keyframes taskbar-attention {
+@keyframes dock-attention {
   from {
     opacity: 0.12;
+  }
+}
+@keyframes pane-slide-in {
+  from {
+    transform: translateX(14px);
+  }
+}
+@keyframes pane-enter {
+  from {
+    transform: translateY(22px);
+  }
+}
+@keyframes rail-enter {
+  from {
+    transform: translateX(-22px);
   }
 }
 @keyframes glass-window-in {
@@ -1293,16 +1039,6 @@
 @keyframes glass-window-slide {
   from {
     transform: translateY(14px) scale(0.97);
-  }
-}
-@keyframes start-rise {
-  from {
-    transform: translateY(10px) scale(0.98);
-  }
-}
-@keyframes start-sink {
-  to {
-    transform: translateY(6px) scale(0.985);
   }
 }
 @keyframes balloon-in {

@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { createCommunity, expect, sendMessage, signUp, test, windowSettled } from './fixtures';
+import { createCommunity, expect, sendMessage, signUp, test } from './fixtures';
 
 /** Geometry of every message row: outer height, text height, and the text's top edge. */
 async function rowGeometry(page: Page) {
@@ -66,7 +66,6 @@ test.describe('message layout', () => {
 
     await page.reload();
     await expect(page.locator('[data-message-id]')).toHaveCount(4);
-    await windowSettled(page);
     const afterReload = await rowGeometry(page);
     expect(afterReload.map((r) => Math.round(r.rowHeight))).toEqual(rows.map((r) => Math.round(r.rowHeight)));
   });

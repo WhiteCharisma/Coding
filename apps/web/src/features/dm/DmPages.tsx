@@ -48,22 +48,33 @@ export function DmPage() {
   const first = others[0];
   const blocked = (dm.myPermissions & 2) === 0;
   return (
-    <SidebarLayout mobileView="content" sidebar={<DmSidebar />} contentLabel={name}>
-      <ChannelHeader
-        title={name}
-        icon={
-          dm.kind === 'group_dm' ? (
-            <Users className="size-5 shrink-0 text-fg-faint" />
-          ) : (
-            <UserAvatar name={first?.displayName ?? name} src={first?.avatarUrl} size="sm" />
-          )
-        }
-        backTo="/dm"
-        extra={blocked ? undefined : <VoiceJoinButton channelId={dm.id} name={name} />}
-        panelButtons={['pins']}
-        activePanel={panel}
-        onTogglePanel={() => setPanel(panel ? null : 'pins')}
-      />
+    <SidebarLayout
+      mobileView="content"
+      sidebar={<DmSidebar />}
+      contentLabel={name}
+      header={
+        <ChannelHeader
+          title={name}
+          icon={
+            dm.kind === 'group_dm' ? (
+              <Users className="size-5 shrink-0 text-fg-faint" />
+            ) : (
+              <UserAvatar name={first?.displayName ?? name} src={first?.avatarUrl} size="sm" />
+            )
+          }
+          backTo="/dm"
+          extra={blocked ? undefined : <VoiceJoinButton channelId={dm.id} name={name} />}
+          panelButtons={['pins']}
+          activePanel={panel}
+          onTogglePanel={() => setPanel(panel ? null : 'pins')}
+        />
+      }
+      aside={
+        <ContextPanel panel={panel} title={t('chat.pins.title')} onClose={() => setPanel(null)}>
+          <PinsPanel channelId={dm.id} />
+        </ContextPanel>
+      }
+    >
       <div className="flex min-h-0 flex-1">
         <ChannelView
           key={dm.id}
@@ -94,9 +105,6 @@ export function DmPage() {
             </div>
           }
         />
-        <ContextPanel panel={panel} title={t('chat.pins.title')} onClose={() => setPanel(null)}>
-          <PinsPanel channelId={dm.id} />
-        </ContextPanel>
       </div>
     </SidebarLayout>
   );

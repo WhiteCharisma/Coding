@@ -154,7 +154,7 @@ export function CommunitySidebar({ community }: { community: CommunityDTO }) {
         <MenuTrigger asChild>
           <button
             type="button"
-            className="titlebar flex h-[var(--header-height)] shrink-0 items-center gap-2.5 px-3 text-left transition-colors hover:bg-hover"
+            className="pane-head gap-2.5 px-3 text-left transition-colors hover:bg-hover"
             data-testid="community-menu"
           >
             <CommunityIcon name={community.name} src={community.iconUrl} size="sm" />

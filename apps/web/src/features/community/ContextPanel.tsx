@@ -12,6 +12,7 @@ import { useMessages } from '../../stores/messages';
 import { DemoBadge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Sheet } from '../../components/ui/dialog';
+import { GlassPane } from '../../components/ui/glass-pane';
 import { Skeleton } from '../../components/ui/skeleton';
 import { UserAvatar } from '../../components/user/UserAvatar';
 import { ProfilePopover } from '../profile/ProfilePopover';
@@ -194,23 +195,24 @@ export function ContextPanel({
   if (wide) {
     if (!panel) return null;
     return (
-      <aside
+      <GlassPane
+        as="aside"
         aria-label={title}
-        className="aero-detailspane flex w-[var(--context-width)] shrink-0 flex-col animate-fade-in"
+        className="w-[var(--context-width)] shrink-0 animate-[pane-slide-in_var(--dur-slow)_var(--ease-out)_both]"
       >
-        <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center justify-between px-4">
+        <div className="pane-head justify-between px-4">
           <h2 className="font-display text-sm font-semibold text-fg">{title}</h2>
           <Button variant="ghost" size="icon-sm" aria-label={t('shell.closePanel')} onClick={onClose}>
             <X />
           </Button>
         </div>
         <div className="scroll-area min-h-0 flex-1">{children}</div>
-      </aside>
+      </GlassPane>
     );
   }
   return (
     <Sheet open={panel !== null} onOpenChange={(o) => !o && onClose()} side="right" title={title}>
-      <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center justify-between px-4">
+      <div className="pane-head justify-between px-4">
         <h2 className="font-display text-sm font-semibold text-fg">{title}</h2>
         <Button variant="ghost" size="icon-sm" aria-label={t('shell.closePanel')} onClick={onClose}>
           <X />

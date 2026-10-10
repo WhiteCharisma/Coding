@@ -40,8 +40,8 @@
   --color-aqua: var(--aqua);
   --color-lavender: var(--lavender);
   --color-glass-edge: var(--glass-edge);
-  --color-taskbar: var(--taskbar-text);
-  --color-taskbar-muted: var(--taskbar-text-muted);
+  --color-dock: var(--dock-text);
+  --color-dock-muted: var(--dock-text-muted);
   --color-accent-hover: var(--accent-hover);
   --color-accent-press: var(--accent-press);
   --color-accent-fg: var(--accent-fg);

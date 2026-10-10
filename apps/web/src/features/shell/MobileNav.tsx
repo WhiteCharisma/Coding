@@ -29,7 +29,7 @@ export function MobileNav() {
   return (
     <nav
       aria-label={t('shell.nav.primary')}
-      className="taskbar-glass fixed inset-x-0 bottom-0 z-[var(--z-rail)] pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="dock-glass tab-bar fixed inset-x-0 bottom-0 z-[var(--z-rail)] pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="mx-auto flex h-[var(--mobile-nav-height)] max-w-lg items-stretch justify-around">
         {items.map(({ to, label, icon: Icon, badge }) => (
@@ -44,7 +44,7 @@ export function MobileNav() {
                   <CountBadge
                     count={badge}
                     tone="danger"
-                    className="absolute -top-1.5 -right-2.5 ring-2 ring-[var(--taskbar-lo)]"
+                    className="absolute -top-1.5 -right-2.5 ring-2 ring-[var(--dock-lo)]"
                   />
                 )}
               </span>

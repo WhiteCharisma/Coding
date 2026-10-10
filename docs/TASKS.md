@@ -153,7 +153,10 @@ Update this file in the same commit as the work it describes.
   - still slower: opening a channel with long history (+≈0.25 s in software rendering)
 
 - [x] Windows Vista Aero Glass desktop (owner's request: "un vrai effet glass windows vista",
-      free to move the interface around, lots of animated effects) — docs/DESIGN.md → Aero Glass
+      free to move the interface around, lots of animated effects) — docs/DESIGN.md → Aero Glass.
+      Replaced by the in-app version below: the desktop parts (window, taskbar, Start menu,
+      gadgets, clock) are gone; the material, window colour, wallpaper, dialogs, public windows,
+      fixes and measurements stay
   - [x] real glass material: blur + saturation + window-colour tint + reflection streaks +
         glowing titles; 12 window colours, intensity and "Enable transparency" (Settings →
         Appearance, applied before the first paint); contrast tests for titles on glass (all
@@ -188,6 +191,29 @@ Update this file in the same commit as the work it describes.
         animations, presence tracker), e2e `desktop-shell.spec.ts` (Start menu, caption buttons,
         address bar, window colour, mention flash + thumbnail)
 
+- [x] Aero inside the chat, no desktop (owner: "ça doit rester une application" — keep the Vista
+      effects, a pronounced glass effect and the animations, but in the chat itself) —
+      docs/DESIGN.md → Aero Glass
+  - [x] removed: taskbar, Start menu, gadgets, clock, caption buttons, address bar and
+        breadcrumb, Show desktop (`features/shell/Window|Taskbar|Gadgets|Clock|place`)
+  - [x] every part of the chat is a glass pane (`GlassPane`): channel list, conversation,
+        members/pins, settings, administration, pages — a 48 px glass header with glowing text
+        and glass toolbar buttons, a 6 px glass frame, an opaque content area; the message box
+        sits on glass at the foot of the conversation (`PaneFoot`, as in Windows Live Messenger)
+        with the typing line and the keyboard hint on the glass, and no glass behind the messages
+  - [x] smoky-glass rail with the glossy orb: places, communities (glow in their colour that
+        follows the pointer, unread bar, orange flash and count for mentions, previews of what
+        is new), the call you are in, a sounds popover, administration, settings, your account
+  - [x] effects: the rail and the panes rise into place when the app opens, a light sweep across
+        a pane's glass on a new place, the members pane slides in, blue glow on glass toolbar
+        buttons; dialogs, balloons and the default-button pulse kept; Calm/Reduce respected
+  - [x] contrast: the usual muted text fell to 2.5–3.8:1 on some window colours, so glass headers
+        use `--glass-text-2/-muted`; new tests for header text, the message box over the glass
+        foot, smoky glass and the opaque phone headers
+  - [x] tests: e2e `aero-shell.spec.ts` (rail navigation; header on the glass, glass foot never
+        behind the messages, members pane; window colour and transparency; mention flash and
+        preview), unit `stores/scene.ts`; the desktop's tests and `windowSettled` removed
+
 ## Next steps (not done — require the owner's infrastructure or decisions)
 
 1. Release 0.2 on the production server (OVH, `/opt/creator-network`): follow
@@ -203,9 +229,9 @@ Update this file in the same commit as the work it describes.
 7. Product decisions: license, privacy policy and terms, community guidelines, moderators.
 8. Next candidates (docs/ROADMAP.md): Web Push, data export, more languages; an SFU for voice
    rooms larger than 8; measure rendering on real phones (opening long channels).
-9. Measure the Vista desktop on real computers with graphics acceleration (here: headless
-   software rendering only, docs/PERFORMANCE.md → Vista desktop) and decide whether computers
-   without acceleration should get a still wallpaper by default.
+9. Measure the Aero look on real computers with graphics acceleration (here: headless software
+   rendering only, docs/PERFORMANCE.md → In-app Aero) and decide whether computers without
+   acceleration should get a still wallpaper by default.
 10. Privacy: the `presence:query` socket event answers for any user id; restrict it to people who
     share a community or a conversation with the asker (found while fixing presence, not changed).
 

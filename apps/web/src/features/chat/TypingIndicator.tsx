@@ -26,7 +26,7 @@ export function TypingIndicator({ channelId }: { channelId: string }) {
           : t('chat.typing.many');
 
   return (
-    <div className="flex h-5 items-center gap-2 px-5 text-xs text-fg-muted" aria-live="polite">
+    <div className="on-glass flex h-5 items-center gap-2 px-5 text-xs text-fg-muted" aria-live="polite">
       {text && (
         <>
           <span className="flex gap-0.5" aria-hidden>

@@ -81,7 +81,7 @@ export function DmSidebar() {
     : all;
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="titlebar flex h-[var(--header-height)] shrink-0 items-center justify-between px-4">
+      <div className="pane-head justify-between px-4">
         <h2 className="font-display text-[15px] font-semibold tracking-tight text-fg">{t('dm.title')}</h2>
         <Tooltip content={t('dm.new')}>
           <Button
