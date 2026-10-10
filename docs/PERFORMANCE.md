@@ -251,7 +251,7 @@ after a minute without input; Calm and Reduce motion keep it still.
 
 | Problem                                                                                                               | Fix                                                                                            | Effect                                                                               |
 | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| A `:root:has(.modal-scrim)` rule (to pause the wallpaper behind dialogs) made every DOM change restyle the whole page | Open dialogs are counted in a store instead (`stores/desktop.ts`)                              | Elements restyled per sent message ≈ 1 170 → 57; style time for 15 sends 312 → 67 ms |
+| A `:root:has(.modal-scrim)` rule (to pause the wallpaper behind dialogs) made every DOM change restyle the whole page | Open dialogs are counted in a store instead (now `stores/scene.ts`)                            | Elements restyled per sent message ≈ 1 170 → 57; style time for 15 sends 312 → 67 ms |
 | The wallpaper's sky (12 CSS gradients) was repainted when the message list scrolled                                   | Three gradients (the wallpaper draws its own clouds) on a layer of their own                   | Opening a channel (600 messages, warm) 597 → ≈ 390 ms                                |
 | The moving wallpaper made every frame of scrolling cost a full redraw                                                 | It holds still while you scroll (at once) or type (after 120 ms, not in the keystroke's frame) | Older page p50 202 → 91 ms                                                           |
 | The taskbar re-rendered its notification area on every message, and its clock created two date formatters each time   | Notification area and community buttons memoised; cached formatters                            | The clock left the send profile (44 ms per 20 sends before)                          |
@@ -267,6 +267,69 @@ grew by 8.5 KB compressed (27.0 → 35.5 KB) and all JavaScript by 10.7 KB compr
 **Not measured:** a computer with graphics acceleration and real phones (the wallpaper is not
 shown on phones). If a computer without graphics acceleration feels busy, Settings →
 Appearance → Motion → _Calm_ keeps the windows' effects and stills the wallpaper.
+
+## In-app Aero (release 0.2, the desktop removed)
+
+The owner asked for an application, not a desktop: the window, taskbar, Start menu, gadgets and
+clock are gone, and the glass moved into the chat (glass pane headers and frames, the message box
+on glass, a smoky-glass rail; docs/DESIGN.md → Aero Glass). Measured on 2026-10-10 against the
+Vista desktop (`eaaf6c5`) and the 0.2 build before Vista (`bfc7a72`), each built in its own
+worktree, on the same machine in the same session, headless Chromium with **software
+rendering**. This machine was slower and noisier than the day before (0.2 opened the long
+channel in 0.84–1.05 s instead of 0.71 s), so only numbers from the same session are compared.
+
+### Idle cost (channel open, nobody touches anything, 1440 × 900, median of 3)
+
+| State                                                      | CPU used by the browser |
+| ---------------------------------------------------------- | ----------------------- |
+| 0.2 (still sky)                                            | 0.4 % of one core       |
+| Vista desktop, wallpaper moving                            | 102.9 % of one core     |
+| In-app Aero, wallpaper moving                              | 102.6 % of one core     |
+| In-app Aero after a minute without input (wallpaper rests) | 0.2 % of one core       |
+| In-app Aero, Calm motion (still wallpaper)                 | 0.6 % of one core       |
+
+At rest it is now cheaper than the Vista desktop (2.1 % and 2.2 % there): the clock, which
+ticked every second, is gone.
+
+### Long channel (`scripts/bench/client-bench.mjs`, 3 000 messages, full motion, mean of 2 runs)
+
+| Measurement                                 | 0.2 before Vista | Vista desktop     | In-app Aero       |
+| ------------------------------------------- | ---------------- | ----------------- | ----------------- |
+| Older page while scrolling back, p50 / p95  | 91 ms / 131 ms   | 96 ms / 152 ms    | 103 ms / 184 ms   |
+| Scroll back to the first message (59 pages) | 10.8 s           | 11.3 s            | 11.9 s            |
+| Open the channel → first messages on screen | 936 ms           | 1 070 ms          | 1 168 ms          |
+| Jump back to the newest messages            | 137 ms           | 254 ms            | 238 ms            |
+| Send: Enter → message visible, p50 / p95    | 9.5 ms / 16.6 ms | 12.5 ms / 32.4 ms | 10.3 ms / 16.3 ms |
+| Send: Enter → confirmed by the server, p50  | 38 ms            | 45 ms             | 40 ms             |
+| Main-thread long tasks during the whole run | 216 ms           | 635 ms            | 498 ms            |
+| DOM nodes (maximum) / JS heap at the end    | 4 507 / 63 MB    | 4 828 / 78 MB     | 4 716 / 62 MB     |
+
+Runs vary by about ±10 % here, so the closest rows were measured again with the builds
+**interleaved** (same procedure, alternating builds):
+
+- **Scrolling back** (4 runs each): p50 99 ms (in-app) vs 100 ms (Vista), p95 166 vs 156 ms,
+  both 11.35 s for the 59 pages. Switching parts of the glass off in the same page (the glass
+  under the message box, all pane glass, every blur) changed nothing beyond that noise
+  (p50 100–112 ms), and neither did a plain background instead of the cut one: the glass is not
+  what scrolling pays for.
+- **Opening the channel** (7 runs each, Playwright waiting for the newest message to be
+  visible): 1 234 ms (in-app), 1 265 ms (Vista), 843 ms (0.2). That way of waiting checks
+  visibility again and again, forcing extra style and layout passes that cost more on a richer
+  page; waiting for the first message row on each animation frame instead (3 runs each):
+  932 ms (in-app) vs 836 ms (0.2), with layout 28 vs 23 ms, style 30 vs 28 ms and paint 22 vs
+  8 ms in the trace. Hiding the wallpaper, stilling it, removing every blur or the opening
+  animation of the panes changed nothing beyond the noise (1 133–1 221 ms vs 1 171 ms).
+
+**Download:** CSS 27.0 → 32.3 (Vista) → 30.7 KB, JavaScript 338.1 → 348.9 → 343.1 KB (all files,
+gzip -9). The welcome page (local server, no compression, median of 5) shows the same picture:
+desktop LCP 832 / 952 / 1 024 ms, mobile profile (150 ms RTT, 1.6 Mbit/s, 4× CPU) LCP
+4 416 / 4 672 / 4 632 ms.
+
+**In short:** the in-app version costs what the Vista desktop cost, a little less at rest and
+when sending; against 0.2 before Vista, opening a long channel takes about 0.1 s longer (more
+than that with the benchmark's usual way of waiting) and scrolling back about 10 % longer per
+page, in software rendering. **Not measured:** computers with graphics acceleration and real
+phones (phones show neither the glass panes nor the wallpaper).
 
 ## Interpretation for a Hostinger VPS
 

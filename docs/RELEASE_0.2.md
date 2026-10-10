@@ -77,11 +77,13 @@ real `deploy/update.sh`:
 
 Speed compared with 0.1 on the same machine: [PERFORMANCE.md](PERFORMANCE.md#interface-release-02)
 (smaller first download, faster scrolling through history; opening a long channel ≈0.25 s
-slower in headless software rendering). The Vista desktop came after this rehearsal; its costs
-are measured in [PERFORMANCE.md](PERFORMANCE.md#vista-desktop-release-02-aero-glass-redesign)
-(scrolling and sending close to the earlier 0.2; opening a long channel +0.17 s; the moving
-wallpaper uses about one processor core on computers **without** graphics acceleration while
-someone is there, and rests otherwise).
+slower in headless software rendering). The Aero look came after this rehearsal, first as a
+Vista desktop, then inside the chat; its costs are measured in
+[PERFORMANCE.md](PERFORMANCE.md#in-app-aero-release-02-the-desktop-removed) (the in-app version
+costs what the Vista desktop cost; against the earlier 0.2, opening a long channel ≈0.1 s and
+scrolling back ≈10 % per page slower in software rendering; the moving wallpaper uses about one
+processor core on computers **without** graphics acceleration while someone is there, and
+rests otherwise).
 
 ## Deploying to the OVH VPS
 
