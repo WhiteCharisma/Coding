@@ -5,6 +5,46 @@ Results of the final verification run for **release 0.2** on **2026-10-09**, aga
 it). Every number below comes from an actual run; nothing is estimated. Raw output is not
 committed; re-run the commands at the end to reproduce.
 
+## Re-run after the in-app Aero rework (2026-10-10)
+
+Same environment and branch, after commit `636e08b` (web interface, tests and docs only: no
+dependency, schema, server or deployment change). The Vista desktop was removed and its glass
+moved into the chat (docs/DESIGN.md → Aero Glass).
+
+| Check                           | Result                                                  |
+| ------------------------------- | ------------------------------------------------------- |
+| TypeScript, ESLint, Prettier    | ✅ 0 errors, 0 problems, all files formatted            |
+| Unit + integration (`npm test`) | ✅ **270 / 270 passed**, 28 files, 0 skipped            |
+| End-to-end (`npm run test:e2e`) | ✅ **46 passed**, 1 skipped (opt-in TURN test), 0 flaky |
+| Production build, `npm audit`   | ✅ / 0 known vulnerabilities                            |
+
+Changed tests, with the reason:
+
+- `e2e/desktop-shell.spec.ts` → `e2e/aero-shell.spec.ts`: the desktop it tested is gone. It now
+  checks the rail's navigation (Home, Direct messages, a community, `aria-current`); a
+  conversation pane whose header fills the glass strip, which really blurs; the message box on
+  a glass foot that never lies under the scrolling messages; the members pane opening and
+  closing as a pane of its own; window colour and transparency (blur really off, remembered);
+  a mention flashing the community's rail button, with its preview saying so.
+- `windowSettled` removed from `e2e/fixtures.ts` and `message-layout.spec.ts`: there is no
+  window zoom any more, and the panes' opening slide moves boxes without resizing them. The
+  pane test waits for the slide to end before comparing positions (it failed once while
+  measuring during the slide).
+- `apps/web/src/stores/desktop.test.ts` → `stores/scene.test.ts`: the store only counts open
+  dialogs now; `features/shell/Wallpaper.test.tsx` no longer has a maximised window to test.
+- `tokens.test.ts` (66 tests): text on glass headers is checked in the new `--glass-text-2`
+  and `--glass-text-muted` colours (the usual muted text measured 2.5–3.8:1 on some window
+  colours), plus new tests for the message box over the glass foot.
+
+Found while verifying: Prettier flagged `apps/web/src/app.css`, left unformatted by the Vista
+commit; formatted.
+
+Deployment: the rehearsal copy was updated from the Vista build to `2477669` with the real
+`deploy/update.sh` (Docker + Caddy): backup first, healthy, 42 s in all; data, files and the
+old session intact; the new interface served without browser errors
+([RELEASE_0.2.md](RELEASE_0.2.md#rehearsal-done-on-a-copy-not-on-production)). Performance
+against the Vista desktop and 0.2: [PERFORMANCE.md](PERFORMANCE.md#in-app-aero-release-02-the-desktop-removed).
+
 ## Re-run after the Vista Aero Glass redesign (2026-10-09)
 
 Same environment, branch `feature/frutiger-aero-premium-upgrade`, working tree of the Vista

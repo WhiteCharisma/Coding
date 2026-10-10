@@ -213,6 +213,10 @@ Update this file in the same commit as the work it describes.
   - [x] tests: e2e `aero-shell.spec.ts` (rail navigation; header on the glass, glass foot never
         behind the messages, members pane; window colour and transparency; mention flash and
         preview), unit `stores/scene.ts`; the desktop's tests and `windowSettled` removed
+  - [x] measured against the Vista desktop and 0.2 (docs/PERFORMANCE.md → In-app Aero): costs
+        what the desktop cost, less at rest (0.2 % of a core after a minute instead of 2.1 %: no
+        ticking clock); A/B runs show the glass is not what scrolling or opening a channel pays
+        for; rehearsed with `deploy/update.sh` on the Docker copy (data, files, session intact)
 
 ## Next steps (not done — require the owner's infrastructure or decisions)
 

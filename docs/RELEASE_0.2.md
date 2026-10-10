@@ -73,7 +73,14 @@ real `deploy/update.sh`:
   Messages, the photo (identical SHA-256), its preview, the old session (REST and WebSocket), the
   voice configuration and the `Permissions-Policy` were all unchanged; files still answer 401
   without a session; the Vista desktop loaded through Caddy with that session and no browser
-  error. Later commits change documentation only.
+  error.
+- **after the in-app Aero rework** (the desktop removed, the glass moved into the chat), the
+  same copy, still on `86ed846`, was updated with `./deploy/update.sh 2477669`: backup first
+  (0.58 MB), image rebuilt, healthy, 42 s for the whole update. Messages, the photo (identical
+  SHA-256), its preview, the old session (REST and WebSocket), the voice configuration and the
+  `Permissions-Policy` were unchanged; files still answer 401 without a session; the new
+  interface (the rail, three glass panes, the message box on glass) loaded through Caddy with
+  that session and no browser error. Later commits change documentation only.
 
 Speed compared with 0.1 on the same machine: [PERFORMANCE.md](PERFORMANCE.md#interface-release-02)
 (smaller first download, faster scrolling through history; opening a long channel ≈0.25 s
